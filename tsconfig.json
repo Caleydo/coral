@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "module": "ES2020",
+    "target": "ES2019",
+    "importHelpers": true,
+    "sourceMap": true,
+    "declaration": true,
+    "moduleResolution": "node",
+    "jsx": "react",
+    "allowJs": true,
+    "declarationDir": "dist",
+    "outDir": "dist",
+    "experimentalDecorators": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "esModuleInterop": false,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "preserveWatchOutput":true,
+    "incremental": true,
+    "tsBuildInfoFile": "dist/tsBuildInfoFile"
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "tsd.d.ts"
+  ]
+}

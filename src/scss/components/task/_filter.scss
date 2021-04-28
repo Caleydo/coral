@@ -1,0 +1,120 @@
+.vis-selector {
+  flex-grow: 1;
+
+  a.selector {
+    &::before {
+      font-family: "Font Awesome 5 Free";
+      content: "\f0c8 ";
+    }
+
+    &.selected::before {
+      content: "\f14a ";
+    }
+  }
+}
+
+.vis-container {
+  display: grid;
+  grid-template-columns: 1fr 12em;
+  gap: 1em;
+  grid-template-areas: "vis controls"
+                       "legend legend";
+
+  .controls {
+    grid-area: controls;
+    margin-left: -0.5em; //half of the gap between vis and controls
+
+    display: grid;
+    align-content: start; // don't stretch the items (flexbox-like behaviour)
+    gap: 0.5em;
+
+    .tab-content {
+      border: 1px solid $color-border-light;
+      border-top: none;
+      padding: 0.5em;
+    }
+
+    .tab-pane .flex-wrapper {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1em;
+
+      input,
+      select {
+        padding-top: 2px;
+        padding-bottom: 2px;
+        height: 26px; // input's default height
+      }
+    }
+  }
+
+  .legend {
+    grid-area: legend;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    .entry-wrapper {
+      &::after {
+        content: "\2003"; //emspace
+      }
+
+      .entry {
+        white-space: nowrap;
+      }
+    }
+  }
+
+  .null-value-container {
+    .null-value-checkbox {
+      vertical-align: bottom;
+      top: -1px;
+      height: 18px;
+      position: relative;
+    }
+
+    .null-value-label {
+      padding-left: 5px;
+    }
+  }
+
+  .interval-controls {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto minmax(4em, 8em) auto minmax(4em, 8em);
+    grid-column-gap: 0.5em;
+    justify-content: center;
+
+    input {
+      border: 1px solid $color-border-light;
+      width: auto; //needed to adjust to css grid 🤷‍♀️
+    }
+  }
+
+  .progress-wrapper {
+    display: flex;
+
+    .progress-ctrl {
+      width: 2em; // constant width
+      display: flex; // move button to bottom
+      align-items: flex-end;
+
+      .run {
+        color: $color-text;
+        &:hover {
+          color: $color-hover;
+        }
+      }
+    }
+
+    .progress {
+      flex-grow: 1; // variable width
+      flex-shrink: 1;
+      margin-bottom: unset;
+
+      .progress-bar {
+        min-width: 3em;
+        background-color: $color-bar;
+      }
+    }
+  }
+}

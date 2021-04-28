@@ -1,0 +1,23 @@
+$task-border-radius: 3px !default;
+// styles for operation
+div.rectTask {
+  border: 1px solid $color-border-medium;
+  border-radius: $task-border-radius;
+  background-color: $color-task-background;
+  text-align: center;
+  cursor: default;
+
+  .rectTask-label {
+    padding: 0 0.25em;
+    text-overflow: ellipsis;
+    white-space: nowrap; // No line breaks
+    overflow: hidden; // require for text-overflow to work
+  }
+
+  .rectTask-image {
+    background-repeat: no-repeat;
+    background-position: center;
+    font-size: 25px;
+    font-family: 'Font Awesome 5 Free';
+  }
+}

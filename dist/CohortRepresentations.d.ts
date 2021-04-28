@@ -1,0 +1,37 @@
+import { Cohort } from './Cohort';
+import { IRectCohortRep } from './CohortInterfaces';
+export declare class RectCohortRep implements IRectCohortRep {
+    private cohort;
+    id: string;
+    labelOne: string;
+    labelTwo: string;
+    private _representation;
+    private _repClone;
+    private _height;
+    private _width;
+    private _cohort;
+    private _isSelected;
+    private _bloodline;
+    private _bloodlinePaths;
+    private _removeButton;
+    constructor(cohort: Cohort, height: number, width: number);
+    getRepresentation(): HTMLDivElement;
+    private _create;
+    private addHighlightingToElements;
+    private removeHighlightingFromElements;
+    private addHighlightingToPaths;
+    private removeHighlightingToPaths;
+    removeBacktrackingHighlighting(): void;
+    private _createClone;
+    getClone(): HTMLDivElement;
+    setSelection(state: boolean): void;
+    private assignColor;
+    getSelection(): boolean;
+    setInformation(labelOne: string, labelTwo: string, size: number, sizeReference: number): void;
+    setLabel(labelOne: string, labelTwo?: string): void;
+    setSize(size: number, sizeReference: number): void;
+    private _setSummary;
+    private _getPathsForBloodline;
+    private _formatHoverSummary;
+    private createCohortTooltip;
+}

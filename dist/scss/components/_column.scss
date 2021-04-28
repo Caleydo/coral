@@ -1,0 +1,128 @@
+$vertical-border-width: 2px !default;
+
+.column {
+  border-left: $vertical-border-width solid $color-background;
+  flex-basis: 100px; //default size
+  min-width: 100px; // minimum size the column can shrink to (see flex-shrink)
+  max-width: 175px; // max size the column can grow to (see flex-grow)
+
+  flex-shrink: 1; // can shrink
+  flex-grow: 1; // can grow
+  order: 50; //default order prop
+  background: $color-background;
+
+  &.highlight {
+    background-color: $color-cohort-background !important;
+  }
+
+  &.first {
+    order: -1; // -1<50 --> first display column
+    border-left: none; //edge of the viewport
+    border-right: $vertical-border-width solid $color-background;
+  }
+
+  &:last-child {
+    border-right: $vertical-border-width solid $color-background;
+  }
+
+  &.last {
+    order: 100; // 100>50 --> last displayed column
+    margin-left: auto; // moves it to the right edge of the container
+
+    border-right: none; //edge of the viewport
+    border-left: $vertical-border-width solid $color-background;
+  }
+  // ======== TYPES =========
+
+  &.cohort {
+    flex-basis: 136px;
+    flex-shrink: 0;
+    flex-grow: 0;
+  }
+
+  &.prevalence {
+    // can't get as wide as default columns
+    flex-basis: 100px;
+    min-width: 100px;
+    max-width: 150px;
+  }
+
+  &.number {
+    // very narrow
+    flex-basis: 4em;
+    min-width: unset;
+    max-width: unset;
+    flex-shrink: 0;
+    flex-grow: 0;
+
+    .header {
+      justify-content: center;
+    }
+
+    .data {
+      padding: 0.5em;
+      padding-top: 1.3em; // centers the text vertically to the cohort
+    }
+  }
+
+  &.empty {
+    //content is 0 by default, can grow and shrink infinetly, default column border remains
+    flex-basis: 2em;
+    min-width: 2em;
+    max-width: unset;
+    order: 900;
+
+    .header {
+      //no header -> no padding
+      padding-left: 0;
+      padding-right: 0;
+
+      .header-only-button {
+        height: 100%;
+
+        .empty-header-button {
+          width: 27px;
+          height: 27px;
+          line-height: 27px;
+          text-align: center;
+          font-size: 16px;
+          background: $color-cohort-background;
+          border: 1px solid $color-border-light;
+          border-radius: 3px;
+
+          &.active {
+            background: $color-selected !important;
+          }
+
+          &:hover {
+            border-color: $color-hover;
+            box-shadow: 0 0 8px $color-hover-opacity-75 !important;
+          }
+        }
+      }
+    }
+  }
+
+  // ======== STICKY COLUMNS =========
+
+  &.first,
+  &.last {
+    position: sticky;
+    z-index: 1000;
+
+    background-color: $color-background;
+  }
+
+  &.first {
+    left: 0;
+  }
+
+  &.last {
+    right: 0;
+    order: 1000;
+  }
+
+  // ======== CONTENT =========
+  @import "./columns/header";
+  @import "./columns/datacells";
+}

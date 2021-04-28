@@ -1,0 +1,27 @@
+# general things to ignore
+/.tscache
+/.idea
+/build/
+/dist/tsBuildInfoFile
+*.egg-info/
+*.egg
+*.py[cod]
+__pycache__/
+*.so
+*~
+*.log
+*.pot
+*.pyc
+*.swp
+*.lock
+# due to using tox and pytest
+.tox
+.cache
+node_modules/
+/src/**/*.js
+/src/**/*.map
+/tests/**/*.js
+*.css
+/.cache-loader
+package-lock.json
+*:Zone.Identifier

@@ -1,0 +1,16 @@
+.lineup-container {
+  padding: 0.5em;
+  height: 100%;
+
+  .lu-side-panel {
+    // 20em is the value from the LineUpJs scss
+    width: 20em; // otherwise tdp_core/../_view_lineup.scss sets it to 100% 
+    &.lu-collapsed{
+      width: 0;
+    }
+  }
+
+  .lineup-engine > main > footer {
+    display: block; // otherwise clue (selector = body[data-clue='E'] footer) sets it to 'none'
+  }
+}

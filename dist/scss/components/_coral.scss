@@ -1,0 +1,114 @@
+
+nav.navbar .navbar-header .navbar-brand.caleydo_app {
+  background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeD0iMHB4IiB5PSIwcHgiCgkgd2lkdGg9IjEyMC41MjJweCIgaGVpZ2h0PSIxMzguOTQ0cHgiIHZpZXdCb3g9IjAgMCAxMjAuNTIyIDEzOC45NDQiCgkgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+Cjxwb2x5Z29uIGZpbGw9IiM3NGFhY2YiIHBvaW50cz0iNjMuMTY2LDEzOC45NDYgMTIwLjMzLDEwNS45NDIgNjMuMTY2LDcyLjkzNyAgIi8+Cjxwb2x5Z29uIGZpbGw9IiM4Y2MzMmIiIHBvaW50cz0iNTkuMTY0LDcyLjkzNyAyLDEwNS45NDIgNTkuMTY0LDEzOC45NDQgICIvPgo8cG9seWdvbiBmaWxsPSIjZjVkNzAwIiBwb2ludHM9IjU3LjE2NCw2OS40NzIgMCwzNi40NjggMCwxMDIuNDc4ICAiLz4KPHBvbHlnb24gZmlsbD0iI2ZkOWYzNSIgcG9pbnRzPSI1OS4xNjQsMCAyLDMzLjAwMyA1OS4xNjQsNjYuMDA3ICAiLz4KPHBvbHlnb24gZmlsbD0iI0ZBODA3MyIgcG9pbnRzPSI2My4xNjYsNjYuMDA4IDEyMC4zMywzMy4wMDQgNjMuMTY2LDAgICIvPgo8L3N2Zz4=);
+}
+
+.cohort_app {
+  position: absolute; // absolute position this one should help in setting min/max sizes
+  width: 100%;
+  height: 100%;
+  border-bottom: 1px solid #ddd;
+  border-left: 1px solid #ddd;
+
+  // height of the initial taskview in vh, is later used to define the standard layout with pixels
+  // the size in pixels is needed to change the split screen with the dragger
+  --tv-height-vh: 50vh;
+
+  display: grid;
+  overflow: hidden;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr 7px var(--tv-height); //50vh for detail view because otherwise i couldn't get scrolling to work inside the input/output cohort areas.
+}
+
+.control-bar {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid lightgrey;
+  padding: 0.25rem 0.5em;
+
+  span {
+    font-size: 1.2em;
+    margin-right: 0.5em;
+  }
+}
+
+#modalWindow {
+  left: 25%;
+  top: 10%;
+  width: 50%; /* Full width */
+  height: 50%; /* Full height */
+}
+
+#db_btnGrp {
+  .btnSel {
+    background-color: $color-selected-light;
+  }
+}
+
+.screen-controls {
+  margin-left: auto;
+  display: flex;
+  margin-right: 50px;
+  padding: 5px 2px;
+  box-sizing: border-box;
+
+  .sc-button {
+    height: 20px;
+    width: 20px;
+    margin: 0 2px;
+    display: flex;
+    border: 1px solid $color-border-light;
+    background-color: $color-badge-background;
+    border-radius: 2px;
+
+    .icon {
+      width: 20px;
+      border: 1px solid $color-bar;
+      margin: 3px;
+      background-color: white;
+
+      div {
+        border-bottom: 1px solid $color-bar;
+        background-color: white;
+      }
+    }
+
+    &:hover {
+      border-color: $color-hover !important;
+      // background-color: $color-hover-opacity-75 !important;
+      box-shadow: inset 0 0px 2px $color-hover-opacity-75 , 0 0 8px $color-hover-opacity-75 !important;
+    }
+  }
+}
+
+#chtOverview {
+  display: flex;
+  overflow: auto;
+
+  @import './overview'; //overview styling
+
+}
+
+
+#dragger {
+  background: $color-cohort-background;
+  border-top: 1px solid  $color-border-light;
+  border-bottom: 1px solid  $color-border-light;
+
+  &:hover {
+    background: $color-background-darker !important;
+    cursor: row-resize;
+  }
+
+  svg.dragger-dots {
+    margin: auto;
+    display: block;
+    height: 5px;
+    width: 18px;
+
+    circle, rect {
+      fill: $color-bar;
+    }
+  }
+
+}

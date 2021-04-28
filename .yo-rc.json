@@ -1,0 +1,56 @@
+{
+  "generator-phovea": {
+    "type": "app-slib",
+    "modules": [
+      "phovea_core",
+      "phovea_ui",
+      "phovea_server"
+    ],
+    "vendors": {
+      "others": "phovea.*|tdp_.*|tdp-.*|datavisyn.*",
+      "phovea": "phovea.*",
+      "tdp": "tdp_.|tdp-.*",
+      "dv": "datavisyn.*"
+    },
+    "filesToLoad": {
+      "file-loader": "404|robots"
+    },
+    "libraries": [],
+    "libraryExternals": [],
+    "name": "cohort",
+    "author": "PatrickAdelberger",
+    "today": "Fri, 14 Jun 2019 11:27:31 GMT",
+    "githubAccount": "Caleydo",
+    "app": "cohort",
+    "clientOnly": false,
+    "entries": {
+      "app": {
+        "js": "dist/initialize.js",
+        "html": "index.html",
+        "template": "dist/index.template.ejs",
+        "chunkName": "app"
+      }
+    },
+    "libraryAliases": {
+      "d3": "d3/d3.js"
+    },
+    "sextensions": [],
+    "unknown": {
+      "requirements": [],
+      "dockerPackages": []
+    },
+    "ignores": [],
+    "extensions": [
+      {
+        "type": "tdpView",
+        "id": "cohort-ranking",
+        "module": "CohortRankingView",
+        "extras": {
+          "name": "Cohort Ranking",
+          "idtype": ".*",
+          "selection": "some"
+        }
+      }
+    ]
+  }
+}

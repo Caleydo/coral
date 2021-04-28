@@ -1,0 +1,11 @@
+import { IPanelDesc } from './app';
+import { Cohort } from './Cohort';
+import { CohortOverview } from './Overview/CohortOverview';
+import Taskview from './Taskview/Taskview';
+import { IEntitySourceConfig } from './utilIdTypes';
+export declare let cohortOverview: CohortOverview;
+export declare let taskview: Taskview;
+export declare function createCohortOverview(container: any, viewDescr: any, detailView: HTMLDivElement, idTypeConfig: IEntitySourceConfig, panel: IPanelDesc): Promise<void>;
+export declare function getRootCohort(): Cohort;
+export declare function destroyOld(): void;
+export declare function updateOverview(overview: CohortOverview): void;

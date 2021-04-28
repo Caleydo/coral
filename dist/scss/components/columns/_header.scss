@@ -1,0 +1,73 @@
+
+.header {
+  display: flex;
+  flex-direction: column;
+  height: 42px; // = same height as (searchbar + padding) from the task column
+ 
+  font-weight: 500;
+  
+  position: sticky;
+  top: 0;
+  
+  background: inherit;
+  z-index: 2; // because the mini vis were on top of the header
+
+  border-bottom: 1px solid $color-border-light;
+  padding: 2px 2px 0 2px; // more padding on top so the text is not so close to the border
+
+  .header-title {
+    font-size: 16px;
+    height: 18px;
+    line-height: 18px;
+    margin-top: 3px;
+    &.text {
+      text-overflow: ellipsis;
+      white-space: nowrap; // No line breaks
+      overflow: hidden; // require for text-overflow to work
+    }
+  }
+
+  .header-option {
+    display: flex;
+    flex-direction: row-reverse;
+    height: 18px;
+    line-height: 18px;
+    margin-left: auto;
+
+    .options {
+      height: 18px;
+      width: 18px;
+      margin-left: 3px;
+      color: $color-bar;
+      background-color: $color-badge-background;
+      border: 1px solid $color-border-light;
+      border-radius: 3px;
+      text-align: center;
+      
+
+      i::before {
+        font-size: 14px;
+      }
+      
+      &:hover {
+        //color: $color-hover;
+        border-color: $color-hover;
+        box-shadow: 0 0 8px $color-hover-opacity-75 !important; 
+      }
+
+      &.active {
+        background-color: $color-selected-light !important;
+      }
+    }
+
+    .options.options-with-text {
+      width: auto;
+      display: flex;
+
+      .options-text {
+        font-size: 12px;
+        padding: 0 2px;
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+body, html {
+  font-family: Yantramanav, 'Helvetica Neue', Helvetica, sans-serif;
+  font-weight: 400;
+}
+
+th, label, strong, b, .label {
+  font-weight: 500 !important;
+}
+
+#headerAboutDialog .modal-dialog {
+  width: 50vw;
+  min-width: 600px;
+  max-width: 900px;
+}
+
+
+@import './cohortRectangle'; //rectange style of the cohorts

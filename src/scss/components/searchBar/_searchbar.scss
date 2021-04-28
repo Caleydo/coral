@@ -1,0 +1,103 @@
+* {
+  box-sizing: border-box;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.search-bar-container {
+  position: relative;
+  border: 1px solid $color-border-light;
+  padding: 1px 1px 0px 1px;
+  border-radius: 4px;
+  cursor: text;
+  min-height: 35px;
+  max-height: 66px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex: 0;
+  flex-wrap: wrap;
+  background: $color-background;
+  color: $color-text;
+ 
+  .input-badge {
+    position: relative;
+
+    .search-bar-placeholder {
+      position: absolute;
+      height: 20px;
+      line-height: 20px;
+      left: 0.25em;
+      top: 0;
+      color: $color-text-light;
+    }
+  } 
+
+
+  .search-bar-input {
+    min-width: 10px;
+    height: 20px;
+    line-height: 20px;
+    padding: 0 0.25em;
+    border: none;
+    
+    &:focus {
+      outline: none !important; //should remove the highlighting 
+    }
+  }
+  
+  .clear-all {
+    height: 20px;
+    width: 20px;
+    background-color: $color-badge-interaction;
+    color: $color-text;
+    border: 1px solid $color-badge-interaction;
+    border-radius: 4px;
+    text-align: center;
+    line-height: 16px;
+    margin-bottom: 1px;
+    vertical-align: middle;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .selected-option-badge {
+    height: 20px;
+    background-color: $color-badge-background;
+    border: 1px solid $color-badge-interaction;
+    border-radius: 4px;
+    margin-left: 1px;
+    margin-bottom: 1px;
+    overflow: hidden; //needed to allow rounded corners in the child-elements
+    cursor: default;
+    display: flex;
+    
+    .label {
+      max-width: 150px;
+      padding: 0 0.25em;
+      font-family: Yantramanav, 'Helvetica Neue', Helvetica, sans-serif;
+      font-size: 14px;
+      font-weight: 400 !important;
+      line-height: 16px;
+      vertical-align: middle;
+      text-align: center;
+      color: $color-text;
+      text-overflow: ellipsis;
+      white-space: nowrap; // No line breaks
+      overflow: hidden; // require for text-overflow to work
+    }
+    
+    .remove-x {
+      width: 20px;
+      text-align: center;
+      line-height: 16px;
+      vertical-align: middle;
+      background-color: $color-badge-interaction;
+      font-weight: bold;
+      padding: 0px 3px;
+      cursor: pointer;
+    }
+  }
+}

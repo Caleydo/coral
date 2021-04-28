@@ -1,0 +1,483 @@
+.prev-checkbox {
+  position: relative;
+  flex-shrink: 0;
+  width: 16px;
+  background: $color-background;
+  border: 1px solid $color-text;
+  cursor: pointer;
+
+  .checkbox-indicator {
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 4px;
+    height: 8px;
+    border: solid $color-background;
+    // border right+bot and roation creates checkmark
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .icon-container {
+    text-align: center;
+    height: 100%;
+    width: 100%;
+  }
+
+  .icon-extra {
+    position: absolute;
+    top: calc(50% - 6px);
+    left: calc(50% - 7px);
+    font-weight: bold;
+    transform: scale(0.95);
+  }
+
+  .loading-effect {
+      animation-name: spin;
+      animation-duration: 2000ms;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+
+    @keyframes spin {
+        from {
+            transform:rotate(0deg);
+        }
+        to {
+            transform:rotate(360deg);
+        }
+    }
+  }
+}
+
+// container for the checkbox for the exclusion of missing values
+.exclude-container {
+  display: flex;
+  height: 16px;
+
+  // label for the checkbox
+  .label-excl-container {
+    align-self: center;
+    height: 16px;
+    margin-left: 3px;
+    cursor: default;
+  }
+
+  // loading checkbox
+  .prev-checkbox.color-loading {
+    background: $color-background !important;
+    color: $color-text !important;
+  }
+
+  // active checkbox
+  .prev-checkbox.active {
+    background: $color-bar;
+
+    .checkbox-indicator {
+      border-color: $color-background;
+    }
+  }
+}
+
+$scale-line-width: 1px !default;
+$error-bar-line-width: 1px !default;
+
+// container for one input cohort for the prevalence calculation
+.prevalence-cohort-pack {
+  margin-top: 10px;
+  padding-top: 0.5em;
+  border-top: 1px solid $color-border-light;
+
+  .prev-element-highlight {
+    border-color: $color-hover !important;
+    box-shadow: inset 0 0px 2px $color-hover-opacity-75 , 0 0 8px $color-hover-opacity-75 !important;
+  }
+
+  // reach row
+  .prev-row {
+    display: flex;
+    flex-direction: row;
+  }
+
+  // define the labels for each row (tasks, bars, result text)
+  .prev-label {
+    width: 120px;
+    flex-grow: 0;
+    flex-shrink: 0;
+  }
+
+  // set spaces between the bar row and the others
+  .prev-result {
+    margin: 3px 0 0 0;
+  }
+
+  // row with label and task options
+  .prev-ref-creation {
+    align-items: flex-start;
+
+    // task options
+    .prev-ref-label {
+      line-height: 16px;
+      margin-right: 1em;
+      min-width: max-content;
+    }
+  }
+
+  // **** task options *****
+  // container that holds all task options
+  .ref-task-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  // task options
+  .ref-task-option {
+    max-width: 350px;
+    height: 16px;
+    display: flex;
+    margin-right: 15px;
+    cursor: pointer;
+
+    .task-label {
+      padding: 0 0.25em;
+      text-overflow: ellipsis;
+      white-space: nowrap; // No line breaks
+      overflow: hidden; // require for text-overflow to work
+      text-align: center;
+      align-self: center;
+      height: 16px;
+      line-height: 16px;
+      background: $color-background;
+    }
+  }
+
+  // loading task options
+  .ref-task-option.color-loading {
+    .prev-checkbox{
+      background: $color-background !important;
+      color: $color-text !important;
+    }
+  }
+
+  // active task options
+  .ref-task-option.active {
+    .prev-checkbox {
+      background: $color-bar;
+    }
+
+    .checkbox-indicator {
+      border-color: $color-background;
+    }
+  }
+
+  // **** legend *****
+  .prev-legend-item {
+    display: flex;
+    flex-direction: row;
+    height: 16px;
+    line-height: 16px;
+    cursor: default;
+  }
+
+  // the label for the bars = legend
+  .prev-result-label {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 35px;
+  }
+
+  // mark for all legend items
+  .prev-legend-mark{
+    height: 16px;
+    width: 8px;
+    margin-right: 3px;
+  }
+
+  // mark for the reference item
+  .prev-legend-ref {
+    .prev-legend-mark{
+      background: $color-bar;
+    }
+  }
+
+  // mark for the filtered out item
+  .prev-legend-all {
+    margin-bottom: 3px;
+    .prev-legend-mark{
+      background: $color-background-darker;
+    }
+  }
+
+  // space after bar and scale
+  .prev-label-space {
+    width: 70px;
+    flex-grow: 0;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+
+    .prev-max-scale-label {
+      height: 15px;
+      font-size: 12px;
+      margin-bottom: -10px;
+      margin-top: auto;
+      width: 100%;
+      flex-grow: 0;
+      flex-shrink: 0;
+      padding-left: 0.25em;
+      text-align: left;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      cursor: default;
+    }
+
+  }
+
+  // **** bars *****
+  // container with all the bars
+  .prev-result-bar {
+    height: 35px;
+    width: 100%;
+    margin-top: auto;
+
+    // for each bar (dataset, reference, cohort)
+    .bar {
+      position: absolute;
+      left: 0;
+    }
+
+    .bar-dataset {
+      position: relative;
+      height: 100%;
+      width: 100%;
+      background: $color-background-darker;
+    }
+
+    .prev-value-zero {
+      height: 100%;
+      background: transparent;
+      border-left: $scale-line-width solid $color-text;
+      z-index: 10;
+    }
+
+    .bar-reference {
+      top: 10%;
+      height: 80%;
+      width: 100%; // inital value
+      background: $color-bar;
+
+      &.loading-effect {
+        background-size: 40px 40px;
+        background-color: $color-bar !important;
+        // transition: width 0.6s ease;
+        background-image:
+          -webkit-linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+        background-image:
+          -o-linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+        background-image:
+          linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+
+        -webkit-animation: stripes 2s linear infinite;
+        -o-animation: stripes 2s linear infinite;
+        animation: stripes 2s linear infinite;
+
+        @keyframes stripes {
+          0% {
+            background-position: 0px 0;
+          }
+          100% {
+            background-position: 40px 0;
+          }
+        }
+      }
+    }
+
+    .bar-cohort {
+      top: 25%;
+      height: 50%;
+      width: 0%; // inital value
+
+    }
+
+
+    .prev-container-ci-bar {
+      width: 100%; // inital value
+      height: 100%;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      align-items: center;
+      z-index: 10;
+
+      .prev-ci-bar-offset {
+        width: 0% // inital value
+      }
+      .prev-ci-bar-error{
+        flex-grow: 0;
+        flex-shrink: 0;
+        height: 50%;
+        width: 0%; // inital value
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        overflow: hidden;
+
+        .prev-ci-bar-error-line {
+          height: 100%;
+          width: 100%;
+
+
+          &.side{
+            height: 100%;
+            width: $error-bar-line-width;
+            flex-grow: 0;
+            flex-shrink: 0;
+            background: $color-background;
+          }
+          &.middle{
+            height: $error-bar-line-width;
+            flex-grow: 1;
+            flex-shrink: 1;
+            background: $color-background;
+          }
+        }
+      }
+    }
+
+  }
+
+  // **** scale *****
+  // container with all the bars
+  .prev-result-scale {
+    height: 50px; // 14 (upperscale) + 36 (lower scale: 2*16 for the sizes + 4 padding)
+
+    // for each scale (dataset, reference, cohort)
+    .prev-scale-elem {
+      position: absolute;
+      border-right: $scale-line-width solid $color-text;
+      left: 0;
+      top: 0;
+    }
+    .prev-scale-sizes {
+      width: 100%;
+
+      .prev-lower-scales {
+        position: relative;
+        width: 100%;
+
+      .prev-scale-dataset {
+        width: 100%;
+        // height: 20px;
+        border-top: $scale-line-width solid $color-text;
+
+        .prev-scale-first-tick {
+          height:4px;
+          border-top: none;
+          border-right: none;
+          border-left: $scale-line-width solid $color-text;
+        }
+      }
+
+      // reference scale
+      .prev-scale-reference {
+        height: 100%;
+        width: 100%; // inital value
+        display: flex;
+        flex-direction: row;
+
+        // remove the border on the right -> use tick
+        &.prev-scale-elem {
+          border-right: none;
+        }
+
+        // add border to the right = tick
+        .scale-reference-tick {
+          height: 36px;
+          width: 100%;
+          flex-grow: 0;
+          flex-shrink: 0;
+          border-right: $scale-line-width solid $color-text;
+        }
+
+        // container with the labels = centered by tick
+        .scale-reference-container {
+          height: 36px;
+          width: 70px;
+          padding-top: 5px;
+          flex-grow: 0;
+          flex-shrink: 0;
+          text-align: center;
+          cursor: default;
+
+          .scale-ctr-ref-size {
+            display: flex;
+            flex-direction: row;
+          }
+
+          .prev-info-bar-label {
+            margin-left: 5px;
+            color: $color-bar;
+            flex-grow: 0;
+            flex-shrink: 0;
+            font-size: 12px;
+            height: 15px;
+          }
+
+          .scale-ref-size {
+            height: 15px;
+            font-size: 12px;
+            padding-left: 0.25em;
+            text-align: left;
+            flex-grow: 0;
+            flex-shrink: 0;
+          }
+
+          .scale-ref-percentage {
+            height: 16px;
+            padding-left: 0.25em;
+            text-align: left;
+          }
+        }
+      }
+
+      // cohort scale
+      .prev-scale-cohort {
+        height: 36px;
+        width: 0%; // inital value
+        display: flex;
+        flex-direction: row-reverse;
+
+        // container with the labels = right aligned by tick
+        .scale-cohort-container {
+          min-width: 100px;
+          padding-top: 5px;
+          cursor: default;
+
+          .scale-cohort-size {
+            height: 15px;
+            font-size: 12px;
+            padding-right: 0.25em;
+            text-align: right;
+          }
+
+          .scale-cohort-percentage {
+            height: 16px;
+            padding-right: 0.25em;
+            text-align: right;
+          }
+
+          .scale-cohort-percentage {
+            font-weight: bold;
+          }
+        }
+      }
+    }
+  }
+
+
+
+  }
+}

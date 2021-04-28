@@ -1,0 +1,53 @@
+// ------------
+// colors
+// ------------
+// text
+$color-text: #333333 !default;
+$color-text-medium: #595959 !default;
+$color-text-light: #737373 !default;
+
+// background
+$color-background: #FFF !default;
+$color-app-background: #FFF !default;
+$color-background-darker: #d4d4d4 !default;
+
+
+// shadow
+$color-shadow: #d4d4d4 !default;
+
+// borders
+$color-border: #333333 !default;
+$color-border-medium: #AAA !default;
+$color-border-light: #d4d4d4 !default;
+
+// cohort element
+$color-cohort-background: #EFEFEF !default;
+$color-bar-background: #FFF !default;
+$color-bar: #595959 !default;
+$color-remove-icon: #333333 !default;
+
+// task element
+$color-task-background: #EFEFEF !default;
+$color-task-detail-icon: #333333 !default;
+
+// path
+$color-path-overview: #d4d4d4 !default;
+
+// interaction
+$color-hover: #52C0CC !default; //previous: #0097A7 #00B8CC , #29BCCC
+$color-hover-opacity-75: #52C0CCC0 !default;
+$color-selected: #FFC340 !default;
+$color-selected-light: #FFCB59 !default;
+
+// search bar
+$color-search-bar-background: #EFEFEF !default;
+$color-badge-background: #EFEFEF !default;
+$color-badge-interaction: #D4D4D4 !default;
+
+// prevalence checkbox
+$color-prevalence-cb-background: #EFEFEF !default;
+
+//darkgrey is #A9A9A9, see https://www.w3schools.com/colors/colors_shades.asp
+
+// $unused: #C8DCDE !default;
+// $unused2: #B5AA99 !default;

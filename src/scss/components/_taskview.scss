@@ -1,0 +1,58 @@
+.task-view {
+  display: grid;
+  grid-template-columns: 4fr 5fr 4fr;
+  transition: grid-template-columns 0.66s ease-in-out;
+  grid-template-rows: 100%;
+
+  &.no-output {
+    grid-template-columns: 4fr 6fr 0fr;
+    transition: grid-template-columns 0.5s ease-out;
+  }
+
+  @import "./search";
+
+  .task-view-table-button-wrapper {
+    position: relative;
+
+    .task-view-scroll-wrapper {
+      overflow: auto;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+
+      .task-view-table {
+        display: flex;
+        align-items: flex-start; // each column has its own height, used to keep search column seperate of others. default=stretch
+        padding-bottom: 5em;
+
+        @import "./column";
+
+        &.input .data {
+          margin-top: 10px;
+          padding-bottom: 10px;
+          border-bottom: 1px solid $color-border-light;
+        }
+      }
+    }
+
+    .floating-confirm {
+      position: absolute;
+      left: 1em;
+      bottom: 1.5em;
+      right: 1em;
+      padding: 0.5em 1em;
+
+      z-index: 2000; //output cohort column has 1000
+
+      display: grid;
+      grid-template-columns: auto minmax(min-content, 50%);
+      justify-content: space-between;
+
+      button {
+        box-shadow: 0 3px 9px rgba(0, 0, 0, 0.16), 0 3px 9px rgba(0, 0, 0, 0.23);
+      }
+    }
+  }
+}
