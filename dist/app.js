@@ -1,22 +1,22 @@
 import { select } from 'd3-selection';
 import { Compression } from 'phovea_clue';
 import { ActionMetaData, ActionUtils, AppContext, ObjectRefUtils } from 'phovea_core';
+import { AppMetaDataUtils } from 'phovea_ui';
 import SplitGrid from 'split-grid';
 import { ATDPApplication, RestBaseUtils } from 'tdp_core';
 import { cellline, tissue } from 'tdp_publicdb';
 import { cohortOverview, createCohortOverview, destroyOld, taskview } from './cohortview';
 import { OnboardingManager } from './OnboardingManager';
+import loginDialog from './templates/LoginDialog.html';
+import welcomeHtml from './templates/Welcome.html'; // webpack imports html to variable
+import * as aboutDisclaimer from './templates/_aboutDisclaimer.html';
 import { handleDataLoadError, log, removeFromArray } from './util';
 import { CohortSelectionEvent, COHORT_SELECTION_EVENT_TYPE, CONFIRM_TASK_EVENT_TYPE, PreviewConfirmEvent } from './utilCustomEvents';
 import { idCellline, idCovid19, idStudent, idTissue } from './utilIdTypes';
-import welcomeHtml from './templates/Welcome.html'; // webpack imports html to variable
-import loginDialog from './templates/LoginDialog.html';
-import { AppMetaDataUtils } from 'phovea_ui';
-import * as aboutDisclaimer from './templates/_aboutDisclaimer.html';
 /**
  * The Cohort app that does the acutal stuff.
  */
-export class CohortApp {
+export class CoralApp {
     constructor(graph, manager, parent, name = 'Cohort') {
         this.dataset = null;
         this.datasetEventID = 0;
@@ -328,7 +328,7 @@ export class App extends ATDPApplication {
     }
     createApp(graph, manager, main) {
         log.debug('Create App');
-        return new CohortApp(graph, manager, main, this.options.name).init();
+        return new CoralApp(graph, manager, main, this.options.name).init();
     }
     initSessionImpl(app) {
         log.debug('initSessionImpl. Is Graph empty?', app.graph.isEmpty);

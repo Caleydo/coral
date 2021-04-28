@@ -1,26 +1,26 @@
-import {select, Selection} from 'd3-selection';
-import {CLUEGraphManager, Compression} from 'phovea_clue';
-import {ActionMetaData, ActionNode, ActionUtils, AppContext, ICmdResult, IObjectRef, ObjectRefUtils, ProvenanceGraph} from 'phovea_core';
+import { select, Selection } from 'd3-selection';
+import { CLUEGraphManager, Compression } from 'phovea_clue';
+import { ActionMetaData, ActionNode, ActionUtils, AppContext, ICmdResult, IObjectRef, ObjectRefUtils, ProvenanceGraph } from 'phovea_core';
+import { AppMetaDataUtils } from 'phovea_ui';
 import SplitGrid from 'split-grid';
-import {ATDPApplication, IDatabaseViewDesc, RestBaseUtils} from 'tdp_core';
-import {cellline, tissue} from 'tdp_publicdb';
-import {Cohort} from './Cohort';
-import {cohortOverview, createCohortOverview, destroyOld, taskview} from './cohortview';
-import {OnboardingManager} from './OnboardingManager';
-import {Task} from './Tasks';
-import Taskview, {InputCohort} from './Taskview/Taskview';
-import {handleDataLoadError, log, removeFromArray} from './util';
-import {CohortSelectionEvent, COHORT_SELECTION_EVENT_TYPE, ConfirmTaskEvent, CONFIRM_TASK_EVENT_TYPE, PreviewConfirmEvent} from './utilCustomEvents';
-import {idCellline, idCovid19, idStudent, idTissue, IEntitySourceConfig} from './utilIdTypes';
-import welcomeHtml from './templates/Welcome.html'; // webpack imports html to variable
+import { ATDPApplication, IDatabaseViewDesc, RestBaseUtils } from 'tdp_core';
+import { cellline, tissue } from 'tdp_publicdb';
+import { Cohort } from './Cohort';
+import { cohortOverview, createCohortOverview, destroyOld, taskview } from './cohortview';
+import { OnboardingManager } from './OnboardingManager';
+import { Task } from './Tasks';
+import Taskview, { InputCohort } from './Taskview/Taskview';
 import loginDialog from './templates/LoginDialog.html';
-import {AppMetaDataUtils} from 'phovea_ui';
+import welcomeHtml from './templates/Welcome.html'; // webpack imports html to variable
 import * as aboutDisclaimer from './templates/_aboutDisclaimer.html';
+import { handleDataLoadError, log, removeFromArray } from './util';
+import { CohortSelectionEvent, COHORT_SELECTION_EVENT_TYPE, ConfirmTaskEvent, CONFIRM_TASK_EVENT_TYPE, PreviewConfirmEvent } from './utilCustomEvents';
+import { idCellline, idCovid19, idStudent, idTissue, IEntitySourceConfig } from './utilIdTypes';
 
 /**
  * The Cohort app that does the acutal stuff.
  */
-export class CohortApp {
+export class CoralApp {
 
   public readonly graph: ProvenanceGraph;
   public readonly graphManager: CLUEGraphManager;
@@ -34,9 +34,9 @@ export class CohortApp {
 
   /**
    * IObjectRef to this CohortApp instance
-   * @type {IObjectRef<CohortApp>}
+   * @type {IObjectRef<CoralApp>}
    */
-  readonly ref: IObjectRef<CohortApp>;
+  readonly ref: IObjectRef<CoralApp>;
 
   constructor(graph: ProvenanceGraph, manager: CLUEGraphManager, parent: HTMLElement, name: string = 'Cohort') {
     this.graph = graph;
@@ -123,14 +123,14 @@ export class CohortApp {
       .attr('class', 'db_btn btn btn-default')
       .attr('data-db', (d) => d.source.dbConnectorName)
       .attr('data-dbview', (d) => d.source.viewName)
-      .html((d) => {return d.source.idType.toUpperCase();})
+      .html((d) => { return d.source.idType.toUpperCase(); })
       .on('click', async function (d) {
         if (that.dataset?.source?.idType === d.source.idType) {
           //deselect
-          that.graph.push(App.setDataset(that.ref, {source: null}, that.dataset));
+          that.graph.push(App.setDataset(that.ref, { source: null }, that.dataset));
         } else {
           //set data
-          that.graph.push(App.setDataset(that.ref, {source: d.source}, that.dataset));
+          that.graph.push(App.setDataset(that.ref, { source: d.source }, that.dataset));
         }
       });
 
@@ -143,7 +143,7 @@ export class CohortApp {
     const dropdown = datasetGroup
       .append('ul').classed('dropdown-menu', true);
     dropdown.append('li').append('a').text('All')
-      .on('click', async (d) => that.graph.push(App.setDataset(that.ref, {source: d.source}, that.dataset))); // don't toggle data by checkging what is selected in dropdown
+      .on('click', async (d) => that.graph.push(App.setDataset(that.ref, { source: d.source }, that.dataset))); // don't toggle data by checkging what is selected in dropdown
 
 
     dropdown.append('li').attr('role', 'separator').classed('divider', true);
@@ -156,8 +156,8 @@ export class CohortApp {
       .append('li') //.classed('panel', true)
       .append('a').text((d) => d.id).attr('title', (d) => d.description)
       .on('click', function (d) {
-        const dataSourcesAndPanels = select(this.parentNode.parentNode).datum() as {source: IEntitySourceConfig, panels: IPanelDesc[]}; // a -> parent = li -> parent = dropdown = ul
-        that.graph.push(App.setDataset(that.ref, {source: dataSourcesAndPanels.source, panel: d}, that.dataset));
+        const dataSourcesAndPanels = select(this.parentNode.parentNode).datum() as { source: IEntitySourceConfig, panels: IPanelDesc[] }; // a -> parent = li -> parent = dropdown = ul
+        that.graph.push(App.setDataset(that.ref, { source: dataSourcesAndPanels.source, panel: d }, that.dataset));
       });
 
 
@@ -380,7 +380,7 @@ export class CohortApp {
 /**
  * The app for this website, embeds our Cohort App
  */
-export class App extends ATDPApplication<CohortApp> {
+export class App extends ATDPApplication<CoralApp> {
 
   constructor(name: string) {
     super({
@@ -392,26 +392,26 @@ export class App extends ATDPApplication<CohortApp> {
     });
   }
 
-  protected createApp(graph: ProvenanceGraph, manager: CLUEGraphManager, main: HTMLElement): CohortApp | PromiseLike<CohortApp> {
+  protected createApp(graph: ProvenanceGraph, manager: CLUEGraphManager, main: HTMLElement): CoralApp | PromiseLike<CoralApp> {
     log.debug('Create App');
-    return new CohortApp(graph, manager, main, this.options.name).init();
+    return new CoralApp(graph, manager, main, this.options.name).init();
   }
 
-  protected initSessionImpl(app: CohortApp) {
+  protected initSessionImpl(app: CoralApp) {
     log.debug('initSessionImpl. Is Graph empty?', app.graph.isEmpty);
     this.jumpToStoredOrLastState();
   }
 
-  static async setDatasetImpl(inputs: IObjectRef<CohortApp>[], parameter: any): Promise<ICmdResult> {
+  static async setDatasetImpl(inputs: IObjectRef<CoralApp>[], parameter: any): Promise<ICmdResult> {
     log.debug('setDataset impl', parameter.oldDataset, parameter.newDataset);
-    const app: CohortApp = await inputs[0].v;
+    const app: CoralApp = await inputs[0].v;
     app.setDataset(parameter.newDataset);
     return {
       inverse: App.setDataset(inputs[0], parameter.oldDataset, parameter.newDataset)
     };
   }
 
-  static setDataset(provider: IObjectRef<CohortApp>, newDataset: IDatasetDesc, oldDataset: IDatasetDesc) {
+  static setDataset(provider: IObjectRef<CoralApp>, newDataset: IDatasetDesc, oldDataset: IDatasetDesc) {
     log.debug('Create setDataset Action');
     return ActionUtils.action(ActionMetaData.actionMeta('Change Dataset', ObjectRefUtils.category.data, ObjectRefUtils.operation.update), 'chtSetDataset', App.setDatasetImpl, [provider], {
       newDataset,
@@ -435,7 +435,7 @@ export class CohortSelectionListener {
     return CohortSelectionListener.instance;
   }
 
-  static init(eventTarget: Node, app: CohortApp) {
+  static init(eventTarget: Node, app: CoralApp) {
     if (CohortSelectionListener.instance) {
       CohortSelectionListener.instance.eventTarget.removeEventListener(COHORT_SELECTION_EVENT_TYPE, CohortSelectionListener.instance.handleSelectionEvent); // remove listener
       CohortSelectionListener.instance.selection.forEach((cht) => cht.selected = false); // deselect
@@ -451,7 +451,7 @@ export class CohortSelectionListener {
     }
   }
 
-  private constructor(private eventTarget: Node, private app: CohortApp) {
+  private constructor(private eventTarget: Node, private app: CoralApp) {
     eventTarget.addEventListener(COHORT_SELECTION_EVENT_TYPE, (ev) => this.handleSelectionEvent(ev as CohortSelectionEvent)); //arrow function to keep "this" working in eventhandler
   }
 

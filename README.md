@@ -1,4 +1,4 @@
-cohort [![Phovea][phovea-image]][phovea-url] [![CircleCI](https://circleci.com/gh/Caleydo/cohort.svg?style=svg&circle-token=fdba4d201b4b9eb707b8b155340aae1d23c74fdf)](https://circleci.com/gh/Caleydo/cohort) [![Dependency Status][daviddm-image]][daviddm-url]
+coral [![Phovea][phovea-image]][phovea-url] [![CircleCI](https://circleci.com/gh/Caleydo/coral.svg?style=svg&circle-token=fdba4d201b4b9eb707b8b155340aae1d23c74fdf)](https://circleci.com/gh/Caleydo/coral) [![Dependency Status][daviddm-image]][daviddm-url]
 =====================
 
 
@@ -7,8 +7,8 @@ Installation
 ------------
 
 ```
-git clone git@github.com:Caleydo/cohort.git
-cd cohort
+git clone git@github.com:Caleydo/coral.git
+cd coral
 npm install
 ```
 
@@ -36,9 +36,9 @@ This repository is part of **[Phovea](http://phovea.caleydo.org/)**, a platform 
 
 [phovea-image]: https://img.shields.io/badge/Phovea-Client%20Plugin-F47D20.svg
 [phovea-url]: https://phovea.caleydo.org
-[npm-image]: https://badge.fury.io/js/cohort.svg
-[npm-url]: https://npmjs.org/package/cohort
-[travis-image]: https://travis-ci.org/Caleydo/cohort.svg?branch=master
-[travis-url]: https://travis-ci.org/Caleydo/cohort
-[daviddm-image]: https://david-dm.org/Caleydo/cohort/status.svg
-[daviddm-url]: https://david-dm.org/Caleydo/cohort
+[npm-image]: https://badge.fury.io/js/coral.svg
+[npm-url]: https://npmjs.org/package/coral
+[travis-image]: https://travis-ci.org/Caleydo/coral.svg?branch=master
+[travis-url]: https://travis-ci.org/Caleydo/coral
+[daviddm-image]: https://david-dm.org/Caleydo/coral/status.svg
+[daviddm-url]: https://david-dm.org/Caleydo/coral

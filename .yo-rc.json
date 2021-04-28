@@ -17,11 +17,11 @@
     },
     "libraries": [],
     "libraryExternals": [],
-    "name": "cohort",
+    "name": "coral",
     "author": "PatrickAdelberger",
     "today": "Fri, 14 Jun 2019 11:27:31 GMT",
     "githubAccount": "Caleydo",
-    "app": "cohort",
+    "app": "coral",
     "clientOnly": false,
     "entries": {
       "app": {
@@ -43,10 +43,10 @@
     "extensions": [
       {
         "type": "tdpView",
-        "id": "cohort-ranking",
-        "module": "CohortRankingView",
+        "id": "coral-ranking",
+        "module": "CoralRankingView",
         "extras": {
-          "name": "Cohort Ranking",
+          "name": "Coral Ranking",
           "idtype": ".*",
           "selection": "some"
         }

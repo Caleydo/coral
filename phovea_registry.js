@@ -4,14 +4,14 @@
  * Licensed under the new BSD license, available at http://caleydo.org/license
  **************************************************************************** */
 
-import {PluginRegistry} from 'phovea_core';
-import reg from './dist/phovea';
-
+import { PluginRegistry } from 'phovea_core';
 /**
  * build a registry by registering all phovea modules
  */
 //other modules
 import 'phovea_core/phovea_registry.js';
 import 'phovea_ui/phovea_registry.js';
+import reg from './dist/phovea';
+
 //self
-PluginRegistry.getInstance().register('cohort', reg);
+PluginRegistry.getInstance().register('coral', reg);

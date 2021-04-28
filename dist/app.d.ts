@@ -8,7 +8,7 @@ import { IEntitySourceConfig } from './utilIdTypes';
 /**
  * The Cohort app that does the acutal stuff.
  */
-export declare class CohortApp {
+export declare class CoralApp {
     readonly graph: ProvenanceGraph;
     readonly graphManager: CLUEGraphManager;
     private readonly $node;
@@ -19,9 +19,9 @@ export declare class CohortApp {
     private datasetEventID;
     /**
      * IObjectRef to this CohortApp instance
-     * @type {IObjectRef<CohortApp>}
+     * @type {IObjectRef<CoralApp>}
      */
-    readonly ref: IObjectRef<CohortApp>;
+    readonly ref: IObjectRef<CoralApp>;
     constructor(graph: ProvenanceGraph, manager: CLUEGraphManager, parent: HTMLElement, name?: string);
     /**
      * Initialize the view and return a promise
@@ -57,12 +57,12 @@ export declare class CohortApp {
 /**
  * The app for this website, embeds our Cohort App
  */
-export declare class App extends ATDPApplication<CohortApp> {
+export declare class App extends ATDPApplication<CoralApp> {
     constructor(name: string);
-    protected createApp(graph: ProvenanceGraph, manager: CLUEGraphManager, main: HTMLElement): CohortApp | PromiseLike<CohortApp>;
-    protected initSessionImpl(app: CohortApp): void;
-    static setDatasetImpl(inputs: IObjectRef<CohortApp>[], parameter: any): Promise<ICmdResult>;
-    static setDataset(provider: IObjectRef<CohortApp>, newDataset: IDatasetDesc, oldDataset: IDatasetDesc): import("phovea_core").IAction;
+    protected createApp(graph: ProvenanceGraph, manager: CLUEGraphManager, main: HTMLElement): CoralApp | PromiseLike<CoralApp>;
+    protected initSessionImpl(app: CoralApp): void;
+    static setDatasetImpl(inputs: IObjectRef<CoralApp>[], parameter: any): Promise<ICmdResult>;
+    static setDataset(provider: IObjectRef<CoralApp>, newDataset: IDatasetDesc, oldDataset: IDatasetDesc): import("phovea_core").IAction;
     static compressChtSetDataset(path: ActionNode[]): ActionNode[];
 }
 export declare class CohortSelectionListener {
@@ -73,7 +73,7 @@ export declare class CohortSelectionListener {
     selection: Cohort[];
     firstCohort: boolean;
     static get(): CohortSelectionListener;
-    static init(eventTarget: Node, app: CohortApp): void;
+    static init(eventTarget: Node, app: CoralApp): void;
     static reset(): void;
     private constructor();
     handleSelectionEvent(ev: CohortSelectionEvent): void;

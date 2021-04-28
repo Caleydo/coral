@@ -1,5 +1,5 @@
 {
-  "name": "cohort",
+  "name": "coral",
   "description": "Cohort Analysis Tool",
   "homepage": "https://caleydo.org",
   "version": "1.0.0",
@@ -10,11 +10,11 @@
   },
   "license": "SEE LICENSE FILE",
   "bugs": {
-    "url": "https://github.com/Caleydo/cohort/issues"
+    "url": "https://github.com/Caleydo/coral/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:Caleydo/cohort.git"
+    "url": "git@github.com:Caleydo/coral.git"
   },
   "private": true,
   "scripts": {
@@ -29,7 +29,7 @@
     "copy-app-assets": "shx --verbose cp src/*.txt dist/ | true && shx --verbose cp src/*.html dist/ | true && shx --verbose cp src/*.ejs dist/ | true",
     "predist": "echo hybrid",
     "predocker": "npm run build",
-    "docker": "docker build -t cohort -f deploy/Dockerfile .",
+    "docker": "docker build -t coral -f deploy/Dockerfile .",
     "check": "flake8 --exclude=.git,venv,deploy,docs,__pycache__,node_modules",
     "pretest": "echo hybrid",
     "test": "npm run test:web && npm run test:python",
@@ -48,7 +48,7 @@
     "release:minor": "npm version minor && npm publish && git push --follow-tags",
     "release:patch": "npm version patch && npm publish && git push --follow-tags",
     "docs:web": "typedoc --options typedoc.json src/**.ts",
-    "docs:python": "sphinx-apidoc -o docs -f ./cohort && sphinx-build ./docs build/docs",
+    "docs:python": "sphinx-apidoc -o docs -f ./coral && sphinx-build ./docs build/docs",
     "pretest:web": "npm run compile",
     "pretest:python": "npm run check",
     "posttest:web": "npm run lint",
@@ -56,11 +56,11 @@
     "test:python": "test ! $(find tests -name \"*.py\") || python setup.py test",
     "prebuild:python": "node -e \"process.exit(process.env.PHOVEA_SKIP_TESTS === undefined?1:0)\" || npm run test:python",
     "prebuild:web": "node -e \"process.exit(process.env.PHOVEA_SKIP_TESTS === undefined?1:0)\" || npm run test:web",
-    "build:python": "rm -rf build/source && find . -name '*.pyc' -delete && node buildPython.js && cp -r ./cohort build/source/",
+    "build:python": "rm -rf build/source && find . -name '*.pyc' -delete && node buildPython.js && cp -r ./coral build/source/",
     "build:web": "npm run clean && npm run compile",
     "predist:web": "npm run build:web && npm run docs:web",
     "predist:python": "npm run build:python && npm run docs:python",
-    "dist:web": "mkdirp lib && cd dist && tar cvzf ../lib/cohort.tar.gz *",
+    "dist:web": "mkdirp lib && cd dist && tar cvzf ../lib/coral.tar.gz *",
     "dist:python": "python setup.py bdist_egg"
   },
   "files": [
@@ -69,7 +69,7 @@
     "phovea.js",
     "phovea_registry.js",
     "build",
-    "cohort",
+    "coral",
     "__init__.py",
     "__main__.py",
     "requirements.txt",
