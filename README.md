@@ -25,11 +25,13 @@ Feedback
 
 Your comments and feedback are welcome, and we are available via a handful of different channels:
 
-* [File an issue](https://github.com/Caleydo/coral/issues) or [request a new feature](https://github.com/Caleydo/coral/issues) here on GitHub.
-* Write us an email to coral@caleydo.org.
-* Follow [@marc_streit](https://twitter.com/marc_streit) and [@datavisyn](https://twitter.com/datavisyn) for updates on the and let us know what you think!
+* [File an issue](https://github.com/Caleydo/coral/issues) 
+* [Request a new feature](https://github.com/Caleydo/coral/issues)
+* Write us an email to coral@caleydo.org
 
 Future versions of Coral are planned in the milestones of the Github issue tracker. You can use the milestones to see what's currently planned for future releases.
+Past releases and changelogs are available at https://github.com/Caleydo/coral/releases
+
 
 Installation
 ------------
@@ -40,8 +42,13 @@ The [Coral Product repository](https://github.com/Caleydo/coral_product) describ
 Please refer to [the product repository](https://github.com/Caleydo/coral_product) for setup instructions.
 
 
-Citation
+Citing Coral
 ------------
+
+```
+TODO
+```
+
 
 ***
 
