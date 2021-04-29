@@ -1,5 +1,5 @@
 
-Coral [![Phovea][phovea-image]][phovea-url] [![CircleCI](https://circleci.com/gh/Caleydo/coral.svg?style=svg&circle-token=fdba4d201b4b9eb707b8b155340aae1d23c74fdf)](https://circleci.com/gh/Caleydo/coral) [![Dependency Status][daviddm-image]][daviddm-url]<a href="https://coral.caleydoapp.org/"><img align="right" src="src/assets/favicon.svg" height="50"></img></a>
+Coral [![Phovea][phovea-image]][phovea-url] [![CircleCI](https://circleci.com/gh/Caleydo/coral.svg?style=svg)](https://circleci.com/gh/Caleydo/coral) <a href="https://coral.caleydoapp.org/"><img align="right" src="src/assets/favicon.svg" height="50"></img></a>
 =====================
 
 Coral is a web-based visual analysis tool for creating and characterizing cohorts.
@@ -56,5 +56,3 @@ This repository is part of **[Phovea](http://phovea.caleydo.org/)**, a platform 
 [phovea-url]: https://phovea.caleydo.org
 [npm-image]: https://badge.fury.io/js/coral.svg
 [npm-url]: https://npmjs.org/package/coral
-[daviddm-image]: https://david-dm.org/Caleydo/coral/status.svg
-[daviddm-url]: https://david-dm.org/Caleydo/coral
