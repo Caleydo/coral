@@ -15,9 +15,10 @@ Coral can be utilized to explore any type of cohort and sample set. Our focus, h
 
 
 Learn more about Coral by reading the preprint and its supplemental material (TODO) with two cancer genomics case studies.
+
 For a quick overview of Coral, see our preview video:
 
-<img src="https://img.youtube.com/vi/jmYuzgFglLc/maxresdefault.jpg" width=50% height=50% style="display:block;float:none;margin-left:auto;margin-right:auto%">
+[<img src="https://img.youtube.com/vi/jmYuzgFglLc/maxresdefault.jpg" width=50% height=50%>](https://www.youtube.com/watch?v=jmYuzgFglLc)
 
 Feedback
 ------------
