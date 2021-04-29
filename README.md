@@ -28,6 +28,7 @@ Your comments and feedback are welcome, and we are available via a handful of di
 * [File an issue](https://github.com/Caleydo/coral/issues) 
 * [Request a new feature](https://github.com/Caleydo/coral/issues)
 * Write us an email to coral@caleydo.org
+* Follow [@marc_streit](https://twitter.com/marc_streit) and let us know what you think!
 
 Future versions of Coral are planned in the milestones of the Github issue tracker. You can use the milestones to see what's currently planned for future releases.
 Past releases and changelogs are available at https://github.com/Caleydo/coral/releases
