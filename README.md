@@ -14,8 +14,7 @@ Coral can be utilized to explore any type of cohort and sample set. Our focus, h
 ![screenshot](media/screenshot.full.png?raw=true "Screenshot")
 
 
-Learn more about Coral by reading the preprint and its supplemental material (TODO) with two cancer genomics case studies.
-
+Learn more about Coral by reading the preprint and its supplemental material (TODO) with two cancer genomics case studies.  
 For a quick overview of Coral, see our preview video:
 
 [<img src="https://img.youtube.com/vi/jmYuzgFglLc/maxresdefault.jpg" width=50% height=50%>](https://www.youtube.com/watch?v=jmYuzgFglLc)
@@ -23,12 +22,8 @@ For a quick overview of Coral, see our preview video:
 Feedback
 ------------
 
-Your comments and feedback are welcome, and we are available via a handful of different channels:
-
-* [File an issue](https://github.com/Caleydo/coral/issues) 
-* [Request a new feature](https://github.com/Caleydo/coral/issues)
-* Write us an email to coral@caleydo.org
-* Follow [@marc_streit](https://twitter.com/marc_streit) and let us know what you think!
+Your comments and feedback are welcome. Write an email to coral@caleydo.org and let us know what you think!  
+If you have discovered an issue or have a feature suggestion, feel free to [create an issue on GitHub](https://github.com/Caleydo/coral/issues).
 
 Future versions of Coral are planned in the milestones of the Github issue tracker. You can use the milestones to see what's currently planned for future releases.
 Past releases and changelogs are available at https://github.com/Caleydo/coral/releases
