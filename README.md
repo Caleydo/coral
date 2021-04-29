@@ -13,8 +13,22 @@ Coral can be utilized to explore any type of cohort and sample set. Our focus, h
 
 ![screenshot](media/screenshot.full.png?raw=true "Screenshot")
 
-For a quick overview of Coral, see our preview video (TODO), or take a look into the preprint (TODO) and its supplemental material (TODO) with two cancer genomics case studies.
 
+Learn more about Coral by reading the preprint and its supplemental material (TODO) with two cancer genomics case studies.
+For a quick overview of Coral, see our preview video:
+
+<div style="text-align:center"><img src="https://img.youtube.com/vi/jmYuzgFglLc/maxresdefault.jpg" width=50% height=50%></div>
+
+Feedback
+------------
+
+Your comments and feedback are welcome, and we are available via a handful of different channels:
+
+* [File an issue](https://github.com/Caleydo/coral/issues) or [request a new feature](https://github.com/Caleydo/coral/issues) here on GitHub.
+* Write us an email to coral@caleydo.org.
+* Follow [@marc_streit](https://twitter.com/marc_streit) and [@datavisyn](https://twitter.com/datavisyn) for updates on the and let us know what you think!
+
+Future versions of Coral are planned in the milestones of the Github issue tracker. You can use the milestones to see what's currently planned for future releases.
 
 Installation
 ------------
@@ -24,6 +38,9 @@ Coral is based on the [Target Discovery Platform](https://github.com/datavisyn/t
 The [Coral Product repository](https://github.com/Caleydo/coral_product) describes all parts needed to set up a a running instance of Coral and is used to deploy the [stable](https://coral.caleydoapp.org/) and [daily development]((https://coral-daily.caleydoapp.org/)) builds.
 Please refer to [the product repository](https://github.com/Caleydo/coral_product) for setup instructions.
 
+
+Citation
+------------
 
 ***
 
