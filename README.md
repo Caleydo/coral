@@ -9,6 +9,8 @@ Coral visualizes the evolution of cohorts and also provides intuitive access to 
 
 Coral can be utilized to explore any type of cohort and sample set. Our focus, however, is on the analysis of genomic data from cancer patients.
 
+🚀 You can try Coral yourself at: https://coral.caleydoapp.org/
+
 ![screenshot](media/screenshot.full.png?raw=true "Screenshot")
 
 For a quick overview of Coral, see our preview video (TODO), or take a look into the preprint (TODO) and its supplemental material (TODO) with two cancer genomics case studies.
@@ -19,10 +21,7 @@ Installation
 
 Coral is based on the [Target Discovery Platform](https://github.com/datavisyn/tdp_core) and uses the [Phovea Server](https://github.com/phovea/phovea_server) to run the backend and multiple other Phovea plugins.
 
-The [Coral Product repository](https://github.com/Caleydo/coral_product) describes all parts needed to set up a a running instance of Coral and is used to deploy the two public Coral version for 
-* Stable releases: https://coral.caleydoapp.org/
-* Daily development builds: https://coral-daily.caleydoapp.org/
-
+The [Coral Product repository](https://github.com/Caleydo/coral_product) describes all parts needed to set up a a running instance of Coral and is used to deploy the [stable](https://coral.caleydoapp.org/) and [daily development]((https://coral-daily.caleydoapp.org/)) builds.
 Please refer to [the product repository](https://github.com/Caleydo/coral_product) for setup instructions.
 
 
