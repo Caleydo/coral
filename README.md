@@ -14,10 +14,10 @@ Coral can be utilized to explore any type of cohort and sample set. Our focus, h
 ![screenshot](media/screenshot.full.png?raw=true "Screenshot")
 
 
-Learn more about Coral by reading the preprint and its supplemental material (TODO) with two cancer genomics case studies.  
+Learn more about Coral by reading the [preprint](https://jku-vds-lab.at/publications/2021_preprint_coral/) and its supplemental material with two cancer genomics case studies.  
 For a quick overview of Coral, see our preview video:
 
-[<img src="https://img.youtube.com/vi/jmYuzgFglLc/maxresdefault.jpg" width=50% height=50%>](https://www.youtube.com/watch?v=jmYuzgFglLc)
+[<img src="https://img.youtube.com/vi/eaYfPnrufyY/maxresdefault.jpg" width=50% height=50%>](https://www.youtube.com/watch?v=eaYfPnrufyY)
 
 Feedback
 ------------
@@ -42,7 +42,13 @@ Citing Coral
 ------------
 
 ```
-TODO
+@article{2021_preprint_coral,
+    title = {Coral: a web-based visual analysis tool for creating and characterizing cohorts},
+    author = {Patrick Adelberger and Klaus Eckelt and Markus J. Bauer and Marc Streit and Christian Haslinger and Thomas Zichner},
+    journal = {bioRxiv},
+    doi = {10.1101/2021.05.26.445802},
+    year = {2021}
+}
 ```
 
 
