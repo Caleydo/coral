@@ -22,7 +22,7 @@ export class VegaGroupedHistogram extends VegaHistogram {
             throw new Error('Type "number" is not supported for grouped histograms');
         }
         const histSpec = super.getSpec(data);
-        delete histSpec.autosize; // does not work for facetted charts, see https://github.com/Caleydo/cohort/issues/121
+        delete histSpec.autosize; // does not work for facetted charts
         delete histSpec.encoding; // make new encoding for groupedhistogram
         const [yField, rowField] = groupByConfig.getSelected().label === 'Same Category' ? [DATA_LABEL, this.field] : [this.field, DATA_LABEL];
         const grpHistSpec = {

@@ -34,7 +34,7 @@ export class VegaGroupedHistogram extends VegaHistogram {
     }
 
     const histSpec = super.getSpec(data) as TopLevelUnitSpec<Field>;
-    delete histSpec.autosize; // does not work for facetted charts, see https://github.com/Caleydo/cohort/issues/121
+    delete histSpec.autosize; // does not work for facetted charts
     delete histSpec.encoding; // make new encoding for groupedhistogram
 
     const [yField, rowField] = groupByConfig.getSelected().label === 'Same Category' ? [DATA_LABEL, this.field] : [this.field, DATA_LABEL];

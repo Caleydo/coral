@@ -151,7 +151,7 @@ export default function (registry) {
             ]
         ]
     });
-    registry.push(EP_ORDINO_LOGO, 'coral_logo', () => import('cohort/dist/assets/favicon.svg').then(PluginRegistry.getInstance().asResource), {
+    registry.push(EP_ORDINO_LOGO, 'coral_logo', () => import('coral/dist/assets/favicon.svg').then(PluginRegistry.getInstance().asResource), {
         text: 'Coral',
         width: 24,
         height: 24

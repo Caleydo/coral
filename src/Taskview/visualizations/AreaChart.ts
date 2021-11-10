@@ -66,7 +66,7 @@ export class AreaChart extends MultiAttributeVisualization {
 
     // Get base spec, merge with above
     const vegaLiteSpec: VegaLiteSpec = Object.assign(super.getSpec(data), scatterSpec);
-    delete vegaLiteSpec.autosize; // does not work for facetted charts, see https://github.com/Caleydo/cohort/issues/121
+    delete vegaLiteSpec.autosize; // does not work for facetted charts
     delete vegaLiteSpec.width; // determine by step size
     // this.addIntervalSelection(vegaLiteSpec); // add interval selection
 

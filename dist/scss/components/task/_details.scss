@@ -20,7 +20,7 @@
   .lineup-engine > main > footer {
     // these footers provide space so that the scrollbars look like you can browse over the whole table while actually lineup is always showing just a fraction
     display: block; // otherwise clue (selector = body[data-clue='E'] footer) sets it to 'none'
-    width: 0; // it would be 50px causing the table body being 50px wider than the table header and the two scrolling out of sync, see https://github.com/Caleydo/cohort/issues/533
+    width: 0; // it would be 50px causing the table body being 50px wider than the table header and the two scrolling out of sync
   }
 
   .le-tr.lu-selected, .le-tr:hover, .le-tr.le-highlighted {
