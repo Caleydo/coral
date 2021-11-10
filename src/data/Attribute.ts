@@ -3,7 +3,7 @@ import {IDataSubtypeConfig, IDataTypeConfig, resolveDataTypes} from 'tdp_publicd
 import {Cohort, createCohortWithDepletionScoreFilter, createCohortWithEqualsFilter, createCohortWithGeneEqualsFilter, createCohortWithGeneNumFilter, createCohortWithNumFilter, createCohortWithPanelAnnotationFilter} from '../Cohort';
 import {ICohort} from '../CohortInterfaces';
 import {getCohortData, getCohortDepletionScore, getCohortGeneScore, getCohortHist, getCohortPanelAnnotation, getCohortSize, HistRouteType, ICohortDBDepletionScoreParams, ICohortDBGeneScoreParams, ICohortDBHistDataParms, ICohortDBHistPanelParms, ICohortDBHistScoreDepletionParms, ICohortDBHistScoreParms, ICohortDBPanelAnnotationParams, IEqualsList, INumRange} from '../rest';
-import {IOption, IScoreOption, IServerColumnOption, ISpecialOption} from '../Taskview/SearchBar';
+import {IOption, IScoreOption, IServerColumnOption, ISpecialOption, OptionType} from '../Taskview/SearchBar';
 import {deepCopy, getSessionStorageItem, IAttributeFilter, log, setSessionStorageItem} from '../util';
 import {easyLabelFromFilter, easyLabelFromFilterArray, niceName} from '../utilLabels';
 import {ISpecialAttribute} from './SpecialAttribute';
@@ -16,6 +16,12 @@ export type IdValuePair = {
   id: string;
   [key: string]: any;
 };
+
+export interface IAttributeJSON {
+  option: IOption;
+  currentDB: string;
+  currentView: string;
+}
 
 /**
  * base type for ServerColumns and ScoreColumn
@@ -82,6 +88,8 @@ export interface IAttribute {
   getCount(cohortDbId: number, filters?: IAllFilters): Promise<number>;
 
   filter(cht: ICohort, filter: INumRange[] | IEqualsList): Promise<Cohort>;
+
+  toJSON();
 }
 
 
@@ -101,6 +109,8 @@ export abstract class Attribute implements IAttribute {
     public readonly type: AttributeType) {
     this.label = niceName(this.id); //default
     this.dataKey = this.id; //identical by default
+    // console.log('attribute Option: ', option);
+    // console.log('attribute JSON: ', this.toJSON());
   }
 
   async getData(cohortDbId: number, filters?: IAllFilters): Promise<IdValuePair[]> {
@@ -137,6 +147,8 @@ export abstract class Attribute implements IAttribute {
   }
 
   abstract filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort>;
+
+  abstract toJSON(): IAttributeJSON;
 }
 
 export class ServerColumnAttribute extends Attribute {
@@ -165,6 +177,23 @@ export class ServerColumnAttribute extends Attribute {
       return createCohortWithEqualsFilter(cht, niceName(this.id), label, this.id, this.type === 'number' ? 'true' : 'false', filter.values);
     }
   }
+
+  toJSON(): IAttributeJSON {
+    const option = {
+      optionId: this.id,
+      optionType: 'dbc' as OptionType,
+      optionText: null,
+      optionData: {
+        serverColumn: this.serverColumn,
+      }
+    };
+    return {
+      option,
+      currentDB: this.database,
+      currentView: this.view
+    };
+  }
+
 }
 
 
@@ -175,7 +204,7 @@ export class SpecialAttribute extends Attribute {
     public readonly database: string,
     public readonly spAttribute: ISpecialAttribute,
     public readonly attrOption: string) {
-    super(id, view, database, 'string');
+    super(id, view, database, spAttribute.type);
 
     this.spAttribute.attributeOption = this.attrOption;
     this.label = this.spAttribute.label;
@@ -215,6 +244,24 @@ export class SpecialAttribute extends Attribute {
 
     return null;
   }
+
+  toJSON(): IAttributeJSON {
+    const option = {
+      optionId: this.id,
+      optionType: 'dbc' as OptionType,
+      optionText: null,
+      optionData: {
+        spAttribute: this.spAttribute,
+        attrOprtion: this.attrOption,
+      }
+    };
+    return {
+      option,
+      currentDB: this.database,
+      currentView: this.view
+    };
+  }
+
 }
 
 
@@ -391,6 +438,23 @@ export class GeneScoreAttribute extends AScoreAttribute {
 
     return this.getHistWithStorage(type, params);
   }
+
+  toJSON(): IAttributeJSON {
+    const option = {
+      optionId: this.id,
+      optionType: 'gene' as OptionType,
+      optionText: this.gene,
+      optionData: {
+        type: this.scoreType,
+        subType: this.scoreSubType
+      }
+    };
+    return {
+      option,
+      currentDB: this.database,
+      currentView: this.view
+    };
+  }
 }
 
 export class PanelScoreAttribute extends AScoreAttribute {
@@ -432,6 +496,19 @@ export class PanelScoreAttribute extends AScoreAttribute {
       return createCohortWithPanelAnnotationFilter(cht, niceName(this.id), label, this.id, stringValues);
     }
   }
+
+  toJSON(): IAttributeJSON {
+    const option = {
+      optionId: this.id,
+      optionType: 'panel' as OptionType,
+      optionText: null,
+    };
+    return {
+      option,
+      currentDB: this.database,
+      currentView: this.view
+    };
+  }
 }
 
 
@@ -443,7 +520,6 @@ export function toAttribute(option: IOption, currentDB, currentView): IAttribute
       log.debug('create special Attribute: ', option.optionId);
       log.debug('special Attribute object: ', option.optionData.spAttribute);
       return new SpecialAttribute(option.optionId, currentView, currentDB, (option as ISpecialOption).optionData.spAttribute, (option as ISpecialOption).optionData.attrOption);
-      // }
     } else {
       // Create Attribute
       return new ServerColumnAttribute(option.optionId, currentView, currentDB, (option as IServerColumnOption).optionData.serverColumn);
@@ -457,6 +533,9 @@ export function toAttribute(option: IOption, currentDB, currentView): IAttribute
     }
   }
 }
+
+
+
 
 function subType2Type(subType: string): AttributeType {
   // one of number, string, cat, boxplot
@@ -496,9 +575,12 @@ export async function multiAttributeFilter(baseCohort: Cohort, filters: IAttribu
     values.push(...newCohort.values);
   }
 
-  newCohort.labelOne = labelOne.join(', ');
-  newCohort.labelTwo = labelTwo.join(', ');
-  newCohort.values = values;
+  // when only one filter is used the labels don't have to be set again
+  // minimizes the number of time a cohort in the DB has to be updated
+  if (filters.length > 1) {
+    newCohort.setLabels(labelOne.join(', '), labelTwo.join(', '));
+    newCohort.values = values;
+  }
 
   return newCohort;
 }

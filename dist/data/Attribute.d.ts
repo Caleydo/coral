@@ -12,6 +12,11 @@ export declare type IdValuePair = {
     id: string;
     [key: string]: any;
 };
+export interface IAttributeJSON {
+    option: IOption;
+    currentDB: string;
+    currentView: string;
+}
 /**
  * base type for ServerColumns and ScoreColumn
  * id, view, and database are needed for the methods in rest.ts
@@ -69,6 +74,7 @@ export interface IAttribute {
     }[]>;
     getCount(cohortDbId: number, filters?: IAllFilters): Promise<number>;
     filter(cht: ICohort, filter: INumRange[] | IEqualsList): Promise<Cohort>;
+    toJSON(): any;
 }
 export declare abstract class Attribute implements IAttribute {
     readonly id: string;
@@ -93,6 +99,7 @@ export declare abstract class Attribute implements IAttribute {
     }[]>;
     getCount(cohortDbId: number, filters?: IAllFilters): Promise<number>;
     abstract filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort>;
+    abstract toJSON(): IAttributeJSON;
 }
 export declare class ServerColumnAttribute extends Attribute {
     readonly id: string;
@@ -105,6 +112,7 @@ export declare class ServerColumnAttribute extends Attribute {
     };
     constructor(id: string, view: string, database: string, serverColumn: IServerColumn);
     filter(cht: Cohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort>;
+    toJSON(): IAttributeJSON;
 }
 export declare class SpecialAttribute extends Attribute {
     readonly id: string;
@@ -119,6 +127,7 @@ export declare class SpecialAttribute extends Attribute {
         count: number;
     }[]>;
     filter(cht: Cohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort>;
+    toJSON(): IAttributeJSON;
 }
 export declare abstract class AScoreAttribute extends Attribute {
     readonly id: string;
@@ -167,6 +176,7 @@ export declare class GeneScoreAttribute extends AScoreAttribute {
         bin: string;
         count: number;
     }[]>;
+    toJSON(): IAttributeJSON;
 }
 export declare class PanelScoreAttribute extends AScoreAttribute {
     getData(cohortDbId: number, filters?: IAllFilters): Promise<IdValuePair[]>;
@@ -175,6 +185,7 @@ export declare class PanelScoreAttribute extends AScoreAttribute {
         count: number;
     }[]>;
     filter(cht: Cohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort>;
+    toJSON(): IAttributeJSON;
 }
 export declare function toAttribute(option: IOption, currentDB: any, currentView: any): IAttribute;
 export declare function multiFilter(baseCohort: Cohort, attributes: IAttribute[], filters: Array<IEqualsList | INumRange[]>): Promise<Cohort>;

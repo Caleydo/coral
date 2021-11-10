@@ -119,11 +119,23 @@ export var SortType;
     SortType["Size_19"] = "size_19";
     SortType["Size_91"] = "size_91";
 })(SortType || (SortType = {}));
-export function getAnimatedLoadingText(thingToLoad = '') {
+export function getAnimatedLoadingText(thingToLoad = '', large = true) {
     const span = document.createElement('p');
     span.classList.add('loading');
+    span.classList.toggle('large', large);
     span.innerHTML = `Loading ${thingToLoad} <span class="one">.</span><span class="two">.</span><span class="three">.</span>`;
     return span;
+}
+export function getAnimatedLoadingBars() {
+    const loadingContainer = document.createElement('div');
+    loadingContainer.classList.add('loading-bars');
+    const numBars = 5;
+    for (let i = 0; i < numBars; i++) {
+        const spanBar = document.createElement('div');
+        spanBar.style.setProperty('--n', '' + i);
+        loadingContainer.appendChild(spanBar);
+    }
+    return loadingContainer;
 }
 const category20 = [
     //Based on Category20: https://vega.github.io/vega/docs/schemes/#category20
@@ -219,6 +231,11 @@ export function createHTMLElementWithClasses(htmlElem, classes) {
     return element;
 }
 export class DebugTools {
+    /**
+     * lets the execution pause for the given amount of milliseconds.
+     * Use with await keyword.
+     * @param millis time to wait
+     */
     static async sleep(millis) {
         log.info('taking a little nap');
         return new Promise((resolve) => setTimeout(resolve, millis));

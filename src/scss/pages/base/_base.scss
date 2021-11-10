@@ -1,0 +1,17 @@
+// keep the footer at the bottom
+// @see https://moderncss.dev/keep-the-footer-at-the-bottom-flexbox-vs-grid/
+#welcome {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background-color: $gray-100;
+  color: $gray-800;
+
+  #loading-welcome {
+    grid-row: 1/3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+  }
+}

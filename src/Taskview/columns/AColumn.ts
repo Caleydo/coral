@@ -1,7 +1,8 @@
 import {select} from 'd3-selection';
 import {Cohort, EMPTY_COHORT_ID, LOADER_COHORT_ID} from '../../Cohort';
+import {colors} from '../../colors';
 import {createSearchBarTooltip} from '../../Tooltip';
-import {getAnimatedLoadingText, log} from '../../util';
+import {getAnimatedLoadingBars, log} from '../../util';
 import {ColumnCloseEvent} from '../../utilCustomEvents';
 import Taskview, {InputCohort, OutputCohort} from '../Taskview';
 
@@ -25,9 +26,10 @@ export abstract class AColumn {
       this.$headerTitle.title = title;
     }
     if (closeable) {
-      const removeElem = select(this.$headerOptions).append('div');
-      removeElem.classed('options', true).html('<i class="fas fa-trash"></i>').on('click', () => this.close());
+      const removeElem = select(this.$headerOptions).append('i');
+      removeElem.classed('options remove fas fa-trash', true).on('click', () => this.close());
       removeElem.attr('title', 'Remove Column');
+      removeElem.node().style.order = '1';
     }
   }
 
@@ -47,6 +49,7 @@ export abstract class AColumn {
  * Abstract base class of all data columns = columns with data to cohorts
  */
 export abstract class ADataColumn extends AColumn {
+  protected showLoadingAnimation = true;
   private dataCells;
 
   public setCohorts(cohorts: Cohort[]) {
@@ -81,7 +84,9 @@ export abstract class ADataColumn extends AColumn {
 
     if (cht.id !== EMPTY_COHORT_ID) {
       if (cht.id === LOADER_COHORT_ID) {
-        cell.insertAdjacentElement('afterbegin', getAnimatedLoadingText());
+        if (this.showLoadingAnimation) {
+          cell.insertAdjacentElement('afterbegin', getAnimatedLoadingBars());
+        }
       } else {
         this.setCellContent(cell, cht, index);
       }
@@ -119,7 +124,7 @@ export abstract class ADataColumn extends AColumn {
     cell.classList.toggle('deselected', !selected);
   }
 
-  abstract async setCellContent(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void>;
+  abstract setCellContent(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void>;
 }
 
 /**
@@ -128,27 +133,47 @@ export abstract class ADataColumn extends AColumn {
  */
 export class EmptyColumn extends ADataColumn {
 
-  constructor($container: HTMLDivElement, taskview: Taskview, database: string, view: string, private onInputCohortSide = true) {
-    super(undefined, $container, false); // \200b = zero width non-breaking space
+  constructor($container: HTMLDivElement) {
+    super(undefined, $container, false);
     this.$column.classList.add('empty');
+    this.showLoadingAnimation = false;
+  }
+
+  async setCellContent(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void> {
+    //Empty
+  }
+}
+
+export default class AddColumnColumn extends ADataColumn {
+
+  constructor($container: HTMLDivElement, taskview: Taskview, database: string, view: string, private onInputCohortSide = true) {
+    super(undefined, $container, false);
+    this.$column.classList.add('first', 'add-column');
+    this.showLoadingAnimation = false;
 
     const cssClassName = onInputCohortSide ? 'tippy-input' : 'tippy-output';
 
-    // remove (add hidden css class) the header and text div and replace with the plus
-    this.$headerOptions.classList.add('hidden');
-    this.$headerTitle.classList.add('hidden');
+    // remove (add hidden css class) the header and text div and replace with button
+    this.$headerOptions.toggleAttribute('hidden', true);
+    this.$headerTitle.toggleAttribute('hidden', true);
 
     const divEmptyColHeader = document.createElement('div');
     divEmptyColHeader.classList.add('header-only-button');
     this.$header.appendChild(divEmptyColHeader);
 
     const divAdd = document.createElement('div');
-    divAdd.classList.add('empty-header-button');
-    divAdd.innerHTML = '<i class="fas fa-plus" aria-hidden="true"></i>';
+    divAdd.classList.add('empty-header-button', 'btn-coral');
+    divAdd.innerHTML = `
+    <span class="icon-custom-layers">
+      <i class="fa fa-columns"></i>
+      <span class="icon-layer icon-layer-shrink">
+        <i class="fas fa-plus fa-fw icon-top-left" style="color: ${colors.backgroundColor}; background: ${colors.barColor + 'cc'};"></i>
+      </span>
+    </span>
+    `;
     divEmptyColHeader.appendChild(divAdd);
 
     createSearchBarTooltip(divAdd, cssClassName, database, view, onInputCohortSide);
-
   }
 
   async setCellContent(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void> {

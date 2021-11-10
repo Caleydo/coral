@@ -6,13 +6,18 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  ********************************************************************/
 
-.welcomeView:not(:only-child) {
+ .welcomeView:not(:only-child) {
   display: none;
 }
 
 .welcomeView {
   width: 100% !important;
   padding-top: 1em;
+  margin-left: 0px;
+  margin-right: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
   h1, h2, p {
     color: $color-text-medium;
@@ -26,138 +31,5 @@
     p {    
       font-size: 1.2em;
     }
-  }
-
-  .workflow {
-    .carousel.fade {
-      opacity: 1;
-    }
-    .carousel.fade .item {
-        transition: opacity ease-out .7s;
-        left: 0;
-        opacity: 0; /* hide all slides */
-        top: 0;
-        position: absolute;
-        width: 100%;
-        display: block;
-    }
-    .carousel.fade .item:first-child {
-        top: auto;
-        position: relative;
-    }
-    .carousel.fade .item.active {
-        opacity: 1;
-    }
-    
-    .carousel-inner {
-      .item {
-        padding: 5px; //padding to see images box shadow (see below)
-        position: relative;
-
-        img, object, svg {
-          position: relative;
-          top: 0;
-          width: 80%; //not 100% to move the next/previous controls out of the img
-          margin: auto; // center image
-          
-          box-shadow: 3px 3px 6px 3px $color-shadow; // image pops out of page
-
-          &:not(:first-child) {
-            position: absolute;
-            box-shadow: unset; // first image's shadow is stil there
-
-            // keep parents padding
-            top: 5px;
-            left: calc(10% + 5px);
-            right: calc(10% + 5px);
-            width: unset; // specified from left & right offset
-
-            //animation
-            opacity:0;
-            animation: 1s forwards fadein;
-            animation-delay: 6s;
-            animation-play-state: paused; // dont start animation until slide is active
-          }
-        }
-
-        &.active {
-          img, object, svg {
-            &:not(:first-child) {
-              animation-play-state: running;
-            }
-          }
-        }
-      }
-
-      .carousel-caption {
-        // bootstrap's default color is white
-        color: $color-text;
-        text-shadow: unset;
-
-        // // moveσ caption below image
-        //   // position: relative;
-        //   // left: auto;
-        //   // right: auto;
-      }
-    }
-
-    .carousel-indicators {
-      bottom: -2em;
-      
-      li{
-        // Image indicators would be white by default
-        border: 1px solid $color-text-light;
-        
-        &.active {
-          background-color: $color-text-light;
-        }
-      }
-    }
-
-    .carousel-control {
-      background-image: unset;
-      color: $color-text-light;
-    }
-  }
-
-  .logos {
-    margin-top: 1.5em;
-    font-size: 1.2em;
-
-    p {
-      margin: 0 0 20px;
-    }
-
-    ul {
-      display: flex;
-      justify-content: center;
-      flex-direction: row;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-
-      li {
-        margin-left: 60px;
-
-        &:first-child {
-          margin-left: 45px;
-        }
-
-        img {
-          height: 40px;
-          margin: 0;
-          max-width: 100%;
-        }
-      }
-    }
-  }
-
-  .disclaimer {
-    margin-top: 40px;
-  }
-  
-  @keyframes fadein {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
   }
 }

@@ -1,3 +1,23 @@
 @import '~tippy.js/dist/tippy.css';
 @import '~tippy.js/themes/light-border.css';
+@import '~tippy.js/themes/translucent.css';
 @import '~tippy.js/animations/shift-toward.css';
+
+.tippy-box[data-theme~='onboarding'] {
+  background: linear-gradient(to bottom, $color-app, lighten($color-app, 5%)); // slight gradient
+  font-weight: 500;
+  font-size: 1.1em;
+}
+
+.tippy-box[data-theme~='onboarding'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: $color-app;
+}
+.tippy-box[data-theme~='onboarding'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: $color-app;
+}
+.tippy-box[data-theme~='onboarding'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: $color-app;
+}
+.tippy-box[data-theme~='onboarding'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: $color-app;
+}

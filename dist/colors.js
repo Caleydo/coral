@@ -2,6 +2,7 @@
 export const colors = {
     selectedColor: '#FFC340',
     hoverColor: '#52C0CC',
+    searchbarHoverColor: '#D4D4D4',
     barColor: '#595959',
     barBackgroundColor: '#FFF',
     cohortBackgroundColor: '#EFEFEF',
@@ -9,5 +10,7 @@ export const colors = {
     textColor: ' #333333',
     backgroundColor: '#FFF',
     lightBorder: '#d4d4d4',
+    mediumBorder: '#AAA',
+    darkBorder: '#333'
 };
 //# sourceMappingURL=colors.js.map

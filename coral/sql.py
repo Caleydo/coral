@@ -1,10 +1,14 @@
-from flask import request
+import logging
+
 import phovea_server.config
+from flask import request
 from phovea_server.ns import Namespace, abort
 from phovea_server.security import login_required
 from phovea_server.util import jsonify
 
 from .sql_query_mapper import QueryElements
+
+_log = logging.getLogger(__name__)
 
 app = Namespace(__name__)
 config = phovea_server.config.view('cohort')
@@ -23,10 +27,15 @@ def insert_cohort():
     - schema: schema of the entity table
     - table: table of the entitiy""".format(route='create')
 
+  _log.debug('/create start')
+
   try:
     query = QueryElements()
     new_cohort = query.create_cohort(request.values, error_msg)  # crate cohort from args
-    return query.add_cohort_to_db(new_cohort)  # save new cohort into DB
+    _log.debug('/create created cohort object')
+    new_cohort_response = query.add_cohort_to_db(new_cohort)  # save new cohort into DB
+    _log.debug('/create end')
+    return new_cohort_response
   except RuntimeError as error:
     abort(400, error)
 
@@ -356,6 +365,40 @@ def size_cohort_gene_equals_filtered():
     abort(400, error)
 
 
+@app.route('/getDBCohorts', methods=['GET', 'POST'])
+@login_required
+def database_cohort_data():
+  # getDBCohorts?cohortIds=2%26%23x2e31%3B50
+  error_msg = """Paramerter missing or wrong!
+    For the {route} query the following parameter is needed:
+    - cohortIds: id(s) of the cohort(s), separator '&#x2e31;', e.g. 'id1%26%23x2e31%3Bid2'""".format(route='getDBCohorts')
+
+  try:
+    query = QueryElements()
+    sql_text = query.get_cohorts_by_id_sql(request.values, error_msg)  # get sql statement to retrieve cohorts
+    # print('cohort DB SQL:', sql_text)
+    return query.execute_sql_query(sql_text, 'cohort')  # execute sql statement
+  except RuntimeError as error:
+    abort(400, error)
+
+
+@app.route('/updateCohortName', methods=['GET', 'POST'])
+@login_required
+def update_cohort_name():
+  # updateCohortName?cohortId=37151&name=123Test123Test
+  error_msg = """Paramerter missing or wrong!
+    For the {route} query the following parameter is needed:
+    - cohortId: id of the cohort
+    - name: new name of the cohort""".format(route='updateCohortName')
+
+  try:
+    query = QueryElements()
+
+    return query.update_cohort_name_sql(request.values, error_msg)  # updates cohort and returns it as json
+  except RuntimeError as error:
+    abort(400, error)
+
+
 @app.route('/cohortData', methods=['GET', 'POST'])
 @login_required
 def data_cohort():
@@ -647,12 +690,12 @@ def hist():
       # - cohortId: id of the cohort
       # - attribute: the entity attribute
       sql_text = query.get_hist_cat_sql(request.values, cohort, error_msg)
-      hist = query.execute_sql_query(sql_text, database, config.supp_statement_timeout)  # execute sql statement
+      hist = query.execute_sql_query(sql_text, database, True, config.supp_statement_timeout)  # execute sql statement
     elif type == 'dataNum':
       # - cohortId: id of the cohort
       # - attribute: the entity attribute
       sql_text = query.get_hist_num_sql(request.values, cohort, num_bins, error_msg)
-      hist_dict = query.execute_sql_query_as_dict(sql_text, database, config.supp_statement_timeout)  # execute sql statement
+      hist_dict = query.execute_sql_query_as_dict(sql_text, database, True, config.supp_statement_timeout)  # execute sql statement
       hist = query.format_num_hist(hist_dict, num_bins)
     elif type == 'geneScoreCat':
       # - cohortId: id of the cohort
@@ -660,14 +703,14 @@ def hist():
       # - attribute: the score attribute
       # - ensg: name of the gene
       sql_text = query.get_hist_gene_cat_sql(request.values, cohort, error_msg)
-      hist = query.execute_sql_query(sql_text, database, config.supp_statement_timeout)  # execute sql statement
+      hist = query.execute_sql_query(sql_text, database, True, config.supp_statement_timeout)  # execute sql statement
     elif type == 'geneScoreNum':
       # - cohortId: id of the cohort
       # - table: the score table, which contains the attribute
       # - attribute: the score attribute
       # - ensg: name of the gene
       sql_text = query.get_hist_gene_num_sql(request.values, cohort, num_bins, error_msg)
-      hist_dict = query.execute_sql_query_as_dict(sql_text, database, config.supp_statement_timeout)  # execute sql statement
+      hist_dict = query.execute_sql_query_as_dict(sql_text, database, True, config.supp_statement_timeout)  # execute sql statement
       hist = query.format_num_hist(hist_dict, num_bins)
     elif type == 'depletionScore':
       # - cohortId: id of the cohort
@@ -676,13 +719,13 @@ def hist():
       # - ensg: name of the gene
       # - depletionscreen: name of the screen
       sql_text = query.get_hist_depletion_sql(request.values, cohort, num_bins, error_msg)
-      hist_dict = query.execute_sql_query_as_dict(sql_text, database, config.supp_statement_timeout)  # execute sql statement
+      hist_dict = query.execute_sql_query_as_dict(sql_text, database, True, config.supp_statement_timeout)  # execute sql statement
       hist = query.format_num_hist(hist_dict, num_bins)
     elif type == 'panelAnnotation':
       # - cohortId: id of the cohort
       # - panel: name of the panel
       sql_text = query.get_hist_panel_sql(request.values, cohort, error_msg)
-      hist = query.execute_sql_query(sql_text, database, config.supp_statement_timeout)  # execute sql statement
+      hist = query.execute_sql_query(sql_text, database, True, config.supp_statement_timeout)  # execute sql statement
 
     return hist
 

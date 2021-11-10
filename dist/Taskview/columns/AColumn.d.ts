@@ -15,6 +15,7 @@ export declare abstract class AColumn {
  * Abstract base class of all data columns = columns with data to cohorts
  */
 export declare abstract class ADataColumn extends AColumn {
+    protected showLoadingAnimation: boolean;
     private dataCells;
     setCohorts(cohorts: Cohort[]): void;
     orderCohorts(cohorts: Cohort[]): void;
@@ -27,6 +28,10 @@ export declare abstract class ADataColumn extends AColumn {
  * Shrinks down to 0px for the content, the border remains, and currently is 2px left, seperating the last input column from the task search and the last output column from the output cohorts
  */
 export declare class EmptyColumn extends ADataColumn {
+    constructor($container: HTMLDivElement);
+    setCellContent(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void>;
+}
+export default class AddColumnColumn extends ADataColumn {
     private onInputCohortSide;
     constructor($container: HTMLDivElement, taskview: Taskview, database: string, view: string, onInputCohortSide?: boolean);
     setCellContent(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void>;

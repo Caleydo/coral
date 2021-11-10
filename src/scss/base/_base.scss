@@ -13,5 +13,22 @@ th, label, strong, b, .label {
   max-width: 900px;
 }
 
+#deleteModal .modal-header-flex {
+  display: flex !important;
+  justify-content: space-between !important;
+  padding: 15px;
+  border-bottom: 1px solid #e5e5e5;
+  align-items: flex-start;
+}
+
+.hint {
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: $color-border;
+}
+
+.app-color {
+  color: $color-app;
+}
 
 @import './cohortRectangle'; //rectange style of the cohorts

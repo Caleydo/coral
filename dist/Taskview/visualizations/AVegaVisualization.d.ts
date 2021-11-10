@@ -1,15 +1,17 @@
+import { View as VegaView } from 'vega';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { Cohort } from '../../Cohort';
 import { ICohort } from '../../CohortInterfaces';
 import { IAttribute, IdValuePair } from '../../data/Attribute';
 import { IEqualsList, INumRange, NumRangeOperators } from '../../rest';
+import { Option, VisConfig } from './config/VisConfig';
 import { DATA_LABEL } from './constants';
 import { IVisualization } from './IVisualization';
 export declare const MISSING_VALUES_LABEL = "Missing Values";
+export declare const FACETED_CHARTS_WIDTH = 520;
 export interface IVegaVisualization extends IVisualization {
     getSpec(gdata: IdValuePair[]): Partial<VegaLiteSpec>;
     showImpl(chart: HTMLDivElement, data: Array<IdValuePair>): any;
-    getOptions(): string[];
 }
 export declare abstract class AVegaVisualization implements IVegaVisualization {
     protected vegaLiteOptions: Object;
@@ -19,6 +21,8 @@ export declare abstract class AVegaVisualization implements IVegaVisualization {
     static readonly HIGHLIGHT_SIGNAL_NAME = "highlight";
     static readonly DATA_STORE_0 = "data_0";
     static readonly DATA_STORE_1 = "data_1";
+    static readonly DATA_STORE_3 = "data_3";
+    static readonly SPLITVALUE_DATA_STORE = "splitvalues";
     protected container: HTMLDivElement;
     protected chart: HTMLDivElement;
     protected controls: HTMLDivElement;
@@ -28,9 +32,10 @@ export declare abstract class AVegaVisualization implements IVegaVisualization {
     protected cohorts: Cohort[];
     protected vegaLiteSpec: any;
     protected vegaSpec: any;
-    protected vegaView: any;
+    protected vegaView: VegaView;
     protected showBrush: boolean;
     protected colorPalette: string[];
+    protected config: VisConfig[];
     constructor(vegaLiteOptions?: Object);
     clearSelection(): void;
     hasSelectedData(): boolean;
@@ -41,8 +46,7 @@ export declare abstract class AVegaVisualization implements IVegaVisualization {
     getFilterRange(axis: 'x' | 'y'): any[];
     addMultiSelection(spec: any): void;
     addColorLegend(): void;
-    addNullCheckbox(amount: number, multipleCohorts: boolean): void;
-    getNullCheckboxState(): boolean;
+    getNullCheckboxState(attribute: IAttribute): boolean;
     abstract getSelectedData(): {
         from: string | number;
         to: string | number;
@@ -53,13 +57,8 @@ export declare abstract class AVegaVisualization implements IVegaVisualization {
     abstract split(): void;
     abstract showImpl(chart: HTMLDivElement, data: Array<IdValuePair>): any;
     destroy(): void;
-    options: Map<string, (field: string, chtCount: number) => Object>;
-    currentOption: string;
-    getOptions(): string[];
-    getDefaultOption(): string;
-    getOption(): string;
-    getOptionSpec(): (field: string, chtCount: number) => Object;
-    setOption(key: string): void;
+    getConfig(): VisConfig[];
+    selectOption(o: Option): void;
     getCategoricalFilter(categories: string[]): IEqualsList;
     getNumericalFilterAllInclusive(lower: number, upper: number): INumRange;
     getStandardNumericalFilter(lower: number, upper: number): INumRange;
@@ -77,12 +76,13 @@ export declare abstract class SingleAttributeVisualization extends AVegaVisualiz
     protected field: string;
     protected colorPalette: string[];
     protected hideVisualization: boolean;
+    protected nullValueMap: Map<string, Map<Cohort, number>>;
     show(container: HTMLDivElement, attributes: IAttribute[], cohorts: Cohort[]): Promise<void>;
     getData(): Promise<(IdValuePair & {
         Cohort: string;
     })[][]>;
     showImpl(chart: HTMLDivElement, data: Array<IdValuePair>): Promise<void>;
-    getNullValueSelectedData(cohort: ICohort): {
+    getNullValueSelectedData(cohort: ICohort, attribute: IAttribute): {
         from: string | number;
         to: string | number;
         cohort: ICohort;
@@ -99,11 +99,22 @@ export declare abstract class SingleAttributeVisualization extends AVegaVisualiz
      * Splitting a cohort is only possible by single categories, i.e. you can't split ALL into a "asian/african" and a "white/american indian" cohort ( 2 categories each)
      */
     split(): void;
-    protected splitValues: any[];
+    protected splitValues: Array<{
+        x: number;
+    }>;
     addIntervalControls(): void;
+    /**
+     * Returns split or filter, depending on the currently active task tab
+     */
+    protected getActiveTask(): 'filter' | 'split';
+    protected toggleFilterSplitMarks(newTask: 'filter' | 'split'): void;
     addCategoricalControls(): void;
     handleBinChangeEvent(event: any): void;
-    private vegaBrushListener;
+    protected vegaBrushListener: (name: any, value: any) => void;
+    protected vegaSplitListener: (name: any, value: any) => void;
     handleInputIntervalEvent(event: any): void;
+    protected scaleRange(range: [number, number] | []): number[];
+    getBrushRange(): [number, number] | [];
     handleVegaIntervalEvent(name: any, value: any): void;
+    handleSplitDragEvent(name: any, value: any): void;
 }

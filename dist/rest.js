@@ -39,6 +39,8 @@ var CohortRoutes;
     CohortRoutes["dataUseGeneEqualsFilter"] = "dataUseGeneEqualsFilter";
     CohortRoutes["cohortData"] = "cohortData";
     CohortRoutes["size"] = "size";
+    CohortRoutes["getDBCohorts"] = "getDBCohorts";
+    CohortRoutes["updateCohortName"] = "updateCohortName";
     CohortRoutes["geneScore"] = "geneScore";
     CohortRoutes["celllineDepletionScore"] = "celllineDepletionScore";
     CohortRoutes["createUseDepletionScoreFilter"] = "createUseDepletionScoreFilter";
@@ -228,12 +230,32 @@ export function createDBCohortWithTreatmentFilter(params, assignIds = false) {
     return getCohortDataImpl(CohortRoutes.createUseTreatmentFilter, newParams, assignIds);
 }
 // const ENTITY_ROUTES = 'size' | 'cohortData';
+/**
+ * returns the data a cohort represents
+ */
 export function getCohortData(params, assignIds = false) {
     return getCohortDataImpl(CohortRoutes.cohortData, params, assignIds);
 }
 export async function getCohortSize(params, assignIds = false) {
     const sizeResp = await getCohortDataImpl(CohortRoutes.size, params, assignIds);
     return Promise.resolve(Number(sizeResp[0].size));
+}
+/**
+ * returns the saved cohort tuples in the DB
+ */
+export function getDBCohortData(params, assignIds = false) {
+    const cohortIdsString = params.cohortIds.join(valueListDelimiter);
+    delete params.cohortIds;
+    const newParams = deepCopy(params);
+    newParams.cohortIds = cohortIdsString;
+    return getCohortDataImpl(CohortRoutes.getDBCohorts, newParams, assignIds);
+}
+/**
+ * updates the name of the cohort in the DB
+ * @returns the updated cohort data from the DB
+ */
+export function updateCohortName(params, assignIds = false) {
+    return getCohortDataImpl(CohortRoutes.updateCohortName, params, assignIds);
 }
 // const CLONE_FILTER_ENTITY_ROUTES = 'sizeUseEqulasFilter' | 'dataUseEqulasFilter' | 'sizeUseNumFilter' | 'dataUseNumFilter';
 export async function sizeDBCohortWithEqualsFilter(params, assignIds = false) {

@@ -11,12 +11,12 @@ export default class SearchColumn {
     constructor($container, referenceCht, taskview) {
         this.referenceCht = referenceCht;
         this.taskview = taskview;
-        this.eventID = 0;
         this.taskCloseListener = (ev) => this.closeTask(ev.detail.task);
         $container.insertAdjacentHTML('beforeend', searchHtml); //faster than innerHTML (https://developer.mozilla.org/de/docs/Web/API/Element/insertAdjacentHTML)
         this.$searchColumn = $container.firstChild;
         this.$tasks = select(this.$searchColumn).select('.task-selector').node();
-        this.$task = select(this.$searchColumn).select('.task-container').node();
+        this.$taskContainer = select(this.$searchColumn).select('.task-container').node();
+        this.$ColumnHeader = select(this.$searchColumn).select('.header').node();
         $container.querySelectorAll('[title]').forEach((elem) => tippy(elem, {
             content(elm) {
                 const title = elm.getAttribute('title');
@@ -53,16 +53,16 @@ export default class SearchColumn {
     }
     setSearchBarVisibility(show) {
         if (show) {
-            this.searchBar.getSearchBarHTMLDivElement().classList.remove('hidden');
+            this.searchBar.getSearchBarHTMLDivElement().removeAttribute('hidden');
         }
         else {
-            this.searchBar.getSearchBarHTMLDivElement().classList.add('hidden');
+            this.searchBar.getSearchBarHTMLDivElement().toggleAttribute('hidden', true);
         }
     }
     updateTasks() {
         this.updateTaskButtonState();
         if (this.activeTask) {
-            this.activeTask.show(this.$task, this.getSelectedAttributes(), this.taskview.getInputCohorts());
+            this.activeTask.show(this.$ColumnHeader, this.$taskContainer, this.getSelectedAttributes(), this.taskview.getInputCohorts());
         }
     }
     updateTaskButtonState() {
@@ -85,10 +85,10 @@ export default class SearchColumn {
         setTimeout(() => {
             this.$tasks.hidden = true;
             this.setSearchBarVisibility(task.showSearchBar()); // set visibility of searchBar based on the task
-            task.show(this.$task, this.getSelectedAttributes(), this.taskview.getInputCohorts());
+            task.show(this.$ColumnHeader, this.$taskContainer, this.getSelectedAttributes(), this.taskview.getInputCohorts());
         }, 200); // 200 = transform transition time in css
         this.taskview.showOutput(task.hasOutput);
-        this.$task.addEventListener(TASK_CLOSE_EVENT_TYPE, this.taskCloseListener);
+        this.$ColumnHeader.addEventListener(TASK_CLOSE_EVENT_TYPE, this.taskCloseListener);
     }
     closeTask(task) {
         task.close();
@@ -97,7 +97,7 @@ export default class SearchColumn {
         this.activeTask = null;
         this.$tasks.classList.remove('minimize');
         this.taskview.showOutput(true);
-        this.$task.removeEventListener(TASK_CLOSE_EVENT_TYPE, this.taskCloseListener);
+        this.$ColumnHeader.removeEventListener(TASK_CLOSE_EVENT_TYPE, this.taskCloseListener);
     }
     enableAddButtons(enable) {
         if (enable) {

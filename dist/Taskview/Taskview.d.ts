@@ -32,12 +32,14 @@ export default class Taskview {
     getOutputCohorts(): Cohort[];
     setOutputCohorts(cohorts: Cohort[]): void;
     setReference(reference: Cohort): void;
-    addMultipleAttributeColumns(dArray: IAttribute[], allowDuplicates?: boolean): void;
-    addAttributeColumn(d: IAttribute, allowDuplicates?: boolean): void;
-    addAttributeColumnForInput(d: IAttribute, allowDuplicates?: boolean): void;
-    addAttributeColumnForOutput(d: IAttribute, allowDuplicates?: boolean): void;
+    addMultipleAttributeColumns(dArray: IAttribute[], allowDuplicates?: boolean, pinned?: boolean): void;
+    addAttributeColumn(d: IAttribute, allowDuplicates?: boolean, pinned?: boolean): void;
+    addAttributeColumnForInput(d: IAttribute, allowDuplicates?: boolean, pinned?: boolean): void;
+    addAttributeColumnForOutput(d: IAttribute, allowDuplicates?: boolean, pinned?: boolean): void;
+    removeAttributeColumns(): void;
     getTaskParams(): ITaskParams[];
     getTaskAttributes(): IAttribute[];
+    private currentEvent;
     handleFilterEvent(ev: FilterEvent | SplitEvent): Promise<void>;
     showOutput(show: boolean): void;
 }

@@ -5,18 +5,24 @@ import {Cohort} from '../../Cohort';
 import {colors} from '../../colors';
 import {IAttribute} from '../../data/Attribute';
 import {IEqualsList, INumRange, NumRangeOperators} from '../../rest';
-import {getAnimatedLoadingText, log} from '../../util';
+import {getAnimatedLoadingBars, log} from '../../util';
 import {easyLabelFromFilter, niceName} from '../../utilLabels';
 import {ADataColumn} from './AColumn';
 
 export default class AttributeColumn extends ADataColumn {
   private hists: WeakMap<Cohort, Histogram> = new WeakMap();
   private showOutputChtHistRef = false;
+  private _pinned = false;
+  private togglePinBtn;
 
-  constructor(public attribute: IAttribute, $container: HTMLDivElement, private onInputCohortSide = true, private color = false) {
+  private _order = 50;
+
+  constructor(public attribute: IAttribute, $container: HTMLDivElement, private onInputCohortSide = true, private color = false, pinned: boolean = false) {
     super(niceName(attribute.label), $container);
 
     this.$column.dataset.attribute = this.attribute.label;
+    this.$column.style.order = `${this._order}`;
+    this._pinned = pinned;
 
     this.$header.addEventListener('mouseover', (event) => {
       event.stopPropagation();
@@ -42,6 +48,19 @@ export default class AttributeColumn extends ADataColumn {
       this.removeHighlightForColumn();
     }, false);
 
+    // add option to pin column
+    this.togglePinBtn = select(this.$headerOptions).append('i');
+    this.togglePinBtn.node().classList.add('options', 'fas', 'fa-thumbtack', 'left-side');
+    this.togglePinBtn.node().classList.toggle('active', this.pinned);
+    this.togglePinBtn.node().style.order = '10';
+    this.togglePinBtn.attr('title', this.pinned === true ? 'Unpin Column' : 'Pin Column');
+
+    this.togglePinBtn.on('click', () => {
+      this.pinned = !this.pinned;
+      this.togglePinBtn.node().classList.toggle('active', this.pinned);
+      this.togglePinBtn.attr('title', this.pinned === true ? 'Unpin Column' : 'Pin Column');
+    });
+
     if (this.onInputCohortSide) {
       // set show reference for output cohort to false
       this.showOutputChtHistRef = false;
@@ -54,10 +73,11 @@ export default class AttributeColumn extends ADataColumn {
     } else {
       // add options for attributes on the ouput side
       // toggle reference for the mini visulaization
-      const toggleRefBtn = select(this.$headerOptions).append('div');
-      toggleRefBtn.node().classList.add('options', 'toggle-ref');
+      const toggleRefBtn = select(this.$headerOptions).append('i');
+      toggleRefBtn.node().classList.add('options', 'fas', 'fa-bars', 'toggle-ref');
+      toggleRefBtn.node().style.order = '9';
       toggleRefBtn.classed('active', this.showOutputChtHistRef);
-      toggleRefBtn.html('<i class="fas fa-bars"></i>').on('click', () => {
+      toggleRefBtn.on('click', () => {
         toggleRefBtn.node().classList.toggle('active');
         this.showOutputChtHistRef = !this.showOutputChtHistRef;
         this.updateCellContent();
@@ -73,6 +93,20 @@ export default class AttributeColumn extends ADataColumn {
       hist.showReference = this.showOutputChtHistRef;
       hist.updateNode();
     }
+  }
+
+  public get pinned() {
+    return this._pinned;
+  }
+  public set pinned(value) {
+    this._pinned = value;
+    this.togglePinBtn.node().classList.toggle('active', this.pinned);
+    this.togglePinBtn.attr('title', this.pinned === true ? 'Unpin Column' : 'Pin Column');
+  }
+
+  public setOrder(incOrderValueBy: number) {
+    const currOrder = this._order + incOrderValueBy;
+    this.$column.style.order = `${currOrder}`;
   }
 
   private addHighlightForColumn() {
@@ -133,7 +167,7 @@ class Histogram {
 
     this.$loader = document.createElement('div');
     this.$loader.classList.add('loader'); // center content with flexbox
-    this.$loader.appendChild(getAnimatedLoadingText());
+    this.$loader.appendChild(getAnimatedLoadingBars());
 
     this.$hist = document.createElement('div');
 
@@ -156,17 +190,23 @@ class Histogram {
           log.error('get hist failed', e);
           this.$loader.remove();
           this.$node.classList.add('text');
-          this.$node.insertAdjacentHTML('afterbegin', `
+          this.$hist.innerHTML = `
             <p>
               <i class="fa fa-hourglass-end" aria-hidden="true"></i>
               Request timeout.
             </p>
-          `);
+          `;
+          this.$node.appendChild(this.$hist);
           return;
         }
 
         const notZeroData = data.filter((d) => d.count > 0); // filter only for categories/bins with count bigger 0
-        const showText = notZeroData.length === 1; // show text when only one category/bin with count bigger 0
+        let showText = false;
+        // show only text when 1 bin and not numerical attribute or when numerical attribute only for one bin if it is for null
+        if (this.attribute.type !== 'number' || (this.attribute.type === 'number' && notZeroData.length === 1 && (notZeroData[0].bin === 'null' || notZeroData[0].bin === null))) {
+          showText = notZeroData.length === 1; // show text when only one category/bin with count bigger 0
+        }
+
         const chtSize = await this.cohort.size;
         // -> size = 0: show only line in data cell with vega vis (all bins/categories have count 0)
 
@@ -229,12 +269,13 @@ class Histogram {
 
       this.$loader.remove();
       this.$node.classList.add('text');
-      this.$node.insertAdjacentHTML('afterbegin', `
+      this.$hist.innerHTML = `
         <p>
           <i class="fa fa-times" aria-hidden="true"></i>
           Can not display histogram.
         </p>
-      `);
+      `;
+      this.$node.appendChild(this.$hist);
     }
   }
 
@@ -282,7 +323,7 @@ class Histogram {
       sort = {field: 'index'};
     }
     return {
-      $schema: 'https://vega.github.io/schema/vega-lite/v4.json',
+      $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
       width: 'container', //responsive width
       height: 50, //responsive height
       background: '#ffffff00', // set visualization background to white and opacity 0 -> https://vega.github.io/vega-lite/docs/spec.html#example-background
@@ -314,12 +355,6 @@ class Histogram {
           scale: {
             range: [this.cohort.colorTaskView || colors.barColor] //[this.color ? Cat16.get(this.index) : colors.barColor]
           },
-          condition: [
-            {
-              selection: 'highlight',
-              value: colors.hoverColor
-            }
-          ],
           legend: null // no legend
         },
         tooltip: [
@@ -332,14 +367,16 @@ class Histogram {
           stroke: 'transparent' // https://vega.github.io/vega-lite/docs/spec.html#view-background
         }
       },
-      selection: {
-        'highlight': {
-          type: 'single',
-          empty: 'none',
-          on: 'mouseover',
-          clear: 'mouseout',
+      params: [
+        {
+          name: 'highlight',
+          select: {
+            type: 'point',
+            on: 'mouseover',
+            clear: 'mouseout'
+          }
         }
-      }
+      ]
     };
   }
 
@@ -349,7 +386,7 @@ class Histogram {
       sort = {field: 'index'};
     }
     return {
-      $schema: 'https://vega.github.io/schema/vega-lite/v4.json',
+      $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
       width: 'container', //responsive width
       height: 50, //responsive height
       background: '#ffffff00', // set visualization background to white and opacity 0 -> https://vega.github.io/vega-lite/docs/spec.html#example-background
@@ -383,27 +420,13 @@ class Histogram {
             },
             fill: {
               value: data.parentColor,
-              // condition: [
-              //   {
-              //     selection: 'highlight_parent',
-              //     value: colors.hoverColor,
-              //   }
-              // ],
               legend: null // no legend
             },
             tooltip: [
               {field: 'bin', type: 'nominal'},
               {field: 'count', type: 'quantitative'}
             ]
-          },
-          // selection: {
-          //   'highlight_parent': {
-          //     type: 'single',
-          //     empty: 'none',
-          //     on: 'mouseover',
-          //     clear: 'mouseout',
-          //   }
-          // }
+          }
         },
         { // layer 2: output cohort data
           data: {name: 'data'},
@@ -429,27 +452,13 @@ class Histogram {
             },
             fill: {
               value: colors.barColor,
-              // condition: [
-              //   {
-              //     selection: 'highlight',
-              //     value: colors.hoverColor,
-              //   }
-              // ],
               legend: null // no legend
             },
             tooltip: [
               {field: 'bin', type: 'nominal'},
               {field: 'count', type: 'quantitative'}
             ]
-          },
-          // selection: {
-          //   'highlight': {
-          //     type: 'single',
-          //     empty: 'none',
-          //     on: 'mouseover',
-          //     clear: 'mouseout',
-          //   }
-          // }
+          }
         }
       ],
       config: {

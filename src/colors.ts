@@ -4,6 +4,7 @@
 export const colors = {
   selectedColor: '#FFC340',
   hoverColor: '#52C0CC',
+  searchbarHoverColor: '#D4D4D4',
 
   barColor: '#595959',
   barBackgroundColor: '#FFF',
@@ -14,4 +15,6 @@ export const colors = {
   backgroundColor: '#FFF',
 
   lightBorder: '#d4d4d4',
+  mediumBorder: '#AAA',
+  darkBorder: '#333'
 };

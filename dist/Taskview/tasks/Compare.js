@@ -6,8 +6,8 @@
 import * as d3 from 'd3';
 import { select } from 'd3-selection';
 import { MethodManager, SCOPE, Type, WorkerManager } from 'tourdino';
-import { ATask } from './ATask';
 import { log } from '../../util';
+import { ATask } from './ATask';
 export class Compare extends ATask {
     constructor() {
         super(...arguments);
@@ -21,8 +21,8 @@ export class Compare extends ATask {
     showSearchBar() {
         return true;
     }
-    async show(container, attributes, cohorts) {
-        super.show(container, attributes, cohorts);
+    async show(columnHeader, container, attributes, cohorts) {
+        super.show(columnHeader, container, attributes, cohorts);
         this.attributes = attributes;
         this.cohorts = cohorts;
         this.body.classed('tourdino', true);
@@ -411,7 +411,7 @@ export class Compare extends ATask {
         //button for mini visualization removal
         const that = this;
         const detailRemoveButton = divDetailInfoContainer.append('button');
-        detailRemoveButton.attr('class', 'btn btn-default removeMiniVis-btn');
+        detailRemoveButton.attr('class', 'btn btn-coral removeMiniVis-btn');
         detailRemoveButton.on('click', function () { that.removeCellDetails.bind(that)(miniVisualisation); });
         detailRemoveButton.html('x');
         const divDetailInfo = divDetailInfoContainer.append('div')

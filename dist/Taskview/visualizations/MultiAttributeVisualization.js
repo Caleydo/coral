@@ -1,5 +1,7 @@
+import * as aq from 'arquero';
 import { format } from 'd3-format';
 import { select } from 'd3-selection';
+import tippy from 'tippy.js';
 import vegaEmbed from 'vega-embed';
 import { getCohortLabel } from '../../Cohort';
 import { log, selectLast } from '../../util';
@@ -12,9 +14,9 @@ export class MultiAttributeVisualization extends AVegaVisualization {
         this.splitValuesX = [];
         this.splitValuesY = [];
         this.vegaBrushListener = (name, value) => this.handleVegaIntervalEvent(name, value);
+        this.vegaSplitListener = (name, value) => this.handleSplitDragEvent(name, value);
         this.axes = ['x', 'y'];
     }
-    // protected hideVisualization: boolean;
     async show(container, attributes, cohorts) {
         log.debug('show: ', { container, attributes, cohorts });
         if (attributes.length <= 1) {
@@ -32,8 +34,13 @@ export class MultiAttributeVisualization extends AVegaVisualization {
                 const chtDataPromises = this.attributes.map((attr) => attr.getData(cht.dbId));
                 try {
                     const chtData = await Promise.all(chtDataPromises); // array with one entry per attribute, which contains an array with one value for every item in the cohort
-                    const mergedChtData = chtData[0].map((_, itemIndex) => chtData.reduce((mergedItem, attribute, i) => Object.assign(mergedItem, attribute[itemIndex]), { [DATA_LABEL]: getCohortLabel(chtIndex, cht) }));
-                    resolve(mergedChtData);
+                    let joinedData = aq.from(chtData[0]);
+                    for (let i = 1; i < chtData.length; i++) {
+                        joinedData = joinedData.join_full(aq.from(chtData[i]));
+                    }
+                    const labelTable = aq.table({ [DATA_LABEL]: [getCohortLabel(chtIndex, cht)] });
+                    joinedData = joinedData.join_left(labelTable, (data, label) => true);
+                    resolve(joinedData.objects());
                 }
                 catch (e) {
                     reject(e);
@@ -45,10 +52,12 @@ export class MultiAttributeVisualization extends AVegaVisualization {
         this.container = container;
         this.container.insertAdjacentHTML(`afterbegin`, `
       <div class="vega-container"></div>
-      <div class="controls"></div>
+      <div class="controls">
+        <div class="sticky" style="position: sticky; top: 0;"></div>
+      </div>
     `);
         this.chart = this.container.getElementsByTagName('div')[0]; //first-child was not the right type of object and vega-embed failed
-        this.controls = this.container.getElementsByTagName('div')[1];
+        this.controls = this.container.querySelector('.controls .sticky');
         const notZeroCohorts = this.cohorts.filter((a) => {
             const currSize = a.getRetrievedSize();
             return currSize > 0;
@@ -57,15 +66,38 @@ export class MultiAttributeVisualization extends AVegaVisualization {
         // data's outer array has one item per cohort, which in turn contains array with the items/values
         // flatten the array:
         const flatData = data.flat(1);
+        // check if all values are null
+        this.nullValueMap = new Map(); // Map: Attribute -> Cohort --> number of null values per cohort per attribute
+        this.attributes.forEach((attr) => this.nullValueMap.set(attr.dataKey, new Map(this.cohorts.map((cht) => [cht, 0])))); // init map with 0 for all attribues
+        let nullValues = 0;
+        for (const d of flatData) {
+            let nullCounter = 0;
+            for (const attr of this.attributes) {
+                if (d[attr.dataKey] === null) {
+                    const attrData = this.nullValueMap.get(attr.dataKey);
+                    const chtLabel = d[DATA_LABEL];
+                    const chtIndex = parseInt(chtLabel.substr(0, chtLabel.indexOf('.')), 10);
+                    const count = 1 + attrData.get(this.cohorts[chtIndex - 1]);
+                    attrData.set(this.cohorts[chtIndex - 1], count);
+                    nullCounter++;
+                }
+            }
+            if (nullCounter === this.attributes.length) {
+                nullValues++;
+            }
+        }
         if (!flatData || flatData.length === 0) {
             this.chart.innerText = 'No Data';
+        }
+        else if (flatData.length === nullValues) {
+            this.chart.innerText = 'Data only contains missing values!';
         }
         else {
             this.data = flatData; // save the data that is used in the chart
             await this.showImpl(this.chart, flatData);
+            this.addControls();
+            this.addColorLegend();
         }
-        this.addControls();
-        this.addColorLegend();
     }
     // may be overwritten (e.g. for tsne plot where the attribtues are different)
     addControls() {
@@ -73,13 +105,13 @@ export class MultiAttributeVisualization extends AVegaVisualization {
     <div>
       <!-- Nav tabs -->
       <ul class="nav nav-tabs nav-justified" role="tablist">
-        <li role="presentation" class="active"><a href="#filter" aria-controls="filter" role="tab" data-toggle="tab"><i class="fas fa-filter" aria-hidden="true"></i> Filter</a></li>
-        <li role="presentation"><a href="#split" aria-controls="split" role="tab" data-toggle="tab"><i class="fas fa-share-alt" aria-hidden="true"></i> Split</a></li>
+        <li role="presentation" class="nav-item"><a class="nav-link active" href="#filter" aria-controls="filter" role="tab" data-bs-toggle="tab"><i class="fas fa-filter" aria-hidden="true"></i> Filter</a></li>
+        <li role="presentation" class="nav-item"><a class="nav-link" href="#split" aria-controls="split" role="tab" data-bs-toggle="tab"><i class="fas fa-share-alt" aria-hidden="true"></i> Split</a></li>
       </ul>
       <!-- Tab panes -->
       <div class="tab-content">
         <div role="tabpanel" class="tab-pane active" id="filter">
-          <p>Click and drag in the visualization or set the range below:</p>
+        <p>Click and drag in the visualization or set the range below:</p>
           <!-- INSERT FILTER CONTROLS HERE -->
         </div>
         <div role="tabpanel" class="tab-pane" id="split">
@@ -87,16 +119,16 @@ export class MultiAttributeVisualization extends AVegaVisualization {
         </div>
       </div>
     </div>
-    <button type="button" class="btn btn-default btn-block applyBtn">Apply</button>
+    <div class="d-grid gap-2">
+      <button type="button" class="btn btn-coral-prime btn-block applyBtn">Apply</button>
+    </div>
     `);
         // for each attribute type, add the respective controls:
         for (const [i, attr] of this.attributes.entries()) {
             if (attr.type === 'number') {
                 const axis = i === 0 ? 'x' : 'y';
-                this.addIntervalControls(attr.label, axis);
-            } /* else if (attr.type === 'categorical')  {
-                    this.addCategoricalControls();
-                  } */
+                this.addIntervalControls(attr, axis);
+            }
         }
         select(this.controls).select('button.applyBtn').on('click', () => {
             const activeTask = select(this.controls).select('.tab-pane.active').attr('id');
@@ -111,73 +143,130 @@ export class MultiAttributeVisualization extends AVegaVisualization {
                     log.error('Unknown task: ', activeTask);
             }
         });
-        select(this.controls).selectAll('a[role="tab"]').on('click', () => {
-            const oldTask = select(this.controls).select('.tab-pane.active').attr('id');
-            switch (oldTask) {
-                case 'filter': // switch to split -> remove interval
-                    this.showBrush = false;
-                    this.clearSelection();
-                    break;
-                case 'split': // switch to filter --> remove split rulers
-                    this.showBrush = true;
-                    this.clearSelection(); // clear any selection that has been made while in split mode
-                    select(this.controls).selectAll('input.bins').nodes().forEach((node) => {
-                        node.value = '1';
-                        node.dispatchEvent(new Event('change'));
-                    });
-                    break;
-                default:
-                    log.error('Unknown task: ', oldTask);
-            }
+        const that = this; //helper varible to access this instance in the d3 event handler function
+        select(this.controls).selectAll('a[role="tab"]').on('click', function () {
+            const d3Event = this; // because we use a function this is overwritten by d3, asssign to variable for clarity
+            const newTask = d3Event.hash.replace('#', '');
+            that.toggleFilterSplitMarks(newTask);
         });
-        this.container.insertAdjacentElement('beforeend', this.controls);
     }
-    addIntervalControls(attributeLabel, axis) {
+    /**
+     * Returns split or filter, depending on the currently active task tab
+     */
+    getActiveTask() {
+        const tabPane = select(this.controls).select('.tab-pane.active');
+        if (!tabPane.empty()) {
+            return tabPane === null || tabPane === void 0 ? void 0 : tabPane.attr('id');
+        }
+        return 'filter'; //no task open yet, but we always start with filter
+    }
+    toggleFilterSplitMarks(newTask) {
+        switch (newTask) {
+            case 'split': // switch to split -> remove interval
+                this.showBrush = false;
+                select(this.chart).selectAll('.mark-rect.role-mark.selected_brush_bg, .mark-rect.role-mark.selected_brush, .mark-rect.role-mark.selected_brush_facethelper').style('display', 'none');
+                select(this.chart).selectAll('g.splitmarks, g.splitmarks_x, g.splitmarks_y').style('display', null);
+                // this.clearSelection();
+                break;
+            case 'filter': // switch to filter --> remove split rulers
+                this.showBrush = true;
+                select(this.chart).selectAll('.mark-rect.role-mark.selected_brush_bg, .mark-rect.role-mark.selected_brush, .mark-rect.role-mark.selected_brush_facethelper').style('display', null); // these elements have no opacity set from the spec which makes it safe to revert back to a hardcoded 1
+                select(this.chart).selectAll('g.splitmarks, g.splitmarks_x, g.splitmarks_y').style('display', 'none');
+                break;
+            default:
+                log.error('Unknown task: ', newTask);
+        }
+    }
+    addIntervalControls(attribute, axis) {
+        var _a, _b;
+        const attrKey = (_a = attribute.dataKey) !== null && _a !== void 0 ? _a : attribute;
+        const attrLabel = (_b = attribute.label) !== null && _b !== void 0 ? _b : attribute;
         const [min, max] = this.vegaView.scale(axis).domain();
         this.controls.querySelector('#filter').insertAdjacentHTML(`beforeend`, `
-    <div class="flex-wrapper">
-      <label>Filter ${attributeLabel} from</label>
+    <div class="flex-wrapper" data-attr="${attrKey}">
+      <label>Filter ${attrLabel} from</label>
       <input type="number" class="interval minimum" step="any" min="${min}" max="${max}" data-axis="${axis}"/>
       <label>to</label>
       <input type="number" class="interval maximum" step="any" min="${min}" max="${max}" data-axis="${axis}"/>
+      <div class="null-value-container form-check">
+        <input type="checkbox" id="null_value_checkbox_3" class="null-value-checkbox form-check-input">
+        <label class="form-check-label" for="null_value_checkbox_3">Include <span class="hint">missing values</span></label>
+      </div>
     </div>
     `);
         this.controls.querySelector('#split').insertAdjacentHTML(`beforeend`, `
-    <div class="flex-wrapper">
-      <label>Split ${attributeLabel} into</label>
-      <input type="number" class="bins" step="any" min="1" max="99" value="1" data-axis="${axis}"/>
+    <div class="flex-wrapper" data-attr="${attrKey}">
+      <label>Split ${attrLabel} into</label>
+      <input type="number" class="bins" step="any" min="1" max="99" value="2" data-axis="${axis}"/>
       <label >bins of</label>
-      <select>
+      <select class="binType" data-axis="${axis}">
         <option>equal width</option>
+        <option>custom width</option>
       </select>
+      <div class="null-value-container form-check">
+        <input type="checkbox" class="null-value-checkbox form-check-input" id="null_value_checkbox_4">
+        <label class="form-check-label" for"null_value_checkbox_4">Add a <span class="hint">missing values</span> bin</label>
+      </div>
     </div>
     `);
+        this.addNullCheckbox(attrKey);
         const that = this; //helper varible to access this instance in the d3 event handler function
         const brushInputs = select(this.controls).selectAll(`input.interval[data-axis="${axis}"]`);
         brushInputs.on('change', function () {
             const d3Event = this; // because we use a function "this" is overwritten by d3, asssign to variable for clarity
             that.handleInputIntervalEvent.bind(that)(d3Event); // voodoo magic (👺) to set "this" back to the current instance
         });
-        const splitInput = selectLast(select(this.controls), 'input.bins');
-        splitInput.on('change', function () {
+        const splitNumberInput = selectLast(select(this.controls), 'input.bins');
+        splitNumberInput.on('change', function () {
             const d3Event = this; // because we use a function "this" is overwritten by d3, asssign to variable for clarity
             that.handleBinChangeEvent.bind(that)(d3Event); // voodoo magic (👺) to set "this" back to the current instance
         });
-        this.handleBinChangeEvent(splitInput.node());
+        // handle switching bin Type (i.e. make current draggers equal width)
+        const splitTypeInput = select(this.controls).select(`select.binType[data-axis="${axis}"]`);
+        splitTypeInput.on('change', function () {
+            splitNumberInput.node().dispatchEvent(new Event('change'));
+        });
+        this.handleBinChangeEvent(splitNumberInput.node());
+    }
+    addNullCheckbox(attribute) {
+        let nullValueTooltip = ``;
+        for (const [cht, nullValues] of this.nullValueMap.get(attribute)) {
+            nullValueTooltip += `<i class="fas fa-square" aria-hidden="true" style="color: ${cht.colorTaskView} "></i>&nbsp;${nullValues}<br>`;
+        }
+        const selector = `[data-attr="${attribute}"] .hint`;
+        tippy(this.controls.querySelectorAll(selector), { content: nullValueTooltip });
     }
     handleBinChangeEvent(event) {
+        this.vegaView.removeDataListener(`splitvalues_${event.dataset.axis}`, this.vegaSplitListener); //remove listener temporarily
         const binCount = parseFloat(event.value);
+        const splitValCount = binCount - 1;
         const [min, max] = this.vegaView.scale(event.dataset.axis).domain();
         const extent = max - min;
         const binWidth = extent / binCount;
+        const binType = this.controls.querySelector(`#split select.binType[data-axis="${event.dataset.axis}"]`);
         const splitValues = event.dataset.axis === 'x' ? this.splitValuesX : this.splitValuesY;
-        splitValues.length = 0;
-        for (let i = 1; i < binCount; i++) {
-            const binBorder = min + binWidth * i;
-            splitValues.push(binBorder);
+        if ((binType === null || binType === void 0 ? void 0 : binType.selectedIndex) === 1) { // custom width
+            if (splitValues.length > splitValCount) {
+                splitValues.sort((a, b) => a - b); //sort em
+                splitValues.length = splitValCount; //drop largest split values
+            }
+            else {
+                while (splitValues.length < splitValCount) {
+                    splitValues.push(max); // add maximum until there are enough rulers
+                }
+            }
+        }
+        else { // equal width
+            splitValues.length = 0;
+            for (let i = 1; i < binCount; i++) {
+                const binBorder = min + binWidth * i;
+                splitValues.push(binBorder);
+            }
         }
         this.vegaView.data(`splitvalues_${event.dataset.axis}`, splitValues.slice()); //set a defensive copy
-        this.vegaView.runAsync();
+        this.vegaView.runAsync().then((vegaView) => //defer adding signallistener until the new data is set internally
+         vegaView.addDataListener(`splitvalues_${event.dataset.axis}`, this.vegaSplitListener) //add listener again
+        );
     }
     handleInputIntervalEvent(event) {
         for (const axis of this.axes) {
@@ -246,12 +335,26 @@ export class MultiAttributeVisualization extends AVegaVisualization {
             select(this.controls).selectAll(`input.minimum, input.maximum`).nodes().forEach((node) => node.value = '');
         }
     }
+    handleSplitDragEvent(name, value) {
+        const axis = name.replace('splitvalues_', ''); // e.g., splitvalues_x -> x
+        const splitValues = this.vegaView.data(`splitvalues_${axis}`)
+            .map((val) => val.data)
+            .sort((a, b) => a - b);
+        if (axis === 'x') {
+            this.splitValuesX = splitValues;
+        }
+        else {
+            this.splitValuesY = splitValues;
+        }
+        this.controls.querySelector(`#split select.binType[data-axis="${axis}"]`).selectedIndex = 1;
+        this.controls.querySelector(`#split input.bins[data-axis="${axis}"]`).value = (1 + splitValues.length).toString();
+    }
     // addCategoricalControls() {
     //   this.controls.insertAdjacentHTML('afterbegin', `
     //     <p>Select bars with a mouse click. All bars are selected initially.</p>
     //     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5em;">
-    //       <button type="button" class="btn btn-default"><i class="fas fa-filter" aria-hidden="true"></i> Filter</button>
-    //       <button type="button" class="btn btn-default"><i class="fas fa-share-alt" aria-hidden="true"></i> Split</button>
+    //       <button type="button" class="btn btn-secondary"><i class="fas fa-filter" aria-hidden="true"></i> Filter</button>
+    //       <button type="button" class="btn btn-secondary"><i class="fas fa-share-alt" aria-hidden="true"></i> Split</button>
     //     </div>
     //   `);
     //   this.container.insertAdjacentElement('beforeend', this.controls);

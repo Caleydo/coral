@@ -1,0 +1,30 @@
+import * as React from 'react';
+export function GettingStarted() {
+    return (React.createElement("section", { className: "container ordino-getting-started py-5" },
+        React.createElement("div", { className: "row" },
+            React.createElement("div", { className: "col position-relative text-center" },
+                React.createElement("h1", null, "Getting Started"),
+                React.createElement("h5", null,
+                    React.createElement("p", null, "The workflow of Coral consists of two steps: creating cohorts, and characterizing them. Operations from these two categories are carried out in an iterative workflow.")))),
+        React.createElement("ul", { className: "row mx-0 mt-5 p-0 list-unstyled" },
+            React.createElement("li", { className: "col col-lg mb-sm-5 mb-lg-0 text-center" },
+                React.createElement("h2", null, "Cohort Creation"),
+                React.createElement("p", null,
+                    "An initial cohort that contains all items of the selected dataset is created automatically. Creation operations allow users to create new sub-cohorts based on different attributes and attribute combinations. Cohorts are refined with the ",
+                    React.createElement("i", null, "Filter"),
+                    " operation, or divided into multiple cohorts with the ",
+                    React.createElement("i", null, "Split"),
+                    " operation.")),
+            React.createElement("li", { className: "col col-lg mb-sm-5 mb-lg-0 text-center" },
+                React.createElement("h2", null, "Cohort Characterization"),
+                React.createElement("p", null,
+                    "Characterization operations give insights into the cohorts. Similarities and differences between cohorts can be checked visually with the ",
+                    React.createElement("i", null, "View"),
+                    " operation, and statistically with the ",
+                    React.createElement("i", null, "Compare"),
+                    " operation. Additional operations give access to prevalence information and the data of individual items."))),
+        React.createElement("div", { className: "row" },
+            React.createElement("div", { className: "col position-relative text-center" },
+                React.createElement("a", { href: "/app/", className: "btn btn-outline-secondary btn-lg" }, "Start Analysis")))));
+}
+//# sourceMappingURL=GettingStarted.js.map

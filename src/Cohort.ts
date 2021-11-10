@@ -1,8 +1,8 @@
 import {format} from 'd3-format';
 import {IDType, IDTypeLike, IDTypeManager, UniqueIdManager} from 'phovea_core';
 import {IAllFilters, IRow, IServerColumn} from 'tdp_core';
-import {ICohort, ICohortRep, IElement} from './CohortInterfaces';
-import {createDBCohort, createDBCohortWithDepletionScoreFilter, createDBCohortWithEqualsFilter, createDBCohortWithGeneEqualsFilter, createDBCohortWithGeneNumFilter, createDBCohortWithNumFilter, createDBCohortWithPanelAnnotationFilter, createDBCohortWithTreatmentFilter, dataDBCohortDepletionScoreFilter, dataDBCohortGeneWithEqualsFilter, dataDBCohortGeneWithNumFilter, dataDBCohortPanelAnnotationFilter, dataDBCohortWithEqualsFilter, dataDBCohortWithNumFilter, getCohortData, getCohortSize, ICohortDBDataParams, ICohortDBParams, ICohortDBSizeParams, ICohortDBWithDepletionScoreFilterParams, ICohortDBWithEqualsFilterParams, ICohortDBWithGeneEqualsFilterParams, ICohortDBWithGeneNumFilterParams, ICohortDBWithNumFilterParams, ICohortDBWithPanelAnnotationFilterParams, ICohortDBWithTreatmentFilterParams, ICohortDepletionScoreFilterParams, ICohortEqualsFilterParams, ICohortGeneEqualsFilterParams, ICohortGeneNumFilterParams, ICohortNumFilterParams, ICohortPanelAnnotationFilterParams, IEqualsList, INumRange, sizeDBCohortDepletionScoreFilter, sizeDBCohortGeneWithEqualsFilter, sizeDBCohortGeneWithNumFilter, sizeDBCohortPanelAnnotationFilter, sizeDBCohortWithEqualsFilter, sizeDBCohortWithNumFilter} from './rest';
+import {ElementProvType, ICohort, ICohortRep, IElement, IElementProvJSONCohort, IProvAttrAndValuesCohort} from './CohortInterfaces';
+import {createDBCohort, createDBCohortWithDepletionScoreFilter, createDBCohortWithEqualsFilter, createDBCohortWithGeneEqualsFilter, createDBCohortWithGeneNumFilter, createDBCohortWithNumFilter, createDBCohortWithPanelAnnotationFilter, createDBCohortWithTreatmentFilter, dataDBCohortDepletionScoreFilter, dataDBCohortGeneWithEqualsFilter, dataDBCohortGeneWithNumFilter, dataDBCohortPanelAnnotationFilter, dataDBCohortWithEqualsFilter, dataDBCohortWithNumFilter, getCohortData, getCohortSize, ICohortDBDataParams, ICohortDBParams, ICohortDBSizeParams, ICohortDBWithDepletionScoreFilterParams, ICohortDBWithEqualsFilterParams, ICohortDBWithGeneEqualsFilterParams, ICohortDBWithGeneNumFilterParams, ICohortDBWithNumFilterParams, ICohortDBWithPanelAnnotationFilterParams, ICohortDBWithTreatmentFilterParams, ICohortDepletionScoreFilterParams, ICohortEqualsFilterParams, ICohortGeneEqualsFilterParams, ICohortGeneNumFilterParams, ICohortNumFilterParams, ICohortPanelAnnotationFilterParams, ICohortRow, IEqualsList, INumRange, sizeDBCohortDepletionScoreFilter, sizeDBCohortGeneWithEqualsFilter, sizeDBCohortGeneWithNumFilter, sizeDBCohortPanelAnnotationFilter, sizeDBCohortWithEqualsFilter, sizeDBCohortWithNumFilter, updateCohortName, valueListDelimiter} from './rest';
 import {mergeTwoAllFilters, Task} from './Tasks';
 import {deepCopy, handleDataLoadError, handleDataSaveError, log} from './util';
 
@@ -12,7 +12,7 @@ type ICreateMethod<T> = (params: ICohortDBParams | ICohortDBWithEqualsFilterPara
 
 export async function createCohort(labelOne: string, labelTwo: string, isInitial: boolean, previousCohortId: number, database: string, databaseName: string, schema: string, table: string, view: string, idType: IDTypeLike, idColumn: IServerColumn, filters: IAllFilters): Promise<Cohort> {
   const params: ICohortDBParams = {
-    name: `${labelOne}#${labelTwo}`,
+    name: combineLabelsForDB(labelOne, labelTwo),
     isInitial: isInitial ? 1 : 0,
     previous: previousCohortId,
     database,
@@ -46,7 +46,7 @@ function getLegacyRangeFilter(parentFilters: IAllFilters, attribute: string, ran
 export async function createCohortWithEqualsFilter(parentCohort: Cohort, labelOne: string, labelTwo: string, attribute: string, numeric: 'true' | 'false', values: Array<string> | Array<number>): Promise<Cohort> {
   const params: ICohortDBWithEqualsFilterParams = {
     cohortId: parentCohort.dbId,
-    name: `${labelOne}#${labelTwo}`,
+    name: combineLabelsForDB(labelOne, labelTwo),
     attribute,
     numeric,
     values
@@ -65,7 +65,7 @@ export async function createCohortWithEqualsFilter(parentCohort: Cohort, labelOn
 export async function createCohortWithTreatmentFilter(parentCohort: Cohort, labelOne: string, labelTwo: string, baseAgent: boolean, agent: Array<string>, regimen: number): Promise<Cohort> {
   const params: ICohortDBWithTreatmentFilterParams = {
     cohortId: parentCohort.dbId,
-    name: `${labelOne}#${labelTwo}`,
+    name: combineLabelsForDB(labelOne, labelTwo),
     baseAgent,
     agent,
     regimen
@@ -84,7 +84,7 @@ export async function createCohortWithTreatmentFilter(parentCohort: Cohort, labe
 export async function createCohortWithNumFilter(parentCohort: Cohort, labelOne: string, labelTwo: string, attribute: string, ranges: Array<INumRange>): Promise<Cohort> {
   const params: ICohortDBWithNumFilterParams = {
     cohortId: parentCohort.dbId,
-    name: `${labelOne}#${labelTwo}`,
+    name: combineLabelsForDB(labelOne, labelTwo),
     attribute,
     ranges
   };
@@ -102,7 +102,7 @@ export async function createCohortWithNumFilter(parentCohort: Cohort, labelOne: 
 export async function createCohortWithGeneNumFilter(parentCohort: Cohort, labelOne: string, labelTwo: string, table: string, attribute: string, ensg: string, ranges: Array<INumRange>): Promise<Cohort> {
   const params: ICohortDBWithGeneNumFilterParams = {
     cohortId: parentCohort.dbId,
-    name: `${labelOne}#${labelTwo}`,
+    name: combineLabelsForDB(labelOne, labelTwo),
     table,
     attribute,
     ensg,
@@ -123,7 +123,7 @@ export async function createCohortWithGeneNumFilter(parentCohort: Cohort, labelO
 export async function createCohortWithGeneEqualsFilter(parentCohort: Cohort, labelOne: string, labelTwo: string, table: string, attribute: string, ensg: string, numeric: 'true' | 'false', values: Array<string> | Array<number>): Promise<Cohort> {
   const params: ICohortDBWithGeneEqualsFilterParams = {
     cohortId: parentCohort.dbId,
-    name: `${labelOne}#${labelTwo}`,
+    name: combineLabelsForDB(labelOne, labelTwo),
     table,
     attribute,
     ensg,
@@ -145,7 +145,7 @@ export async function createCohortWithGeneEqualsFilter(parentCohort: Cohort, lab
 export async function createCohortWithDepletionScoreFilter(parentCohort: Cohort, labelOne: string, labelTwo: string, table: string, attribute: string, ensg: string, depletionscreen: string, ranges: Array<INumRange>): Promise<Cohort> {
   const params: ICohortDBWithDepletionScoreFilterParams = {
     cohortId: parentCohort.dbId,
-    name: `${labelOne}#${labelTwo}`,
+    name: combineLabelsForDB(labelOne, labelTwo),
     table,
     attribute,
     ensg,
@@ -167,7 +167,7 @@ export async function createCohortWithDepletionScoreFilter(parentCohort: Cohort,
 export async function createCohortWithPanelAnnotationFilter(parentCohort: Cohort, labelOne: string, labelTwo: string, panel: string, values: Array<string>): Promise<Cohort> {
   const params: ICohortDBWithPanelAnnotationFilterParams = {
     cohortId: parentCohort.dbId,
-    name: `${labelOne}#${labelTwo}`,
+    name: combineLabelsForDB(labelOne, labelTwo),
     panel,
     values
   };
@@ -197,6 +197,47 @@ async function cohortCreationDBHandler<T>(craeteDBCohortMethod: ICreateMethod<T>
   } // end of try-catch
 
   return dbId;
+}
+
+function combineLabelsForDB(labelOne: string, labelTwo: string): string {
+  return `${labelOne}${valueListDelimiter}${labelTwo}`;
+}
+
+function splitLabelsFromDB(name: string): {labelOne: string, labelTwo: string} {
+  const split = name.split(valueListDelimiter);
+  // console.log('name, labels:', {name, split});
+  return {
+    labelOne: split[0],
+    labelTwo: split[1]
+  };
+}
+
+
+
+export function createCohortFromDB(data: ICohortRow, provJSON: IProvAttrAndValuesCohort): Cohort {
+  // ATTENTION : database != databaseName
+  const labels = splitLabelsFromDB(data.name);
+  const isInitial = data.is_initial === 1 ? true : false;
+
+  const basicValues: ICohortClassBasicValues = {
+    id: `${data.id}`,
+    dbId: data.id,
+    labelOne: labels.labelOne,
+    labelTwo: labels.labelTwo
+  };
+  const databaseValues: ICohortClassDatabaseValues = {
+    database: provJSON.database,
+    schema: data.entity_schema,
+    table: data.entity_table,
+    view: provJSON.view,
+    idType: provJSON.idType,
+    idColumn: provJSON.idColumn
+  };
+
+  const cht = new Cohort(basicValues, provJSON.values, databaseValues, {normal: {}, lt: {}, lte: {}, gt: {}, gte: {}}, null, isInitial);
+  const test = cht.size;
+  // cht.selected = provJSON.selected;
+  return cht;
 }
 
 export enum cloneFilterTypes {
@@ -261,9 +302,9 @@ export class Cohort implements ICohort {
   constructor(basicValues: ICohortClassBasicValues, values: Array<INumRange[] | IEqualsList>, databaseValues: ICohortClassDatabaseValues, filters: IAllFilters = {normal: {}, lt: {}, lte: {}, gt: {}, gte: {}}, sizeReference: number = null, isInitial: boolean = false) {
     this.id = basicValues.id;
     this.dbId = basicValues.dbId;
-    this.labelOne = basicValues.labelOne;
-    this.labelTwo = basicValues.labelTwo;
-    this.label = `${this.labelOne} (${this.labelTwo})`;
+    this._labelOne = basicValues.labelOne;
+    this._labelTwo = basicValues.labelTwo;
+    this._combineLabels(false);
 
     this._database = databaseValues.database;
     this._schema = databaseValues.schema;
@@ -299,12 +340,17 @@ export class Cohort implements ICohort {
     return false; // TODO remove legacy code with the filter object and filter conflict check
   }
 
-  private _combineLabels() {
-    this.label = `${this.labelOne}: ${this.labelTwo}`;
+  private _combineLabels(updateDBCohort: boolean = true) {
+    this.label = `${this._labelOne}: ${this._labelTwo}`;
+    // console.log('combineLabels', {updateDBCohort, l1: this._labelOne, l2: this._labelTwo});
+    if (updateDBCohort) {
+      updateCohortName({cohortId: this.dbId, name: combineLabelsForDB(this.labelOne, this.labelTwo)});
+    }
   }
 
-  public set labelOne(labelOne: string) {
+  public setLabels(labelOne: string, labelTwo: string) {
     this._labelOne = labelOne;
+    this._labelTwo = labelTwo;
     this._combineLabels();
     if (this.representation !== null && this.representation !== undefined) {
       this.representation.setLabel(this._labelOne, this._labelTwo);
@@ -313,14 +359,6 @@ export class Cohort implements ICohort {
 
   public get labelOne(): string {
     return this._labelOne;
-  }
-
-  public set labelTwo(labelTwo: string) {
-    this._labelTwo = labelTwo;
-    this._combineLabels();
-    if (this.representation !== null && this.representation !== undefined) {
-      this.representation.setLabel(this._labelOne, this._labelTwo);
-    }
   }
 
   public get labelTwo(): string {
@@ -404,7 +442,7 @@ export class Cohort implements ICohort {
   }
 
   public get schema(): string {
-    return this._view;
+    return this._schema;
   }
 
   public set view(view: string) {
@@ -467,7 +505,9 @@ export class Cohort implements ICohort {
 
   public set selected(selected: boolean) {
     this._selected = selected;
-    this.representation.setSelection(this._selected);
+    if (this.representation) {
+      this.representation.setSelection(this._selected);
+    }
   }
 
   private async _fetchSize(): Promise<number> {
@@ -591,8 +631,27 @@ export class Cohort implements ICohort {
     return this._bloodline;
   }
 
-  private updateBloodline() {
+  public updateBloodline() {
     this._bloodline = this._getHeritage([], this);
+  }
+
+  public toProvenanceJSON(): IElementProvJSONCohort {
+    return {
+      id: this.id,
+      type: ElementProvType.Cohort,
+      label: this.label,
+      parent: this._parents.map((elem) => elem.id),
+      children: this._children.map((elem) => elem.id),
+      attrAndValues: {
+        values: this.values,
+        view: this._view,
+        database: this._database,
+        idType: this.idType,
+        idColumn: this.idColumn,
+        selected: this._selected,
+        isRoot: false
+      }
+    };
   }
 }
 

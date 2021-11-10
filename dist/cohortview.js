@@ -1,64 +1,32 @@
+import { RestBaseUtils } from 'tdp_core';
 import { CohortSelectionListener } from './app';
-import { createCohort } from './Cohort';
-import { PanelScoreAttribute } from './data/Attribute';
 import { OnboardingManager } from './OnboardingManager';
 import { CohortOverview } from './Overview/CohortOverview';
 import { RectangleLayout } from './Overview/OverviewLayout';
 import Taskview from './Taskview/Taskview';
-import { log } from './util';
-import { niceName } from './utilLabels';
+import { handleDataLoadError, log } from './util';
 export let cohortOverview;
 export let taskview;
 let referenceCohort;
-export async function createCohortOverview(container, viewDescr, detailView, idTypeConfig, panel) {
-    const viewDescription = viewDescr;
-    // set idColumn for task view
-    // export interface IEntitySourceConfig {
-    //   idType: string;
-    //   name: string;
-    //   dbConnectorName: string;
-    //   dbConnector: string;
-    //   schema: string;
-    //   viewName: string;
-    //   tableName: string;
-    //   entityName: string;
-    //   base: string;
-    //   baseStatement: string;
-    // }
-    const idColumn = viewDescription.columns.find((col) => col.label === 'id') || { column: 'id', label: 'id', type: 'string' };
-    // create overview class
-    /*createCohort(
-      name: string,
-      isInitial: boolean,
-      previousCohortId: number,
-      database: string,
-      schema: string,
-      table: string,
-      statement: string,
-      idType: IDTypeLike,
-      idColumn: string,
-      filters: IAllFilters {normal: {}, lt: {}, lte: {}, gt: {}, gte: {}} ) {*/
-    let reference = await createCohort(niceName(idTypeConfig.idType), 'All', true, -1, idTypeConfig.dbConnector, idTypeConfig.dbConnectorName, idTypeConfig.schema, idTypeConfig.tableName, idTypeConfig.viewName, idTypeConfig.idType, idColumn, { normal: {}, lt: {}, lte: {}, gt: {}, gte: {} });
-    if (panel) {
-        const panelAttr = new PanelScoreAttribute(panel.id, idTypeConfig.viewName, idTypeConfig.dbConnectorName, 'categorical');
-        reference = await panelAttr.filter(reference, { values: ['true'] });
-        reference.labelOne = idTypeConfig.idType;
-        reference.labelTwo = panel.id;
-    }
-    reference.isInitial = true; // set cohort as root
-    log.debug('root: ', reference);
-    // clean up/destory the old parts of the application
+export async function createCohortOverview(graph, ref, container, detailView, idTypeConfig, rootCohort) {
+    const viewDescription = await loadViewDescription(idTypeConfig.dbConnectorName, idTypeConfig.viewName);
+    log.debug('retrievedViewDesctiprion', viewDescription);
     destroyOld();
-    // save reference cohort
-    referenceCohort = reference;
+    // set reference/root cohort
+    referenceCohort = rootCohort; // save reference cohort
+    log.debug('cohortview - root: ', rootCohort);
     // create Overview
-    cohortOverview = new CohortOverview(container, new RectangleLayout(130, 50, 50, 50), reference, viewDescription);
+    cohortOverview = new CohortOverview(container, graph, ref, new RectangleLayout(130, 50, 50, 50), rootCohort, viewDescription);
     // create Taskview
-    taskview = new Taskview(detailView, reference);
+    taskview = new Taskview(detailView, rootCohort);
     CohortSelectionListener.get().taskview = taskview;
     // draw overview in container element
     updateOverview(cohortOverview);
-    OnboardingManager.addTip('rootCohort', reference.representation.getRepresentation());
+    OnboardingManager.addTip('rootCohort', rootCohort.representation.getRepresentation());
+    return {
+        cohortOV: cohortOverview,
+        taskV: taskview
+    };
 }
 export function getRootCohort() {
     return referenceCohort;
@@ -74,7 +42,24 @@ export function destroyOld() {
     }
     referenceCohort = null;
 }
+export function getCohortOverview() {
+    return cohortOverview;
+}
+export function getTaskview() {
+    return taskview;
+}
 export function updateOverview(overview) {
     overview.generateOverview();
+}
+export async function loadViewDescription(database, view) {
+    log.debug('getTDPDesc for: db:', database, ' |view: ', view);
+    try {
+        const descr = await RestBaseUtils.getTDPDesc(database, view);
+        log.debug('descr= ', descr);
+        return descr;
+    }
+    catch (e) {
+        handleDataLoadError(e);
+    }
 }
 //# sourceMappingURL=cohortview.js.map

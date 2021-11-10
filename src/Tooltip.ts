@@ -17,7 +17,7 @@ export function createSearchBarTooltip(elemWithTooltip: HTMLDivElement, cssClass
 
   const divControls = document.createElement('div');
   const divOK = document.createElement('div');
-  divOK.classList.add('okay', 'tooltip-btn');
+  divOK.classList.add('okay', 'btn', 'btn-coral', 'tooltip-btn');
   divOK.innerHTML = 'Okay';
   divOK.addEventListener('click', () => {
     // get options from search bar
@@ -25,14 +25,14 @@ export function createSearchBarTooltip(elemWithTooltip: HTMLDivElement, cssClass
     // convert options to attributes
     const attributes = options.map((opt) => toAttribute(opt, database, view));
     // add attributes to taskview
-    taskview.addMultipleAttributeColumns(attributes, true);
+    taskview.addMultipleAttributeColumns(attributes, true, true);
     // remove options and close tooltip
     elemWithTooltip.click();
   });
 
   divControls.classList.add('tooltip-controls');
   const divCancel = document.createElement('div');
-  divCancel.classList.add('cancel', 'tooltip-btn');
+  divCancel.classList.add('cancel', 'btn', 'btn-coral', 'tooltip-btn');
   divCancel.innerHTML = 'Cancel';
   divCancel.addEventListener('click', () => {
     // remove options and close tooltip

@@ -5,11 +5,11 @@ export default class SearchColumn {
     private referenceCht;
     private taskview;
     private $searchColumn;
-    private $task;
+    private $taskContainer;
     private $tasks;
     private searchBar;
-    private eventID;
     private refCohort;
+    private $ColumnHeader;
     activeTask: ATask;
     constructor($container: HTMLDivElement, referenceCht: Cohort, taskview: Taskview);
     clear(): void;

@@ -1,14 +1,16 @@
 import { CLUEGraphManager } from 'phovea_clue';
-import { ActionNode, ICmdResult, IObjectRef, ProvenanceGraph } from 'phovea_core';
+import { IObjectRef, ProvenanceGraph } from 'phovea_core';
 import { ATDPApplication } from 'tdp_core';
 import { Cohort } from './Cohort';
+import { IElementProvJSON, IElementProvJSONCohort } from './CohortInterfaces';
+import { CohortOverview } from './Overview';
 import Taskview from './Taskview/Taskview';
 import { CohortSelectionEvent, ConfirmTaskEvent } from './utilCustomEvents';
 import { IEntitySourceConfig } from './utilIdTypes';
 /**
  * The Cohort app that does the acutal stuff.
  */
-export declare class CoralApp {
+export declare class CohortApp {
     readonly graph: ProvenanceGraph;
     readonly graphManager: CLUEGraphManager;
     private readonly $node;
@@ -16,12 +18,16 @@ export declare class CoralApp {
     private $detail;
     readonly name: string;
     private dataset;
+    private _cohortOverview;
+    private _taskview;
+    private rootCohort;
     private datasetEventID;
+    private datasetTip;
     /**
      * IObjectRef to this CohortApp instance
-     * @type {IObjectRef<CoralApp>}
+     * @type {IObjectRef<CohortApp>}
      */
-    readonly ref: IObjectRef<CoralApp>;
+    readonly ref: IObjectRef<CohortApp>;
     constructor(graph: ProvenanceGraph, manager: CLUEGraphManager, parent: HTMLElement, name?: string);
     /**
      * Initialize the view and return a promise
@@ -36,20 +42,20 @@ export declare class CoralApp {
      * @returns {Promise<App>}
      */
     private build;
+    private builDataSelector;
+    handleDatasetClick(newDataset: any): Promise<void>;
     getDatabases(): Promise<Array<any>>;
     defineIdTypes(databases: Array<any>): Array<IEntitySourceConfig>;
+    private _getOldCohortOverviewElements;
+    getAppOverview(): CohortOverview;
+    private _createRootCohort;
     /**
      * loads the needed data and creates the graph
      * @param database name of the database
      * @param view name of the view
      */
     setDataset(dataset: IDatasetDesc): Promise<void>;
-    /**
-     * load the description of the given database and view
-     * @param database database name
-     * @param view view id
-     */
-    private loadViewDescription;
+    private _showChangeLayoutOptions;
     private _addSplitScreenDraggerFunctionality;
     private _createScreenControlBtn;
     setAppGridLayout(type: 'top' | 'split' | 'bot'): void;
@@ -57,13 +63,11 @@ export declare class CoralApp {
 /**
  * The app for this website, embeds our Cohort App
  */
-export declare class App extends ATDPApplication<CoralApp> {
+export declare class App extends ATDPApplication<CohortApp> {
     constructor(name: string);
-    protected createApp(graph: ProvenanceGraph, manager: CLUEGraphManager, main: HTMLElement): CoralApp | PromiseLike<CoralApp>;
-    protected initSessionImpl(app: CoralApp): void;
-    static setDatasetImpl(inputs: IObjectRef<CoralApp>[], parameter: any): Promise<ICmdResult>;
-    static setDataset(provider: IObjectRef<CoralApp>, newDataset: IDatasetDesc, oldDataset: IDatasetDesc): import("phovea_core").IAction;
-    static compressChtSetDataset(path: ActionNode[]): ActionNode[];
+    protected createApp(graph: ProvenanceGraph, manager: CLUEGraphManager, main: HTMLElement): CohortApp | PromiseLike<CohortApp>;
+    private replaceHelpIcon;
+    protected initSessionImpl(app: CohortApp): void;
 }
 export declare class CohortSelectionListener {
     private eventTarget;
@@ -73,7 +77,7 @@ export declare class CohortSelectionListener {
     selection: Cohort[];
     firstCohort: boolean;
     static get(): CohortSelectionListener;
-    static init(eventTarget: Node, app: CoralApp): void;
+    static init(eventTarget: Node, app: CohortApp): void;
     static reset(): void;
     private constructor();
     handleSelectionEvent(ev: CohortSelectionEvent): void;
@@ -83,8 +87,9 @@ export interface IPanelDesc {
     description: string;
     species: string;
 }
-interface IDatasetDesc {
+export interface IDatasetDesc {
     source: IEntitySourceConfig;
     panel?: IPanelDesc;
+    rootCohort: IElementProvJSONCohort;
+    chtOverviewElements: IElementProvJSON[];
 }
-export {};

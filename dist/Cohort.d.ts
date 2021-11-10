@@ -1,7 +1,7 @@
 import { IDType, IDTypeLike } from 'phovea_core';
 import { IAllFilters, IRow, IServerColumn } from 'tdp_core';
-import { ICohort, ICohortRep, IElement } from './CohortInterfaces';
-import { ICohortDepletionScoreFilterParams, ICohortEqualsFilterParams, ICohortGeneEqualsFilterParams, ICohortGeneNumFilterParams, ICohortNumFilterParams, ICohortPanelAnnotationFilterParams, IEqualsList, INumRange } from './rest';
+import { ICohort, ICohortRep, IElement, IElementProvJSONCohort, IProvAttrAndValuesCohort } from './CohortInterfaces';
+import { ICohortDepletionScoreFilterParams, ICohortEqualsFilterParams, ICohortGeneEqualsFilterParams, ICohortGeneNumFilterParams, ICohortNumFilterParams, ICohortPanelAnnotationFilterParams, ICohortRow, IEqualsList, INumRange } from './rest';
 import { Task } from './Tasks';
 export declare function createCohort(labelOne: string, labelTwo: string, isInitial: boolean, previousCohortId: number, database: string, databaseName: string, schema: string, table: string, view: string, idType: IDTypeLike, idColumn: IServerColumn, filters: IAllFilters): Promise<Cohort>;
 export declare function createCohortWithEqualsFilter(parentCohort: Cohort, labelOne: string, labelTwo: string, attribute: string, numeric: 'true' | 'false', values: Array<string> | Array<number>): Promise<Cohort>;
@@ -11,6 +11,7 @@ export declare function createCohortWithGeneNumFilter(parentCohort: Cohort, labe
 export declare function createCohortWithGeneEqualsFilter(parentCohort: Cohort, labelOne: string, labelTwo: string, table: string, attribute: string, ensg: string, numeric: 'true' | 'false', values: Array<string> | Array<number>): Promise<Cohort>;
 export declare function createCohortWithDepletionScoreFilter(parentCohort: Cohort, labelOne: string, labelTwo: string, table: string, attribute: string, ensg: string, depletionscreen: string, ranges: Array<INumRange>): Promise<Cohort>;
 export declare function createCohortWithPanelAnnotationFilter(parentCohort: Cohort, labelOne: string, labelTwo: string, panel: string, values: Array<string>): Promise<Cohort>;
+export declare function createCohortFromDB(data: ICohortRow, provJSON: IProvAttrAndValuesCohort): Cohort;
 export declare enum cloneFilterTypes {
     none = 0,
     equals = 1,
@@ -66,9 +67,8 @@ export declare class Cohort implements ICohort {
     private _checkForFilterConflict;
     hasfilterConflict(): boolean;
     private _combineLabels;
-    set labelOne(labelOne: string);
+    setLabels(labelOne: string, labelTwo: string): void;
     get labelOne(): string;
-    set labelTwo(labelTwo: string);
     get labelTwo(): string;
     set parents(parents: Array<IElement>);
     get parents(): Array<IElement>;
@@ -114,7 +114,8 @@ export declare class Cohort implements ICohort {
     private _getHeritage;
     private _createHeritageElement;
     getBloodline(): IBloodlineElement[];
-    private updateBloodline;
+    updateBloodline(): void;
+    toProvenanceJSON(): IElementProvJSONCohort;
 }
 export interface IBloodlineElement {
     obj: IElement;

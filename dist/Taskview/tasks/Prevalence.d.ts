@@ -17,7 +17,7 @@ export declare class Prevalence extends ATask {
     static readonly INITIAL_CHT_LABEL = "Initial Cohort";
     static readonly TASK_OPTION_LABEL = "Applicable Tasks";
     private currentState;
-    show(container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]): void;
+    show(columnHeader: HTMLDivElement, container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]): void;
     private addCheckboxForMissingValues;
     private changeMissingValueInclusion;
     private createPrevalenceCohortPack;

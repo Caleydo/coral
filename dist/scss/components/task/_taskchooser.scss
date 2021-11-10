@@ -12,7 +12,7 @@ $task-gap: 1em !default;
 
 
   .tasks-header, .task-list-header {
-    font-size: 2.5rem;
+    font-size: 1.56rem;
 
     &.task-list-header {
       margin: 0.5em 0;
@@ -38,11 +38,12 @@ $task-gap: 1em !default;
   .task {
     width: $task-width;
     height: 6em;
-    border: 1px solid $color-border-light;
-    border-radius: 0.25em;
+    // border: 1px solid $color-border-light;
+    // border-radius: 0.25em;
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: 1fr auto;
+    cursor: pointer;
 
     &.dual {
       // grid-column-end: span 2;
@@ -59,25 +60,31 @@ $task-gap: 1em !default;
           border-right: 1px dashed $color-border-light;
         }
       }
-    }
-
-    &.disabled {
-      color: $color-border-light; //same as border
-    }
-
-    &:not(.disabled) {
-      box-shadow: -1px 1px 3px 0px $color-shadow; // button pops out of page
 
       &:hover {
-        box-shadow: -1px 1px 5px 1px $color-shadow; // button pops even more out of page
-        text-shadow: -1px -1px $color-shadow;
-      }
-      &:active {
-        //on click
-        box-shadow: inset -1px 1px 5px 0px $color-shadow; // button is pushed into page;
-        text-shadow: 1px 1px $color-shadow;
+        > div {
+          border-color: darken($color-border-light,12%);  // bootstarp hover styling
+        }
       }
     }
+
+    // &.disabled {
+    //   color: $color-border-light; //same as border
+    // }
+
+    // &:not(.disabled) {
+    //   box-shadow: -1px 1px 3px 0px $color-shadow; // button pops out of page
+
+    //   &:hover {
+    //     box-shadow: -1px 1px 5px 1px $color-shadow; // button pops even more out of page
+    //     text-shadow: -1px -1px $color-shadow;
+    //   }
+    //   &:active {
+    //     //on click
+    //     box-shadow: inset -1px 1px 5px 0px $color-shadow; // button is pushed into page;
+    //     text-shadow: 1px 1px $color-shadow;
+    //   }
+    // }
 
     .task-icon, .task-label {
       display: flex;
@@ -86,10 +93,10 @@ $task-gap: 1em !default;
 
       &.task-label {
         padding-bottom: 0.25em;
-        font-size: 1.5rem;
+        font-size: 0.94rem;
       }
       &.task-icon {
-        font-size: 4rem;
+        font-size: 2.5rem;
       }
     }
   }

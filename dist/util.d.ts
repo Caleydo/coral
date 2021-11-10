@@ -57,7 +57,8 @@ export interface IAttributeFilter {
     attr: IAttribute;
     range: INumRange[] | IEqualsList;
 }
-export declare function getAnimatedLoadingText(thingToLoad?: string): HTMLParagraphElement;
+export declare function getAnimatedLoadingText(thingToLoad?: string, large?: boolean): HTMLParagraphElement;
+export declare function getAnimatedLoadingBars(): HTMLDivElement;
 export declare class CohortColorSchema {
     static readonly COLOR_SCHEME: string[];
     static get(index: number): string;
@@ -69,5 +70,10 @@ export declare function inRange(value: any, interval: any): boolean;
 export declare function hasCookie(cookieID: any): boolean;
 export declare function createHTMLElementWithClasses(htmlElem: string, classes: string[]): HTMLElement;
 export declare class DebugTools {
+    /**
+     * lets the execution pause for the given amount of milliseconds.
+     * Use with await keyword.
+     * @param millis time to wait
+     */
     static sleep(millis: number): Promise<void>;
 }

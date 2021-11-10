@@ -1,14 +1,35 @@
+@mixin right-caret {
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900; //only solid version of icon is free
+  content: "\f0da\00a0";
+}
+
 .vis-selector {
   flex-grow: 1;
 
   a.selector {
-    &::before {
-      font-family: "Font Awesome 5 Free";
-      content: "\f0c8 ";
-    }
-
     &.selected::before {
-      content: "\f14a ";
+      @include right-caret();
+    }
+  }
+
+  .dropdown-item {
+    padding-left: 1em;
+
+    &.selected a::before {
+      @include right-caret();
+    }
+  }
+
+  .dropdown-header {
+    font-size: unset;
+    color: unset;
+    padding-top: 0.5em;
+    border-top: 1px solid $color-border-light;
+
+    &:first-child {
+      padding-top: unset;
+      border-top: unset;
     }
   }
 }
@@ -17,8 +38,9 @@
   display: grid;
   grid-template-columns: 1fr 12em;
   gap: 1em;
-  grid-template-areas: "vis controls"
-                       "legend legend";
+  grid-template-areas:
+    "vis controls"
+    "legend legend";
 
   .controls {
     grid-area: controls;
@@ -39,7 +61,11 @@
       flex-direction: column;
       margin-bottom: 1em;
 
-      input,
+      &:last-child {
+        margin-bottom: unset;
+      }
+
+      input[type="number"],
       select {
         padding-top: 2px;
         padding-bottom: 2px;
@@ -65,6 +91,8 @@
   }
 
   .null-value-container {
+    margin-top: 0.25em;
+
     .null-value-checkbox {
       vertical-align: bottom;
       top: -1px;
@@ -117,4 +145,8 @@
       }
     }
   }
+}
+
+button img {
+  padding-right: unset;
 }

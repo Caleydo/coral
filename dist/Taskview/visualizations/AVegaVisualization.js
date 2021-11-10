@@ -1,19 +1,21 @@
 import { format } from 'd3-format';
 import { select } from 'd3-selection';
+import { cloneDeep } from 'lodash';
+import tippy from 'tippy.js';
 import vegaEmbed from 'vega-embed';
 import { getCohortLabel } from '../../Cohort';
 import { NumRangeOperators } from '../../rest';
 import { CohortColorSchema, log } from '../../util';
 import { FilterEvent, SplitEvent } from '../../utilCustomEvents';
 import { DATA_LABEL } from './constants';
-import tippy from 'tippy.js';
 export const MISSING_VALUES_LABEL = 'Missing Values';
+export const FACETED_CHARTS_WIDTH = 520;
 export class AVegaVisualization {
     constructor(vegaLiteOptions = {}) {
         this.vegaLiteOptions = vegaLiteOptions;
         this.showBrush = true;
         this.colorPalette = CohortColorSchema.COLOR_SCHEME;
-        this.options = new Map();
+        this.config = [];
     }
     clearSelection() {
         if (this.vegaView) {
@@ -28,7 +30,7 @@ export class AVegaVisualization {
     }
     getSpec(data) {
         const vegaLiteSpec = {
-            $schema: 'https://vega.github.io/schema/vega-lite/v4.json',
+            $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
             width: 'container',
             autosize: { type: 'fit', contains: 'padding' },
             padding: { left: 5, top: 0, right: 5, bottom: 0 },
@@ -61,16 +63,14 @@ export class AVegaVisualization {
     }
     addHoverSelection(spec) {
         const subspec = spec.layer ? spec.layer[0] : spec;
-        if (!subspec.selection) { // create if not existing
-            subspec.selection = {};
+        if (!subspec.params) { // create if not existing
+            subspec.params = [];
         }
-        Object.assign(subspec.selection, {
-            [AVegaVisualization.SELECTION_SIGNAL_NAME]: {
-                empty: 'all'
-            },
-            [AVegaVisualization.HIGHLIGHT_SIGNAL_NAME]: {
-                type: 'single',
-                empty: 'none',
+        subspec.params.push({
+            name: AVegaVisualization.HIGHLIGHT_SIGNAL_NAME,
+            select: {
+                type: 'point',
+                toggle: false,
                 on: 'mouseover',
                 clear: 'mouseout' // otherwise the hover effect might stay moving the mouse cursor out quickly
             }
@@ -78,18 +78,18 @@ export class AVegaVisualization {
     }
     addIntervalSelection(spec) {
         const subspec = spec.layer ? spec.layer[0] : spec;
-        if (!subspec.selection) { // create if not existing
-            subspec.selection = {};
+        if (!subspec.params) { // create if not existing
+            subspec.params = [];
         }
         const range = this.getFilterRange('x');
-        Object.assign(subspec.selection, {
-            [AVegaVisualization.SELECTION_SIGNAL_NAME]: {
+        subspec.params.push({
+            name: AVegaVisualization.SELECTION_SIGNAL_NAME,
+            select: {
                 type: 'interval',
                 mark: { cursor: 'pointer' },
-                empty: 'all',
                 encodings: ['x'],
-                init: range.length > 0 ? { x: range } : {}
-            }
+            },
+            ...(range.length > 0 ? { value: { x: range } } : {})
         });
         Object.assign(subspec.mark, {
             cursor: 'text' // switch cursor to vertical text above marks
@@ -118,14 +118,14 @@ export class AVegaVisualization {
     }
     addMultiSelection(spec) {
         const subspec = spec.layer ? spec.layer[0] : spec;
-        if (!subspec.selection) { // create if not existing
-            subspec.selection = {};
+        if (!subspec.params) { // create if not existing
+            subspec.params = [];
         }
-        Object.assign(subspec.selection, {
-            [AVegaVisualization.SELECTION_SIGNAL_NAME]: {
-                type: 'multi',
-                toggle: 'true',
-                empty: 'all'
+        subspec.params.push({
+            name: AVegaVisualization.SELECTION_SIGNAL_NAME,
+            select: {
+                type: 'point',
+                toggle: 'true'
             }
         });
         Object.assign(subspec.mark, {
@@ -142,29 +142,11 @@ export class AVegaVisualization {
             .html((d, i) => `<i class="fas fa-square" aria-hidden="true" style="color: ${d.colorTaskView} "></i>&nbsp;${d.label}`);
         this.container.insertAdjacentElement('beforeend', this.legend);
     }
-    addNullCheckbox(amount, multipleCohorts) {
-        // div container for null value elements
-        this.nullValueContainer = document.createElement('div');
-        this.nullValueContainer.className = 'null-value-container';
-        // null checkbox
-        const nullCheckbox = document.createElement('input');
-        nullCheckbox.type = 'checkbox';
-        nullCheckbox.classList.add('null-value-checkbox');
-        this.nullValueContainer.appendChild(nullCheckbox);
-        // description text
-        const labelNullValue = document.createElement('span');
-        labelNullValue.classList.add('null-value-label');
-        labelNullValue.innerHTML = multipleCohorts ? `Add <b>missing values</b>` : `Add <b>missing values</b> (${amount})`;
-        this.nullValueContainer.appendChild(labelNullValue);
-        // add null container to container
-        this.controls.getElementsByClassName('applyBtn')[0].insertAdjacentElement('beforebegin', this.nullValueContainer);
-    }
-    getNullCheckboxState() {
-        if (this.nullValueContainer) {
-            const checkbox = this.nullValueContainer.querySelector('.null-value-checkbox');
-            if (checkbox) {
-                return checkbox.checked;
-            }
+    getNullCheckboxState(attribute) {
+        const activeTask = select(this.controls).select('.tab-pane.active').attr('id');
+        const checkbox = this.controls.querySelector(`#${activeTask} [data-attr="${attribute.dataKey}"] .null-value-checkbox`);
+        if (checkbox) {
+            return checkbox.checked;
         }
         return false;
     }
@@ -178,36 +160,11 @@ export class AVegaVisualization {
             this.container.innerHTML = '';
         }
     }
-    getOptions() {
-        return Array.from(this.options.keys());
+    getConfig() {
+        return this.config;
     }
-    getDefaultOption() {
-        let optKey = localStorage.getItem(`last ${this.constructor.name} option`);
-        if (!optKey) {
-            const optKeys = this.getOptions();
-            if (optKeys.length > 0) {
-                optKey = optKeys[0];
-            }
-        }
-        return optKey;
-    }
-    getOption() {
-        return this.currentOption || this.getDefaultOption();
-    }
-    getOptionSpec() {
-        return this.options.get(this.getOption());
-    }
-    setOption(key) {
-        if (this.getOption() === key) {
-            return; // noop
-        }
-        if (this.options.has(key)) {
-            this.currentOption = key;
-            localStorage.setItem(`last ${this.constructor.name} option`, key);
-        }
-        else {
-            throw new Error('Option does not exist');
-        }
+    selectOption(o) {
+        o.group.select(o);
         this.showImpl(this.chart, this.data);
     }
     getCategoricalFilter(categories) {
@@ -233,11 +190,14 @@ AVegaVisualization.SELECTION_STORE = AVegaVisualization.SELECTION_SIGNAL_NAME + 
 AVegaVisualization.HIGHLIGHT_SIGNAL_NAME = 'highlight';
 AVegaVisualization.DATA_STORE_0 = 'data_0';
 AVegaVisualization.DATA_STORE_1 = 'data_1';
+AVegaVisualization.DATA_STORE_3 = 'data_3';
+AVegaVisualization.SPLITVALUE_DATA_STORE = 'splitvalues';
 export class SingleAttributeVisualization extends AVegaVisualization {
     constructor() {
         super(...arguments);
         this.splitValues = [];
         this.vegaBrushListener = (name, value) => this.handleVegaIntervalEvent(name, value);
+        this.vegaSplitListener = (name, value) => this.handleSplitDragEvent(name, value);
     }
     async show(container, attributes, cohorts) {
         log.debug('show: ', { container, attributes, cohorts });
@@ -250,10 +210,12 @@ export class SingleAttributeVisualization extends AVegaVisualization {
         this.container = container;
         this.container.insertAdjacentHTML(`afterbegin`, `
       <div class="vega-container"></div>
-      <div class="controls"></div>
+      <div class="controls">
+        <div class="sticky" style="position: sticky; top: 0;"></div>
+      </div>
     `);
         this.chart = this.container.getElementsByTagName('div')[0]; //first-child was not the right type of object and vega-embed failed
-        this.controls = this.container.getElementsByTagName('div')[1];
+        this.controls = this.container.querySelector('.controls .sticky');
         const notZeroCohorts = this.cohorts.filter((a) => {
             const currSize = a.getRetrievedSize();
             return currSize > 0;
@@ -262,10 +224,21 @@ export class SingleAttributeVisualization extends AVegaVisualization {
         // data's outer array has one item per cohort, which in turn contains array with the items/values
         // flatten the array:
         const flatData = data.flat(1);
-        // get null values
-        const nullValues = flatData.filter((a) => a[this.attribute.dataKey] === null);
-        const amountNullValues = nullValues.length;
-        this.hideVisualization = flatData.length === amountNullValues;
+        // check if all values are null
+        this.nullValueMap = new Map(); // Map: Attribute -> Cohort --> number of null values per cohort per attribute
+        this.nullValueMap.set(this.attribute.dataKey, new Map(this.cohorts.map((cht) => [cht, 0]))); // init map with 0 for all attribues
+        let nullValues = 0;
+        for (const d of flatData) {
+            if (d[this.attribute.dataKey] === null) {
+                const attrData = this.nullValueMap.get(this.attribute.dataKey);
+                const chtLabel = d[DATA_LABEL];
+                const chtIndex = parseInt(chtLabel.substr(0, chtLabel.indexOf('.')), 10);
+                const count = 1 + attrData.get(this.cohorts[chtIndex - 1]);
+                attrData.set(this.cohorts[chtIndex - 1], count);
+                nullValues++;
+            }
+        }
+        this.hideVisualization = nullValues === flatData.length;
         this.type = this.attribute.type === `number` ? 'quantitative' : 'nominal';
         if (!flatData || flatData.length === 0) {
             this.chart.innerText = 'No Data';
@@ -277,16 +250,15 @@ export class SingleAttributeVisualization extends AVegaVisualization {
             this.data = flatData; // save the data that is used in the chart
             await this.showImpl(this.chart, flatData);
         }
-        if (this.type === 'quantitative') {
-            if (!this.hideVisualization) {
+        if (!this.hideVisualization) {
+            if (this.type === 'quantitative') {
                 this.addIntervalControls();
-                this.addNullCheckbox(amountNullValues, cohorts.length > 1);
             }
+            else {
+                this.addCategoricalControls();
+            }
+            this.addColorLegend();
         }
-        else {
-            this.addCategoricalControls();
-        }
-        this.addColorLegend();
         this.container.querySelectorAll('[title]').forEach((elem) => tippy(elem, {
             content(elm) {
                 const title = elm.getAttribute('title');
@@ -319,9 +291,9 @@ export class SingleAttributeVisualization extends AVegaVisualization {
         log.info('vegalite', this.vegaLiteSpec);
         window.dispatchEvent(new Event('resize')); //update vega chart sizes in case the columns became narrower
     }
-    getNullValueSelectedData(cohort) {
+    getNullValueSelectedData(cohort, attribute) {
         let filter = null;
-        if (this.getNullCheckboxState()) { // add filter ranges for null value
+        if (this.getNullCheckboxState(attribute)) { // add filter ranges for null value
             filter = {
                 from: null,
                 to: null,
@@ -411,20 +383,20 @@ export class SingleAttributeVisualization extends AVegaVisualization {
      * Splitting a cohort is only possible by single categories, i.e. you can't split ALL into a "asian/african" and a "white/american indian" cohort ( 2 categories each)
      */
     split() {
-        const formatter = format('.4~f');
+        var _a;
         let filters;
         if (this.attribute.type === 'number') {
             const [min, max] = this.vegaView.scale('x').domain();
             const bins = this.splitValues.map((splitValue, i) => {
                 let from = min;
                 if (i >= 1) {
-                    from = this.splitValues[i - 1];
+                    from = this.splitValues[i - 1].x;
                 }
-                const to = splitValue;
+                const to = splitValue.x;
                 return { from, to };
             });
-            bins.push({ from: this.splitValues[this.splitValues.length - 1] || min, to: max }); // last bin
-            if (this.getNullCheckboxState()) {
+            bins.push({ from: ((_a = this.splitValues[this.splitValues.length - 1]) === null || _a === void 0 ? void 0 : _a.x) || min, to: max }); // last bin
+            if (this.getNullCheckboxState(this.attribute)) {
                 bins.push({ from: null, to: null }); // add a null bin if checked
             }
             filters = [];
@@ -468,35 +440,51 @@ export class SingleAttributeVisualization extends AVegaVisualization {
     <div>
       <!-- Nav tabs -->
       <ul class="nav nav-tabs nav-justified" role="tablist">
-        <li role="presentation" class="active"><a href="#filter" aria-controls="filter" role="tab" data-toggle="tab"><i class="fas fa-filter" aria-hidden="true"></i> Filter</a></li>
-        <li role="presentation"><a href="#split" aria-controls="split" role="tab" data-toggle="tab"><i class="fas fa-share-alt" aria-hidden="true"></i> Split</a></li>
+        <li role="presentation" class="nav-item"><a class="nav-link active" href="#filter" aria-controls="filter" role="tab" data-bs-toggle="tab"><i class="fas fa-filter" aria-hidden="true"></i> Filter</a></li>
+        <li role="presentation" class="nav-item"><a class="nav-link" href="#split" aria-controls="split" role="tab" data-bs-toggle="tab"><i class="fas fa-share-alt" aria-hidden="true"></i> Split</a></li>
       </ul>
       <!-- Tab panes -->
       <div class="tab-content">
         <div role="tabpanel" class="tab-pane active" id="filter">
         <p>Click and drag in the visualization or set the range below:</p>
-          <div class="flex-wrapper">
+          <div class="flex-wrapper" data-attr="${this.attribute.dataKey}">
             <label>Filter from</label>
             <input type="number" class="interval minimum" step="any" min="${min}" max="${max}" data-axis="x"/>
             <label>to</label>
             <input type="number" class="interval maximum" step="any" min="${min}" max="${max}" data-axis="x"/>
+            <div class="null-value-container form-check">
+              <input type="checkbox" class="null-value-checkbox form-check-input" id="null_value_checkbox_1">
+              <label class="form-check-label" for="null_value_checkbox_1">Include <span class="hint">missing values</span></label>
+            </div>
           </div>
         </div>
         <div role="tabpanel" class="tab-pane" id="split">
-          <div class="flex-wrapper">
+          <div class="flex-wrapper" data-attr="${this.attribute.dataKey}">
             <label>Split into</label>
-            <input type="number" class="bins" step="any" min="1" max="99" value="1"/>
+            <input type="number" class="bins" step="any" min="1" max="99" value="2"/>
             <label >bins of</label>
-            <select>
-            <option>equal width</option>
+            <select class="binType">
+              <option>equal width</option>
+              <option>custom width</option>
             </select>
+            <div class="null-value-container form-check">
+              <input type="checkbox" class="null-value-checkbox form-check-input" id="null_value_checkbox_2">
+              <label class="form-check-label" for="null_value_checkbox_2">Add a <span class="hint">missing values</span> bin</label>
+            </div>
           </div>
         </div>
       </div>
     </div>
-    <button type="button" class="btn btn-default btn-block applyBtn" title="Apply to get a preview of the output cohorts.">Apply</button>
+    <div class="d-grid gap-2">
+      <button type="button" class="btn applyBtn btn-coral-prime" title="Apply to get a preview of the output cohorts.">Apply</button>
+    </div>
     `);
-        this.container.insertAdjacentElement('beforeend', this.controls);
+        let nullValueTooltip = ``;
+        for (const [cht, nullValues] of this.nullValueMap.get(this.attribute.dataKey)) {
+            nullValueTooltip += `<i class="fas fa-square" aria-hidden="true" style="color: ${cht.colorTaskView} "></i>&nbsp;${nullValues}<br>`;
+        }
+        const selector = `[data-attr="${this.attribute.dataKey}"] .hint`;
+        tippy(this.controls.querySelectorAll(selector), { content: nullValueTooltip });
         select(this.controls).select('button.applyBtn').on('click', () => {
             const activeTask = select(this.controls).select('.tab-pane.active').attr('id');
             switch (activeTask) {
@@ -510,47 +498,66 @@ export class SingleAttributeVisualization extends AVegaVisualization {
                     log.error('Unknown task: ', activeTask);
             }
         });
-        select(this.controls).selectAll('a[role="tab"]').on('click', () => {
-            const oldTask = select(this.controls).select('.tab-pane.active').attr('id');
-            switch (oldTask) {
-                case 'filter': // switch to split -> remove interval
-                    this.showBrush = false;
-                    select(this.chart).selectAll('.mark-rect.role-mark.selected_brush_bg, .mark-rect.role-mark.selected_brush').style('opacity', 0);
-                    this.clearSelection();
-                    break;
-                case 'split': // switch to filter --> remove split rulers
-                    this.showBrush = false;
-                    select(this.chart).selectAll('.mark-rect.role-mark.selected_brush_bg, .mark-rect.role-mark.selected_brush').style('opacity', 1); // these elements have no opacity set from the spec which makes it safe to revert back to a hardcoded 1
-                    this.clearSelection(); // clear any selection that has been made while in split mode
-                    select(this.controls).select('input.bins').node().value = '1';
-                    select(this.controls).select('input.bins').node().dispatchEvent(new Event('change'));
-                    break;
-                default:
-                    log.error('Unknown task: ', oldTask);
-            }
-        });
         const that = this; //helper varible to access this instance in the d3 event handler function
+        select(this.controls).selectAll('a[role="tab"]').on('click', function () {
+            const d3Event = this; // because we use a function this is overwritten by d3, asssign to variable for clarity
+            const newTask = d3Event.hash.replace('#', '');
+            that.toggleFilterSplitMarks(newTask);
+        });
         const brushInputs = select(this.controls).selectAll('input.interval');
         brushInputs.on('change', function () {
             const d3Event = this; // because we use a function this is overwritten by d3, asssign to variable for clarity
             that.handleInputIntervalEvent.bind(that)(d3Event); // voodoo magic (👺) to set this back to the current instance
         });
-        const splitInput = select(this.controls).select('input.bins');
-        splitInput.on('change', function () {
+        const splitNumberInput = select(this.controls).select('input.bins');
+        splitNumberInput.on('change', function () {
             const d3Event = this; // because we use a function this is overwritten by d3, asssign to variable for clarity
             that.handleBinChangeEvent.bind(that)(d3Event); // voodoo magic (👺) to set this back to the current instance
         });
-        this.handleBinChangeEvent(splitInput.node());
+        const splitTypeInput = select(this.controls).select('select.binType');
+        splitTypeInput.on('change', function () {
+            splitNumberInput.node().dispatchEvent(new Event('change'));
+        });
+        this.handleBinChangeEvent(splitNumberInput.node());
+    }
+    /**
+     * Returns split or filter, depending on the currently active task tab
+     */
+    getActiveTask() {
+        const tabPane = select(this.controls).select('.tab-pane.active');
+        if (!tabPane.empty()) {
+            return tabPane === null || tabPane === void 0 ? void 0 : tabPane.attr('id');
+        }
+        return 'filter'; //no task open yet, but we always start with filter
+    }
+    toggleFilterSplitMarks(newTask) {
+        switch (newTask) {
+            case 'split': // switch to split -> remove interval
+                this.showBrush = false;
+                select(this.chart).selectAll('.mark-rect.role-mark.selected_brush_bg, .mark-rect.role-mark.selected_brush').style('display', 'none');
+                select(this.chart).selectAll('g.splitmarks').style('display', null);
+                // this.clearSelection();
+                break;
+            case 'filter': // switch to filter --> remove split rulers
+                this.showBrush = true;
+                select(this.chart).selectAll('.mark-rect.role-mark.selected_brush_bg, .mark-rect.role-mark.selected_brush').style('display', null); // these elements have no opacity set from the spec which makes it safe to revert back to a hardcoded 1
+                select(this.chart).selectAll('g.splitmarks').style('display', 'none');
+                // this.clearSelection(); // clear any selection that has been made while in split mode
+                // (select(this.controls).select('input.bins').node() as HTMLInputElement).value = '1';
+                // (select(this.controls).select('input.bins').node() as HTMLInputElement).dispatchEvent(new Event('change'));
+                break;
+            default:
+                log.error('Unknown task: ', newTask);
+        }
     }
     addCategoricalControls() {
         this.controls.insertAdjacentHTML('afterbegin', `
       <p>Select bars with a mouse click. All bars are selected initially.</p>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5em;">
-        <button type="button" class="btn btn-default" title="Click to get a preview of the output cohorts."><i class="fas fa-filter" aria-hidden="true"></i> Filter</button>
-        <button type="button" class="btn btn-default" title="Click to get a preview of the output cohorts."><i class="fas fa-share-alt" aria-hidden="true"></i> Split</button>
+        <button type="button" class="btn btn-coral-prime" title="Click to get a preview of the output cohorts."><i class="fas fa-filter" aria-hidden="true"></i> Filter</button>
+        <button type="button" class="btn btn-coral-prime" title="Click to get a preview of the output cohorts."><i class="fas fa-share-alt" aria-hidden="true"></i> Split</button>
       </div>
     `);
-        this.container.insertAdjacentElement('beforeend', this.controls);
         const visInstance = this;
         select(this.controls).selectAll('button').on('click', function () {
             const button = this;
@@ -567,25 +574,50 @@ export class SingleAttributeVisualization extends AVegaVisualization {
         });
     }
     handleBinChangeEvent(event) {
+        this.vegaView.removeDataListener(AVegaVisualization.SPLITVALUE_DATA_STORE, this.vegaSplitListener); //remove listener temporarily
         const binCount = parseFloat(event.value);
+        const splitValCount = binCount - 1;
         const [min, max] = this.vegaView.scale('x').domain();
         const extent = max - min;
         const binWidth = extent / binCount;
-        this.splitValues = [];
-        for (let i = 1; i < binCount; i++) {
-            const binBorder = min + binWidth * i;
-            this.splitValues.push(binBorder);
+        const binType = this.controls.querySelector('#split select.binType');
+        if (binType.selectedIndex === 0) { // equal width
+            this.splitValues = [];
+            for (let i = 1; i <= splitValCount; i++) {
+                const binBorder = min + binWidth * i;
+                this.splitValues.push({ x: binBorder });
+            }
         }
-        this.vegaView.data('splitvalues', this.splitValues.slice()); //set a defensive copy
-        this.vegaView.runAsync();
+        else if (binType.selectedIndex === 1) { // custom width
+            if (this.splitValues.length > splitValCount) {
+                this.splitValues = this.splitValues.sort((a, b) => a.x - b.x); //sort em
+                this.splitValues.length = splitValCount; //drop largest split values
+            }
+            else {
+                while (this.splitValues.length < splitValCount) {
+                    this.splitValues.push({ x: max }); // add maximum until there are enough rulers
+                }
+            }
+        }
+        else {
+            this.splitValues = new Array(5).fill({ x: 0 }).map((x) => ({ x }));
+        }
+        this.vegaView.data(AVegaVisualization.SPLITVALUE_DATA_STORE, cloneDeep(this.splitValues)); //set a defensive copy
+        this.vegaView.runAsync().then((vegaView) => //defer adding signallistener until the new data is set internally
+         vegaView.addDataListener(AVegaVisualization.SPLITVALUE_DATA_STORE, this.vegaSplitListener) //add listener again
+        );
     }
     handleInputIntervalEvent(event) {
         this.vegaView.removeSignalListener(AVegaVisualization.SELECTION_SIGNAL_NAME, this.vegaBrushListener); //remove listener temporarily
-        const range = [
-            parseFloat(select(this.controls).select('input.minimum').node().value),
-            parseFloat(select(this.controls).select('input.maximum').node().value)
-        ];
+        const range = this.getBrushRange();
         log.debug('range', range);
+        const scaledRange = this.scaleRange(range);
+        log.debug('scaledRange', scaledRange);
+        this.vegaView.signal(AVegaVisualization.SELECTION_SIGNAL_NAME + '_x', scaledRange);
+        this.vegaView.runAsync(); // update the chart
+        this.vegaView.addSignalListener(AVegaVisualization.SELECTION_SIGNAL_NAME, this.vegaBrushListener); //add listener again
+    }
+    scaleRange(range) {
         const scaledMin = 0;
         const scaledMax = this.vegaView.width();
         const scaledRange = [scaledMin, scaledMax]; //use min and max as default for range
@@ -600,10 +632,16 @@ export class SingleAttributeVisualization extends AVegaVisualization {
                 scaledRange[1] = scale(range[1]) + Math.pow(10, -10); // the 10^(-10) are independent of the attribute domain (i.e. values of 0 to 1 or in millions) because we add it after scaling (its a fraction of a pixel)
             }
         }
-        log.debug('scaledRange', scaledRange);
-        this.vegaView.signal(AVegaVisualization.SELECTION_SIGNAL_NAME + '_x', scaledRange);
-        this.vegaView.runAsync(); // update the chart
-        this.vegaView.addSignalListener(AVegaVisualization.SELECTION_SIGNAL_NAME, this.vegaBrushListener); //add listener again
+        return scaledRange;
+    }
+    getBrushRange() {
+        if (!select(this.controls).select('input.minimum').empty()) {
+            return [
+                parseFloat(select(this.controls).select('input.minimum').node().value),
+                parseFloat(select(this.controls).select('input.maximum').node().value)
+            ];
+        }
+        return [];
     }
     handleVegaIntervalEvent(name, value) {
         if (value[this.field]) {
@@ -624,6 +662,13 @@ export class SingleAttributeVisualization extends AVegaVisualization {
             select(this.controls).selectAll('input.minimum').node().value = '';
             select(this.controls).selectAll('input.maximum').node().value = '';
         }
+    }
+    handleSplitDragEvent(name, value) {
+        this.splitValues = this.vegaView.data(AVegaVisualization.SPLITVALUE_DATA_STORE)
+            .map((val) => ({ x: val.x })) //copy vega data (remove Symbols)
+            .sort((a, b) => a.x - b.x);
+        this.controls.querySelector('#split select.binType').selectedIndex = 1;
+        this.controls.querySelector('#split input.bins').value = (1 + this.splitValues.length).toString();
     }
 }
 //# sourceMappingURL=AVegaVisualization.js.map

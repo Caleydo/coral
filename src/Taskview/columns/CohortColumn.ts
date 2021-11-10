@@ -1,9 +1,9 @@
 import {select} from 'd3-selection';
 import {Cohort} from '../../Cohort';
+import {OnboardingManager} from '../../OnboardingManager';
 import {SortType} from '../../util';
 import {ColumnSortEvent} from '../../utilCustomEvents';
 import {ADataColumn} from './AColumn';
-import {OnboardingManager} from '../../OnboardingManager';
 
 /**
  * Displays cohorts with their given representation as a column
@@ -15,8 +15,8 @@ export abstract class ACohortColumn extends ADataColumn {
     {idx: 1, type: SortType.Default, icon: 'fas fa-sort-alpha-down', active: false, next: 2},
     {idx: 2, type: SortType.Alpha_AZ, icon: 'fas fa-sort-alpha-down', active: true, next: 3},
     {idx: 3, type: SortType.Alpha_ZA, icon: 'fas fa-sort-alpha-up', active: true, next: 4},
-    {idx: 4, type: SortType.Size_19, icon: 'fas fa-sort-amount-down', active: true, next: 5},
-    {idx: 5, type: SortType.Size_91, icon: 'fas fa-sort-amount-up', active: true, next: 1},
+    {idx: 4, type: SortType.Size_91, icon: 'fas fa-sort-amount-down', active: true, next: 5},
+    {idx: 5, type: SortType.Size_19, icon: 'fas fa-sort-amount-up', active: true, next: 1},
   ];
 
   constructor(title, $container: HTMLDivElement, closeable: boolean = false) {
@@ -45,16 +45,14 @@ export abstract class ACohortColumn extends ADataColumn {
   private changeSortOption(sortOpt: {idx: number; type: SortType; icon: string; active: boolean; next: number;}) {
     this.currSortOptIdx = sortOpt.idx;
     this.sortElemIcon.className = sortOpt.icon;
-    this.sortElemIcon.parentElement.classList.toggle('active', sortOpt.active);
+    this.sortElemIcon.classList.add('options');
+    this.sortElemIcon.classList.toggle('active', sortOpt.active);
   }
 
   public addSortButton() {
     // button for name
-    const sortElemDiv = select(this.$headerOptions).append('div');
-    sortElemDiv.classed('options', true);
     const initSort = this.getSortOption(this.currSortOptIdx);
-    this.sortElemIcon = sortElemDiv.append('i').node();
-
+    this.sortElemIcon = select(this.$headerOptions).append('i').node();
     this.sortElemIcon.setAttribute('aria-hidden', 'true');
     this.changeSortOption(initSort);
     this.sortElemIcon.title = 'Sort';
@@ -81,7 +79,7 @@ export class InputCohortColumn extends ACohortColumn {
   }
 
   setCohorts(cohorts: Cohort[]) {
-    if(this.init && cohorts.length>0) {
+    if (this.init && cohorts.length > 0) {
       this.init = false;
       OnboardingManager.addTip('input', this.$header);
     }
@@ -106,7 +104,7 @@ export class OutputCohortColumn extends ACohortColumn {
     this.cohorts = cohorts;
     super.setCohorts(cohorts);
 
-    if(this.init && cohorts.length>0) {
+    if (this.init && cohorts.length > 0) {
       this.init = false;
       OnboardingManager.addTip('output', this.$header);
     }

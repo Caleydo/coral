@@ -1,13 +1,20 @@
 import { Cohort } from './Cohort';
 import { ITaskParams } from './CohortInterfaces';
 import { IAttribute } from './data/Attribute';
+import { Task } from './Tasks';
 import { AColumn } from './Taskview/columns/AColumn';
 import { IFilterDesc, SortType } from './util';
 export declare const COHORT_REMOVE_EVENT_TYPE = "cht:remove";
 export declare class CohortRemoveEvent extends CustomEvent<{
     cohort: Cohort;
 }> {
-    constructor(cohort: Cohort, replaceSelection?: boolean);
+    constructor(cohort: Cohort);
+}
+export declare const TASK_REMOVE_EVENT_TYPE = "task:remove";
+export declare class TaskRemoveEvent extends CustomEvent<{
+    task: Task;
+}> {
+    constructor(task: Task);
 }
 export declare const COHORT_SELECTION_EVENT_TYPE = "cht:select";
 export declare class CohortSelectionEvent extends CustomEvent<{

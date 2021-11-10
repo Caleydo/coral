@@ -1,7 +1,7 @@
 import { IAllFilters } from 'tdp_core';
 import { Cohort } from '../Cohort';
 import { HistRouteType, ICohortDBHistDataParms, ICohortDBHistPanelParms, ICohortDBHistScoreDepletionParms, ICohortDBHistScoreParms, IEqualsList, INumRange } from '../rest';
-import { IdValuePair } from './Attribute';
+import { AttributeType, IdValuePair } from './Attribute';
 export interface ISpecialAttribute {
     readonly overrideSearchBarDetails: boolean;
     readonly overrideGetData: boolean;
@@ -13,6 +13,7 @@ export interface ISpecialAttribute {
      */
     readonly id: string;
     label: string;
+    type: AttributeType;
     dataKey: string;
     /**
      * Possible options the attribute could be formated
@@ -45,6 +46,7 @@ export declare class SATreatment implements ISpecialAttribute {
     readonly overrideGetCount: boolean;
     readonly overrideFilter: boolean;
     static ID: string;
+    type: AttributeType;
     readonly id: string;
     options: {
         id: string;

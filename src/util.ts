@@ -151,11 +151,24 @@ export interface IAttributeFilter {
   range: INumRange[] | IEqualsList;
 }
 
-export function getAnimatedLoadingText(thingToLoad: string = '') {
+export function getAnimatedLoadingText(thingToLoad: string = '', large: boolean = true) {
   const span = document.createElement('p');
   span.classList.add('loading');
+  span.classList.toggle('large', large);
   span.innerHTML = `Loading ${thingToLoad} <span class="one">.</span><span class="two">.</span><span class="three">.</span>`;
   return span;
+}
+
+export function getAnimatedLoadingBars(): HTMLDivElement {
+  const loadingContainer = document.createElement('div');
+  loadingContainer.classList.add('loading-bars');
+  const numBars = 5;
+  for (let i = 0; i < numBars; i++) {
+    const spanBar = document.createElement('div');
+    spanBar.style.setProperty('--n', '' + i);
+    loadingContainer.appendChild(spanBar);
+  }
+  return loadingContainer;
 }
 
 
@@ -279,6 +292,11 @@ export function createHTMLElementWithClasses(htmlElem: string, classes: string[]
 
 export class DebugTools {
 
+  /**
+   * lets the execution pause for the given amount of milliseconds.
+   * Use with await keyword.
+   * @param millis time to wait
+   */
   static async sleep(millis: number): Promise<void> {
     log.info('taking a little nap');
     return new Promise((resolve) => setTimeout(resolve, millis));

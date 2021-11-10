@@ -8,7 +8,7 @@ export const CONFIG_ONBOARDING: ITippyConfig = {
     animation: 'shift-toward',
     inertia: true,
     theme: 'light-border',
-    delay: 500,
+    delay: [500, null],
     allowHTML: true
   },
   tooltips: {

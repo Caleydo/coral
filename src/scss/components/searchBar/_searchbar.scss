@@ -2,15 +2,11 @@
   box-sizing: border-box;
 }
 
-.hidden {
-  display: none !important;
-}
-
 .search-bar-container {
   position: relative;
-  border: 1px solid $color-border-light;
+  border: 1px solid $color-search-bar-border;
   padding: 1px 1px 0px 1px;
-  border-radius: 4px;
+  border-radius: $border-radius-search-bar;
   cursor: text;
   min-height: 35px;
   max-height: 66px;
@@ -24,50 +20,55 @@
  
   .input-badge {
     position: relative;
+    border-radius: $border-radius-search-bar;
 
     .search-bar-placeholder {
       position: absolute;
-      height: 20px;
-      line-height: 20px;
+      height: 32px;
+      font-size: 16px;
+      line-height: 32px;
       left: 0.25em;
       top: 0;
-      color: $color-text-light;
+      color: $color-search-bar-placeholder;
     }
   } 
 
 
   .search-bar-input {
     min-width: 10px;
-    height: 20px;
-    line-height: 20px;
+    height: 25px;
+    line-height: 25px;
     padding: 0 0.25em;
     border: none;
-    
+    font-size: 16px;
+
     &:focus {
       outline: none !important; //should remove the highlighting 
     }
   }
   
   .clear-all {
-    height: 20px;
-    width: 20px;
-    background-color: $color-badge-interaction;
+    height: 25px;
+    width: 25px;
+    background-color: $color-badge-interaction-bg;
     color: $color-text;
-    border: 1px solid $color-badge-interaction;
-    border-radius: 4px;
+    border: 1px solid $color-badge-interaction-border;
+    border-radius: $border-radius-search-bar;
     text-align: center;
-    line-height: 16px;
+    line-height: 25px;
     margin-bottom: 1px;
+    margin-right: 5px;
     vertical-align: middle;
     font-weight: bold;
+    font-size: 16px;
     cursor: pointer;
   }
   
   .selected-option-badge {
-    height: 20px;
+    height: 25px;
     background-color: $color-badge-background;
-    border: 1px solid $color-badge-interaction;
-    border-radius: 4px;
+    border: 1px solid $color-badge-border;
+    border-radius: $border-radius-search-bar;
     margin-left: 1px;
     margin-bottom: 1px;
     overflow: hidden; //needed to allow rounded corners in the child-elements
@@ -78,9 +79,9 @@
       max-width: 150px;
       padding: 0 0.25em;
       font-family: Yantramanav, 'Helvetica Neue', Helvetica, sans-serif;
-      font-size: 14px;
-      font-weight: 400 !important;
-      line-height: 16px;
+      font-size: 16px;
+      font-weight: normal !important;
+      line-height: 24px;
       vertical-align: middle;
       text-align: center;
       color: $color-text;
@@ -92,12 +93,17 @@
     .remove-x {
       width: 20px;
       text-align: center;
-      line-height: 16px;
+      line-height: 25px;
+      font-size: 25px;
       vertical-align: middle;
-      background-color: $color-badge-interaction;
+      background-color: $color-badge-interaction-bg;
       font-weight: bold;
       padding: 0px 3px;
       cursor: pointer;
+      border-top-left-radius: $border-radius-search-bar;
+      border-bottom-left-radius: $border-radius-search-bar;
+      border-top-right-radius: unset;
+      border-bottom-right-radius: unset;
     }
   }
 }

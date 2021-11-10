@@ -8,15 +8,16 @@ export class OnboardingManager {
         const appliedSettings = loMerge({}, defaultSettings, settings);
         tippy.setDefaultProps(appliedSettings);
     }
-    static addTip(tipId, elem) {
+    static addTip(tipId, elem, forceShow = false) {
         const tipConfig = CONFIG_ONBOARDING.tooltips[tipId];
         let tip = undefined;
         if (tipConfig) {
             this.tooltips.forEach((tip) => tip.clearDelayTimeouts());
             const cookieID = `${tipId}_onboarded`;
-            const showOnCreate = !hasCookie(cookieID); //show if there is no cookie
+            const showOnCreate = !hasCookie(cookieID) || forceShow; //show if there is no cookie
             tip = tippy(elem, {
                 ...tipConfig,
+                theme: 'onboarding',
                 showOnCreate
             });
             this.tooltips.set(tipId, tip);

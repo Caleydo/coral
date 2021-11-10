@@ -22,8 +22,8 @@ export class Prevalence extends ATask {
     showSearchBar() {
         return false;
     }
-    show(container, attributes, cohorts) {
-        super.show(container, attributes, cohorts);
+    show(columnHeader, container, attributes, cohorts) {
+        super.show(columnHeader, container, attributes, cohorts);
         // log parameters
         // log.debug('PREVALENCE.show: ', {container, attributes, cohorts, body: this.body.node()});
         // check if checkbox was already checked
@@ -88,7 +88,8 @@ export class Prevalence extends ATask {
         checkbox.appendChild(cbIndicator);
         divExclContainer.appendChild(checkbox);
         // add loading effect icon container
-        const cbCtrLoading = createHTMLElementWithClasses('div', ['hidden', 'icon-container', 'loading-effect']);
+        const cbCtrLoading = createHTMLElementWithClasses('div', ['icon-container', 'loading-effect']);
+        cbCtrLoading.toggleAttribute('hidden');
         checkbox.appendChild(cbCtrLoading);
         // add loading effect icon
         const cbLoading = createHTMLElementWithClasses('i', ['fas', 'fa-circle-notch', 'icon-extra']);
@@ -97,13 +98,13 @@ export class Prevalence extends ATask {
             this.excludeMissingValues = !this.excludeMissingValues;
             // toggle active state
             checkbox.classList.toggle('active');
-            cbIndicator.classList.add('hidden'); // hide check mark indicator
+            cbIndicator.toggleAttribute('hidden', true); // hide check mark indicator
             checkbox.classList.add('color-loading'); // add loading style for checkbox
-            cbCtrLoading.classList.remove('hidden'); // make loading indicator visible
+            cbCtrLoading.removeAttribute('hidden'); // make loading indicator visible
             await this.changeMissingValueInclusion(this.excludeMissingValues);
-            cbCtrLoading.classList.add('hidden'); // hide loading indicator
+            cbCtrLoading.toggleAttribute('hidden', true); // hide loading indicator
             checkbox.classList.remove('color-loading'); // remove loading style for checkbox
-            cbIndicator.classList.remove('hidden'); // make check mark indicator visible
+            cbIndicator.removeAttribute('hidden'); // make check mark indicator visible
         });
         // label
         const divLabelContainer = document.createElement('div');
@@ -225,12 +226,23 @@ export class Prevalence extends ATask {
         const divResultLabel = document.createElement('div');
         divResultLabel.classList.add('prev-result-label', 'prev-label');
         divResult.appendChild(divResultLabel);
-        // legend all
-        const divLegendAll = this.createLegendItem(['prev-legend-all'], 'All');
-        // legend cohort
+        // legend all (base cohort)
+        const divLegendAll = this.createLegendItem(['prev-legend-all'], this.baseCohort.label);
+        divLegendAll.title = `${this.baseCohort.label}`;
+        // enter mouse hover
+        divLegendAll.addEventListener('mouseenter', (event) => {
+            event.stopImmediatePropagation();
+            this.baseCohort.representation.getRepresentation().dispatchEvent(new Event('mouseenter'));
+        });
+        // leave mouse hover
+        divLegendAll.addEventListener('mouseleave', (event) => {
+            event.stopImmediatePropagation();
+            this.baseCohort.representation.getRepresentation().dispatchEvent(new Event('mouseleave'));
+        });
+        // legend cohort (input cohort)
         const currCht = chtConfig.cht;
-        const divLegendCht = this.createLegendItem(['prev-legend-cht'], 'Cohort', currCht.colorTaskView);
-        divLegendCht.title = currCht.representation.getRepresentation().title;
+        const divLegendCht = this.createLegendItem(['prev-legend-cht'], currCht.label, currCht.colorTaskView);
+        divLegendCht.title = `${currCht.label} (All filters are used to create this cohort.)`;
         // enter mouse hover
         divLegendCht.addEventListener('mouseenter', (event) => {
             event.stopImmediatePropagation();
@@ -302,7 +314,8 @@ export class Prevalence extends ATask {
         divScaleRefSize.classList.add('scale-ref-size');
         ctrRefSize.appendChild(divScaleRefSize);
         // add info icon for exluded missing values
-        const infoLable = createHTMLElementWithClasses('div', ['prev-info-bar-label', 'hidden']); // hide at the beginning
+        const infoLable = createHTMLElementWithClasses('div', ['prev-info-bar-label']);
+        infoLable.toggleAttribute('hidden', true); // hide at the beginning
         ctrRefSize.appendChild(infoLable);
         const infoIcon = createHTMLElementWithClasses('i', ['fas', 'fa-info-circle']);
         tippy(infoIcon, {
@@ -404,7 +417,8 @@ export class Prevalence extends ATask {
         cbIndicator.classList.add('checkbox-indicator');
         checkbox.appendChild(cbIndicator);
         // add loading effect icon container
-        const cbCtrLoading = createHTMLElementWithClasses('div', ['hidden', 'icon-container', 'loading-effect']);
+        const cbCtrLoading = createHTMLElementWithClasses('div', ['icon-container', 'loading-effect']);
+        cbCtrLoading.toggleAttribute('hidden', true);
         checkbox.appendChild(cbCtrLoading);
         // add loading effect icon
         const cbLoading = createHTMLElementWithClasses('i', ['fas', 'fa-circle-notch', 'icon-extra']);
@@ -547,10 +561,10 @@ export class Prevalence extends ATask {
         // and if reference size != dataset size
         const infoLabel = currPack.container.querySelector('.prev-info-bar-label');
         if (exclState && activeTasks.length === 0 && datasetSize !== cohortRefSize) {
-            infoLabel.classList.remove('hidden');
+            infoLabel.removeAttribute('hidden');
         }
         else {
-            infoLabel.classList.add('hidden');
+            infoLabel.toggleAttribute('hidden', true);
         }
     }
     startBarLoadingAnimation(prevPack) {
@@ -561,10 +575,10 @@ export class Prevalence extends ATask {
     startTaskLoadingAnimation(clickedTask) {
         // add loading animation for the clicked task
         const cbIndicator = clickedTask.querySelector('.checkbox-indicator');
-        cbIndicator.classList.add('hidden');
+        cbIndicator.toggleAttribute('hidden', true);
         clickedTask.classList.add('color-loading');
         const cbCtrLoading = clickedTask.querySelector('.icon-container');
-        cbCtrLoading.classList.remove('hidden');
+        cbCtrLoading.removeAttribute('hidden');
     }
     stopBarLoadingAnimation(prevPack) {
         // remove loading animation for the reference bar
@@ -578,18 +592,18 @@ export class Prevalence extends ATask {
             tasks.forEach((task) => {
                 // remove loading animation of one task
                 const cbCtrLoading = task.querySelector('.icon-container');
-                cbCtrLoading.classList.add('hidden');
+                cbCtrLoading.toggleAttribute('hidden', true);
                 task.classList.remove('color-loading');
                 const cbIndicator = task.querySelector('.checkbox-indicator');
-                cbIndicator.classList.remove('hidden');
+                cbIndicator.removeAttribute('hidden');
             });
         }
         else {
             // remove loading animation of one task
             const cbCtrLoading = clickedTask.querySelector('.icon-container');
-            cbCtrLoading.classList.add('hidden');
+            cbCtrLoading.toggleAttribute('hidden', true);
             const cbIndicator = clickedTask.querySelector('.checkbox-indicator');
-            cbIndicator.classList.remove('hidden');
+            cbIndicator.removeAttribute('hidden');
         }
     }
     // set the prevalence result (value and bar)
@@ -659,9 +673,9 @@ export class Prevalence extends ATask {
         const barContainer = prevPack.container.querySelector('.prev-result-bar');
         // update toottip text
         const tooltip = `
-    All: ${sizeDataset}</br>
-    Reference: ${sizeRef}</br>
-    Cohort: ${sizeCht}</br>
+    Reference: defined with checkboxes (${sizeRef} items)</br>
+    Cohort: ${prevPack.chtConfig.cht.label} (${sizeCht} items)</br>
+    Dataset: ${this.baseCohort.label} (${sizeDataset} items)</br>
     <span style="font-weight: bold;">Prevalence:</span> ${prevValueMore}%</br>
     <span style="font-weight: bold;">Confidence Interval:</span> &pm; ${ciValueMore}%</br>`;
         // get tippy instance, to overwrite existing tippy tooltip
@@ -681,13 +695,9 @@ export class Prevalence extends ATask {
         this.baseCohortSize = this.baseCohort.getRetrievedSize();
     }
     close() {
-        const node = this.node.node();
-        while (node.firstChild) {
-            // removing last child is faster then the first
-            node.removeChild(node.lastChild);
-        }
+        // remove node and back title button
+        super.close();
         this.currentState = [];
-        this.node.remove();
     }
 }
 Prevalence.EXCL_MISSING_VAL_TEXT = 'excl. missing values';

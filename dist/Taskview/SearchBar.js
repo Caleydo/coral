@@ -219,7 +219,25 @@ export class SearchBar {
             }
         })
             .on('mouseover', (d, i, nodes) => {
-            this._mouseOverHandler(d, nodes[i]);
+            if (d.optionType === 'gene') {
+                // set global optionId
+                this._geneHoverOptionId = d.optionId;
+                setTimeout(() => {
+                    // update detail after timeout time global and current optionId is equal
+                    if (d.optionId === this._geneHoverOptionId) {
+                        this._mouseOverHandler(d, nodes[i]);
+                    }
+                }, 200);
+            }
+            else {
+                this._mouseOverHandler(d, nodes[i]);
+            }
+        })
+            .on('mouseout', (d, i, nodes) => {
+            if (d.optionType === 'gene') {
+                // clear global optionId
+                this._geneHoverOptionId = null;
+            }
         });
     }
     _updateLoadMoreOption() {
@@ -514,8 +532,10 @@ export class SearchBar {
         label.title = badgeName;
         const removeX = document.createElement('div');
         removeX.className = 'remove-x';
-        removeX.innerHTML = 'x';
+        removeX.innerHTML = '×';
+        removeX.title = 'Remove';
         removeX.addEventListener('click', (e) => {
+            e.stopPropagation();
             elem.parentNode.removeChild(elem);
             const optionTarget = this._optionList.querySelectorAll(`.option[data-optid="${optionId}"]`);
             Array.from(optionTarget).forEach((opt) => {
@@ -605,7 +625,7 @@ export class SearchBar {
             optionFocus[0].classList.remove('option-focus');
         }
         // options
-        const options = this._optionList.querySelectorAll('.option:not(.hidden)');
+        const options = this._optionList.querySelectorAll('.option:not([hidden])');
         this._optionFocusIndex = this._optionFocusIndex >= options.length ? 0 : this._optionFocusIndex;
         this._optionFocusIndex = this._optionFocusIndex < 0 ? options.length - 1 : this._optionFocusIndex;
         log.debug('Arrow-Key action -> new index: ', { focusIndex: this._optionFocusIndex });
@@ -653,13 +673,13 @@ export class SearchBar {
     // show/hide the options for the search field
     _showOCW(show) {
         if (show) {
-            this._optionContainerWrapper.classList.remove('hidden');
+            this._optionContainerWrapper.removeAttribute('hidden');
         }
         else {
             this._setFocusAndScrollOfOptionList();
             this._clearDetail();
             this._clearOptionList();
-            this._optionContainerWrapper.classList.add('hidden');
+            this._optionContainerWrapper.toggleAttribute('hidden', true);
             this._searchBarInput.value = '';
             this._setSearchBarInputWidth();
         }
@@ -739,7 +759,7 @@ export class SearchBar {
         else if (data.optionType === 'panel') {
             detail = this._createPanelDetail(data);
         }
-        detail.addEventListener('mouseenter', () => parent.style.backgroundColor = colors.hoverColor);
+        detail.addEventListener('mouseenter', () => parent.style.backgroundColor = colors.searchbarHoverColor);
         detail.addEventListener('mouseleave', () => parent.style.backgroundColor = '');
         return detail;
     }
@@ -891,9 +911,10 @@ export class SearchBar {
             if (clearAll.length === 0) {
                 const divClearAll = document.createElement('div');
                 divClearAll.className = 'clear-all';
-                divClearAll.title = 'Clear Searchbar';
+                divClearAll.title = 'Remove all';
                 divClearAll.innerHTML = '<i class="fas fa-eraser  fa-fw fa-flip-horizontal" aria-hidden="true"></i>';
                 divClearAll.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     this._removeAllSelectedItems();
                     // options have changed in search bar
                     this._container.dispatchEvent(new CustomEvent('optionchange'));

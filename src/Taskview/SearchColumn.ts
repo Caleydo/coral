@@ -12,18 +12,19 @@ import Taskview from './Taskview';
 
 export default class SearchColumn {
   private $searchColumn: HTMLDivElement;
-  private $task: HTMLDivElement;
+  private $taskContainer: HTMLDivElement;
   private $tasks: HTMLDivElement;
   private searchBar: SearchBar;
-  private eventID = 0;
   private refCohort: Cohort;
+  private $ColumnHeader: HTMLDivElement;
   activeTask: ATask;
 
   constructor($container: HTMLDivElement, private referenceCht: Cohort, private taskview: Taskview) {
     $container.insertAdjacentHTML('beforeend', searchHtml); //faster than innerHTML (https://developer.mozilla.org/de/docs/Web/API/Element/insertAdjacentHTML)
     this.$searchColumn = $container.firstChild as HTMLDivElement;
     this.$tasks = select(this.$searchColumn).select('.task-selector').node() as HTMLDivElement;
-    this.$task = select(this.$searchColumn).select('.task-container').node() as HTMLDivElement;
+    this.$taskContainer = select(this.$searchColumn).select('.task-container').node() as HTMLDivElement;
+    this.$ColumnHeader = select(this.$searchColumn).select('.header').node() as HTMLDivElement;
 
     $container.querySelectorAll('[title]').forEach((elem) => tippy(elem, {
       content(elm) { // build tippy tooltips from the title attribute
@@ -68,16 +69,16 @@ export default class SearchColumn {
 
   private setSearchBarVisibility(show: boolean) {
     if (show) {
-      this.searchBar.getSearchBarHTMLDivElement().classList.remove('hidden');
+      this.searchBar.getSearchBarHTMLDivElement().removeAttribute('hidden');
     } else {
-      this.searchBar.getSearchBarHTMLDivElement().classList.add('hidden');
+      this.searchBar.getSearchBarHTMLDivElement().toggleAttribute('hidden', true);
     }
   }
 
   public updateTasks() {
     this.updateTaskButtonState();
     if (this.activeTask) {
-      this.activeTask.show(this.$task, this.getSelectedAttributes(), this.taskview.getInputCohorts());
+      this.activeTask.show(this.$ColumnHeader, this.$taskContainer, this.getSelectedAttributes(), this.taskview.getInputCohorts());
     }
   }
 
@@ -104,12 +105,12 @@ export default class SearchColumn {
     setTimeout(() => {
       this.$tasks.hidden = true;
       this.setSearchBarVisibility(task.showSearchBar()); // set visibility of searchBar based on the task
-      task.show(this.$task, this.getSelectedAttributes(), this.taskview.getInputCohorts());
+      task.show(this.$ColumnHeader, this.$taskContainer, this.getSelectedAttributes(), this.taskview.getInputCohorts());
     }, 200); // 200 = transform transition time in css
 
     this.taskview.showOutput(task.hasOutput);
 
-    this.$task.addEventListener(TASK_CLOSE_EVENT_TYPE, this.taskCloseListener);
+    this.$ColumnHeader.addEventListener(TASK_CLOSE_EVENT_TYPE, this.taskCloseListener);
   }
 
   public closeTask(task) {
@@ -121,7 +122,7 @@ export default class SearchColumn {
 
     this.taskview.showOutput(true);
 
-    this.$task.removeEventListener(TASK_CLOSE_EVENT_TYPE, this.taskCloseListener);
+    this.$ColumnHeader.removeEventListener(TASK_CLOSE_EVENT_TYPE, this.taskCloseListener);
   }
 
   private enableAddButtons(enable: boolean): void {

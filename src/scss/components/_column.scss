@@ -68,9 +68,23 @@ $vertical-border-width: 2px !default;
   &.empty {
     //content is 0 by default, can grow and shrink infinetly, default column border remains
     flex-basis: 2em;
-    min-width: 2em;
+    min-width: 0em;
     max-width: unset;
     order: 900;
+
+    .header {
+      padding: 0;
+    }
+  }
+
+  &.add-column {
+    // very narrow
+    flex-basis: 2.5em;
+    min-width: unset;
+    max-width: unset;
+    flex-shrink: 0;
+    flex-grow: 0;
+    z-index: 999 !important;
 
     .header {
       //no header -> no padding
@@ -79,6 +93,9 @@ $vertical-border-width: 2px !default;
 
       .header-only-button {
         height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
 
         .empty-header-button {
           width: 27px;
@@ -86,18 +103,18 @@ $vertical-border-width: 2px !default;
           line-height: 27px;
           text-align: center;
           font-size: 16px;
-          background: $color-cohort-background;
-          border: 1px solid $color-border-light;
-          border-radius: 3px;
+          // background: $color-cohort-background;
+          // border: 1px solid $color-border-light;
+          // border-radius: 3px;
 
-          &.active {
-            background: $color-selected !important;
-          }
+          // &.active {
+          //   background: $color-selected !important;
+          // }
 
-          &:hover {
-            border-color: $color-hover;
-            box-shadow: 0 0 8px $color-hover-opacity-75 !important;
-          }
+          // &:hover {
+          //   border-color: $color-hover;
+          //   box-shadow: 0 0 8px $color-hover-opacity-75 !important;
+          // }
         }
       }
     }

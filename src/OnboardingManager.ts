@@ -1,10 +1,10 @@
 import * as loMerge from 'lodash.merge';
 import {CONFIG_ONBOARDING} from './config/onboarding';
-import tippy, {hideAll, Props, Instance} from 'tippy.js';
+import tippy, {hideAll, Props, Instance as TippyInstance} from 'tippy.js';
 import {log, hasCookie} from './util';
 
 export class OnboardingManager {
-  static tooltips = new Map<String, Instance<Props>>();
+  static tooltips = new Map<String, TippyInstance<Props>>();
 
   public static init(settings: any = {}) {
     const defaultSettings = CONFIG_ONBOARDING.defaultSettings;
@@ -14,15 +14,16 @@ export class OnboardingManager {
   }
 
 
-  static addTip(tipId: string, elem: HTMLElement) {
+  static addTip(tipId: string, elem: HTMLElement, forceShow: boolean = false): TippyInstance<Props> {
     const tipConfig = CONFIG_ONBOARDING.tooltips[tipId];
     let tip = undefined;
     if (tipConfig) {
       this.tooltips.forEach((tip) => tip.clearDelayTimeouts());
       const cookieID = `${tipId}_onboarded`;
-      const showOnCreate = !hasCookie(cookieID);  //show if there is no cookie
+      const showOnCreate = !hasCookie(cookieID) || forceShow;  //show if there is no cookie
       tip = tippy(elem, {
         ...tipConfig,
+        theme: 'onboarding',
         showOnCreate
       });
       this.tooltips.set(tipId, tip);

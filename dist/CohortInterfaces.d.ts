@@ -1,5 +1,7 @@
+import { IDType } from 'phovea_core';
+import { IServerColumn } from 'tdp_core';
 import { Cohort } from './Cohort';
-import { IAttribute } from './data/Attribute';
+import { IAttribute, IAttributeJSON } from './data/Attribute';
 import { IEqualsList, INumRange } from './rest';
 import { InputCohort } from './Taskview/Taskview';
 /**
@@ -15,12 +17,44 @@ export declare enum TaskType {
 /**
  * Interface for every element in the overview (except the paths between the elements)
  */
+export declare enum ElementProvType {
+    Cohort = "Cohort",
+    TaskSplit = "Task-Split",
+    TaskFilter = "Task-Filter"
+}
+export interface IProvAttrAndValuesCohort {
+    values: Array<INumRange[] | IEqualsList>;
+    view: string;
+    database: string;
+    idType: IDType;
+    idColumn: IServerColumn;
+    selected: boolean;
+    isRoot: boolean;
+}
+export interface IProvAttrAndValuesTask {
+    attributes: IAttributeJSON[];
+}
+export interface IElementProvJSON {
+    id: string;
+    type: ElementProvType;
+    label: string;
+    parent: string[];
+    children: string[];
+    attrAndValues: any;
+}
+export interface IElementProvJSONCohort extends IElementProvJSON {
+    attrAndValues: IProvAttrAndValuesCohort;
+}
+export interface IElementProvJSONTask extends IElementProvJSON {
+    attrAndValues: IProvAttrAndValuesTask;
+}
 export interface IElement {
     id: string;
     label: string;
     parents: Array<IElement>;
     children: Array<IElement>;
     representation: ICohortRep | ITaskRep;
+    toProvenanceJSON(): IElementProvJSON;
 }
 /**
  * Interface for a cohort in the overview
@@ -31,6 +65,7 @@ export interface ICohort extends IElement {
     values: Array<INumRange[] | IEqualsList>;
     isInitial: boolean;
     sizeReference: number;
+    toProvenanceJSON(): IElementProvJSONCohort;
 }
 /**
  * Interface for an tasks (filter, split, combine, ....)
@@ -40,6 +75,7 @@ export interface ITask extends IElement {
     attributes: IAttribute[];
     representation: ITaskRep;
     readonly creationDate: number;
+    toProvenanceJSON(): IElementProvJSONTask;
 }
 export interface IOverviewLayout {
     cohortWidth: number;

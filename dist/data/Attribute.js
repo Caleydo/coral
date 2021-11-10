@@ -12,6 +12,8 @@ export class Attribute {
         this.preferLog = false;
         this.label = niceName(this.id); //default
         this.dataKey = this.id; //identical by default
+        // console.log('attribute Option: ', option);
+        // console.log('attribute JSON: ', this.toJSON());
     }
     async getData(cohortDbId, filters) {
         const rows = await getCohortData({ cohortId: cohortDbId, attribute: this.id });
@@ -64,10 +66,25 @@ export class ServerColumnAttribute extends Attribute {
             return createCohortWithEqualsFilter(cht, niceName(this.id), label, this.id, this.type === 'number' ? 'true' : 'false', filter.values);
         }
     }
+    toJSON() {
+        const option = {
+            optionId: this.id,
+            optionType: 'dbc',
+            optionText: null,
+            optionData: {
+                serverColumn: this.serverColumn,
+            }
+        };
+        return {
+            option,
+            currentDB: this.database,
+            currentView: this.view
+        };
+    }
 }
 export class SpecialAttribute extends Attribute {
     constructor(id, view, database, spAttribute, attrOption) {
-        super(id, view, database, 'string');
+        super(id, view, database, spAttribute.type);
         this.id = id;
         this.view = view;
         this.database = database;
@@ -104,6 +121,22 @@ export class SpecialAttribute extends Attribute {
         //   rows = await super.filter(cht, filter);
         // }
         return null;
+    }
+    toJSON() {
+        const option = {
+            optionId: this.id,
+            optionType: 'dbc',
+            optionText: null,
+            optionData: {
+                spAttribute: this.spAttribute,
+                attrOprtion: this.attrOption,
+            }
+        };
+        return {
+            option,
+            currentDB: this.database,
+            currentView: this.view
+        };
     }
 }
 export class AScoreAttribute extends Attribute {
@@ -264,6 +297,22 @@ export class GeneScoreAttribute extends AScoreAttribute {
         }
         return this.getHistWithStorage(type, params);
     }
+    toJSON() {
+        const option = {
+            optionId: this.id,
+            optionType: 'gene',
+            optionText: this.gene,
+            optionData: {
+                type: this.scoreType,
+                subType: this.scoreSubType
+            }
+        };
+        return {
+            option,
+            currentDB: this.database,
+            currentView: this.view
+        };
+    }
 }
 export class PanelScoreAttribute extends AScoreAttribute {
     async getData(cohortDbId, filters) {
@@ -300,6 +349,18 @@ export class PanelScoreAttribute extends AScoreAttribute {
             return createCohortWithPanelAnnotationFilter(cht, niceName(this.id), label, this.id, stringValues);
         }
     }
+    toJSON() {
+        const option = {
+            optionId: this.id,
+            optionType: 'panel',
+            optionText: null,
+        };
+        return {
+            option,
+            currentDB: this.database,
+            currentView: this.view
+        };
+    }
 }
 export function toAttribute(option, currentDB, currentView) {
     if (option.optionType === 'dbc') {
@@ -309,7 +370,6 @@ export function toAttribute(option, currentDB, currentView) {
             log.debug('create special Attribute: ', option.optionId);
             log.debug('special Attribute object: ', option.optionData.spAttribute);
             return new SpecialAttribute(option.optionId, currentView, currentDB, option.optionData.spAttribute, option.optionData.attrOption);
-            // }
         }
         else {
             // Create Attribute
@@ -356,9 +416,12 @@ export async function multiAttributeFilter(baseCohort, filters) {
         labelTwo.push(newCohort.labelTwo);
         values.push(...newCohort.values);
     }
-    newCohort.labelOne = labelOne.join(', ');
-    newCohort.labelTwo = labelTwo.join(', ');
-    newCohort.values = values;
+    // when only one filter is used the labels don't have to be set again
+    // minimizes the number of time a cohort in the DB has to be updated
+    if (filters.length > 1) {
+        newCohort.setLabels(labelOne.join(', '), labelTwo.join(', '));
+        newCohort.values = values;
+    }
     return newCohort;
 }
 //# sourceMappingURL=Attribute.js.map

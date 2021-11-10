@@ -103,35 +103,40 @@ export class RectangleLayout {
         }
     }
     _assignRowAndColumn(layout, currElement, parentElement, column, row) {
-        if (currElement.children && currElement.children.length > 0) {
-            // current element has children
-            const eleChildren = this._sortCohortElements(currElement.children);
-            // get all row position from the next column (cohort or task)
-            const nextColRow = layout.filter((elem) => elem.column === column + 1).map((elem) => elem.row);
-            // calculate the row position of current element so that the child can be in the same row in the next column
-            let calcRow = nextColRow.length === 0 ? 1 : Math.max(...nextColRow) + 1;
-            // only if
-            //   the current element is an operation and
-            //   the calculate row position is higher than the current one use the calculated one
-            calcRow = (currElement instanceof Task && calcRow > row) ? calcRow : row;
-            // add current element to layout
-            const parentElementID = parentElement === null ? 'null' : parentElement.id;
-            layout.push(this._createLayoutElement(currElement.id, parentElementID, column, calcRow));
-            for (let i = 0; i < eleChildren.length; i++) {
-                // set column and row for the children
-                const childrenColumn = column + 1;
-                const childrenRow = calcRow + i;
-                //const childfirstChild = i === 0;
-                layout.concat(this._assignRowAndColumn(layout, eleChildren[i], currElement, childrenColumn, childrenRow));
+        if (currElement !== undefined && currElement !== null) {
+            if (currElement.children && currElement.children.length > 0) {
+                // current element has children
+                const eleChildren = this._sortCohortElements(currElement.children);
+                // get all row position from the next column (cohort or task)
+                const nextColRow = layout.filter((elem) => elem.column === column + 1).map((elem) => elem.row);
+                // calculate the row position of current element so that the child can be in the same row in the next column
+                let calcRow = nextColRow.length === 0 ? 1 : Math.max(...nextColRow) + 1;
+                // only if
+                //   the current element is an operation and
+                //   the calculate row position is higher than the current one use the calculated one
+                calcRow = (currElement instanceof Task && calcRow > row) ? calcRow : row;
+                // add current element to layout
+                const parentElementID = parentElement === null ? 'null' : parentElement.id;
+                layout.push(this._createLayoutElement(currElement.id, parentElementID, column, calcRow));
+                for (let i = 0; i < eleChildren.length; i++) {
+                    // set column and row for the children
+                    const childrenColumn = column + 1;
+                    const childrenRow = calcRow + i;
+                    //const childfirstChild = i === 0;
+                    layout.concat(this._assignRowAndColumn(layout, eleChildren[i], currElement, childrenColumn, childrenRow));
+                }
+                return layout;
             }
-            return layout;
+            else {
+                // current element has no children
+                // add current element to layout
+                const parentElementID = parentElement === null || parentElement === undefined ? 'null' : parentElement.id;
+                layout.push(this._createLayoutElement(currElement.id, parentElementID, column, row));
+                return layout;
+            }
         }
         else {
-            // current element has no children
-            // add current element to layout
-            const parentElementID = parentElement === null ? 'null' : parentElement.id;
-            layout.push(this._createLayoutElement(currElement.id, parentElementID, column, row));
-            return layout;
+            return [];
         }
     }
     _createLayoutElement(elemID, parentID, column, row) {

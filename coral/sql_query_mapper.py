@@ -25,20 +25,30 @@ COLUMN_LABEL_SCORE = 'score'
 COLUMN_LABEL_ID = 'id'
 VALUE_LIST_DELIMITER = '&#x2e31;'
 
+
 # create engine also creates QueuePool for connections
 # pool_pre_ping tests if the connection is still working: https://docs.sqlalchemy.org/en/13/core/pooling.html#disconnect-handling-pessimistic
 _log.info('statement_timeout: %s', config.statement_timeout)
 _log.info('connection_pool_overflow: %s', config.connection_pool_overflow)
 _log.info('connection_pool_size: %s', config.connection_pool_size)
 
-connection_config = {"options": "-c statement_timeout={}".format(config.statement_timeout)}
-engine = create_engine(config.dburl, pool_pre_ping=True, connect_args=connection_config, pool_timeout=int(config.statement_timeout)/1000.0, max_overflow=config.connection_pool_overflow, pool_size=config.connection_pool_size)
+
+def create_engines(dburl):
+  primary_connection_config = {'options': '-c statement_timeout={}'.format(config.statement_timeout)}
+  secondary_connection_config = {'options': '-c statement_timeout={}'.format(config.supp_statement_timeout)}
+  return {
+    'primary': create_engine(dburl, pool_pre_ping=True, connect_args=primary_connection_config, pool_timeout=int(config.statement_timeout)/1000.0, max_overflow=config.connection_pool_overflow, pool_size=config.connection_pool_size, echo=True, echo_pool=True),
+    'secondary': create_engine(dburl, pool_pre_ping=True, connect_args=secondary_connection_config, pool_timeout=int(config.supp_statement_timeout)/1000.0, max_overflow=config.connection_pool_overflow, pool_size=config.connection_pool_size)
+  }
+
+
+engine = create_engines(config.dburl)['primary']
 if config_ordino.dburl is not None:
-  engine_ordino = create_engine(config_ordino.dburl, pool_pre_ping=True, connect_args=connection_config, pool_timeout=int(config.statement_timeout)/1000.0, max_overflow=config.connection_pool_overflow, pool_size=config.connection_pool_size)
+  engine_ordino = create_engines(config_ordino.dburl)
 if config_student.dburl is not None:
-  engine_student = create_engine(config_student.dburl, pool_pre_ping=True, connect_args=connection_config, pool_timeout=int(config.statement_timeout)/1000.0, max_overflow=config.connection_pool_overflow, pool_size=config.connection_pool_size)
+  engine_student = create_engines(config_student.dburl)
 if config_covid19.dburl is not None:
-  engine_covid19 = create_engine(config_covid19.dburl, pool_pre_ping=True, connect_args=connection_config, pool_timeout=int(config.statement_timeout)/1000.0, max_overflow=config.connection_pool_overflow, pool_size=config.connection_pool_size)
+  engine_covid19 = create_engines(config_covid19.dburl)
 
 
 class QueryElements:
@@ -80,6 +90,7 @@ class QueryElements:
       self.session.add(cohort)
       self.session.commit()
 
+      _log.info('Created cohort %s', cohort.id)
       result.append(cohort.id)
 
     except exc.DBAPIError as e:
@@ -97,6 +108,61 @@ class QueryElements:
       raise
     finally:
       self.session.close()
+
+    return jsonify(result)
+
+  def get_cohorts_by_id_sql(self, args, error_msg):
+    # print('in function "get_cohorts_by_id_sql"')
+    str_values = ""  # for the equal values
+    values = args.get('cohortIds')
+    if values is None:
+      raise RuntimeError(error_msg)
+    values_split = values.split(VALUE_LIST_DELIMITER)
+
+    for val in values_split:
+      curr_val = "{val}".format(val=val)
+      str_values = str_values + ("{val}, ".format(val=curr_val))
+
+    str_values = str_values[:-2]  # remove the last ', ' from the value list
+
+    sql_text = 'SELECT id, name, is_initial, previous_cohort, entity_database, entity_schema, entity_table FROM cohort.cohort c WHERE c.id IN ({str_values})'.format(str_values=str_values)
+    # print('sql_text', sql_text)
+    return sql_text
+
+  def update_cohort_name_sql(self, args, error_msg):
+    # print('in function "update_cohort_name_sql"')
+    result = []
+    cohort_id = args.get('cohortId')
+    if cohort_id is None:
+      raise RuntimeError(error_msg)
+
+    name = args.get('name')
+    if name is None:
+      raise RuntimeError(error_msg)
+
+    try:
+      # create session for the data
+      session_data = sessionmaker(bind=engine)()
+
+      session_data.query(Cohort).filter(Cohort.id == cohort_id).update({Cohort.name: name}, synchronize_session=False)
+      # synchronize_session
+      # False - don’t synchronize the session. This option is the most efficient and is reliable once the session is expired,
+      # which typically occurs after a commit(), or explicitly using expire_all(). Before the expiration,
+      # updated objects may still remain in the session with stale values on their attributes, which can lead to confusing results.
+
+      # commit update
+      session_data.commit()
+
+      # get updated cohort
+      sql_text = 'SELECT id, name, is_initial, previous_cohort, entity_database, entity_schema, entity_table FROM cohort.cohort c WHERE c.id = {cohortId}'.format(cohortId=cohort_id)
+      result = self.execute_sql_query_as_dict(sql_text, 'cohort')
+
+    except exc.SQLAlchemyError as e:
+      _log.error('SQLAlchemy Error: %s', e)
+      raise
+    finally:
+      self.session.close()
+      session_data.close()
 
     return jsonify(result)
 
@@ -119,7 +185,7 @@ class QueryElements:
       self.session.close()
     return result
 
-  def execute_sql_query_as_dict(self, sql_text, db_connector, custom_statement_timeout=None):
+  def execute_sql_query_as_dict(self, sql_text, db_connector, supplemental_data=False, custom_statement_timeout=None):
     """ Return query result as dict
     sql_text : string
       the sql query
@@ -133,13 +199,16 @@ class QueryElements:
     # define the right engine to use for the data
     engine_data = None
     session_data = None
+    engine_type = 'primary' if not supplemental_data else 'secondary'
 
     if db_connector == 'tdp_publicdb':
-      engine_data = engine_ordino
+      engine_data = engine_ordino[engine_type]
     elif db_connector == 'tdp_student':
-      engine_data = engine_student
+      engine_data = engine_student[engine_type]
     elif db_connector == 'tdp_covid19':
-      engine_data = engine_covid19
+      engine_data = engine_covid19[engine_type]
+    elif db_connector == 'cohort':
+      engine_data = engine
     else:
       _log.error('Unknown db connector: %s', db_connector)
       raise Exception('Unknown db connector')
@@ -172,8 +241,8 @@ class QueryElements:
 
     return result
 
-  def execute_sql_query(self, sql_text, database, custom_statement_timeout=None):
-    result = self.execute_sql_query_as_dict(sql_text, database, custom_statement_timeout)
+  def execute_sql_query(self, sql_text, database, supplemental_data=False, custom_statement_timeout=None):
+    result = self.execute_sql_query_as_dict(sql_text, database, supplemental_data, custom_statement_timeout)
     return jsonify(result)
 
   def create_cohort(self, args, error_msg):
@@ -423,7 +492,7 @@ class QueryElements:
                       ({sql_refiend}) refined
                       ON cohort.{entity_id_col} = refined.{entity_id_col}""".format(entities=cohort.statement, sql_refiend=sql_refiend, entity_id_col=entity_id_col)
 
-    print('combiened_sql_statement: ', new_sql_text)
+    # print('combiened_sql_statement: ', new_sql_text)
     new_cohort = Cohort(name=name, previous_cohort=cohort.id, is_initial=0, entity_database=cohort.entity_database, entity_schema=cohort.entity_schema, entity_table=cohort.entity_table, statement=new_sql_text)
     return new_cohort
 
@@ -534,11 +603,10 @@ class QueryElements:
 
     sql_text = 'SELECT cohort.* FROM ({entities}) cohort LEFT OUTER JOIN ' \
                '(SELECT attr.{entity_id_col}, attr.{attribute} AS score FROM {schema}.tdp_{table} attr ' \
-               'INNER JOIN (SELECT * FROM {schema}.{base_table}) cohort ON attr.{entity_id_col} = cohort.{entity_id_col} ' \
                'INNER JOIN public.tdp_gene gene ON attr.ensg = gene.ensg ' \
                'WHERE gene.species = {species} AND attr.ensg = {ensg}) cohort_score ON cohort.{entity_id_col} = cohort_score.{entity_id_col} '\
                'WHERE {ranges}'\
-        .format(attribute=attribute, table=table, entity_id_col=entity_id_col, schema=cohort.entity_schema, base_table=cohort.entity_table, entities=cohort.statement, species="'human'", ensg=ensg, ranges=sql_ranges)
+        .format(attribute=attribute, table=table, entity_id_col=entity_id_col, schema=cohort.entity_schema, entities=cohort.statement, species="'human'", ensg=ensg, ranges=sql_ranges)
 
     new_cohort = Cohort(name=name, previous_cohort=cohort.id, is_initial=0, entity_database=cohort.entity_database, entity_schema=cohort.entity_schema, entity_table=cohort.entity_table, statement=sql_text)
     return new_cohort
@@ -583,11 +651,10 @@ class QueryElements:
 
     sql_text = 'SELECT cohort.* FROM ({entities}) cohort LEFT OUTER JOIN ' \
                '(SELECT attr.{entity_id_col}, attr.{attribute} AS score FROM {schema}.tdp_{table} attr ' \
-               'INNER JOIN (SELECT * FROM {schema}.{base_table}) cohort ON attr.{entity_id_col} = cohort.{entity_id_col} ' \
                'INNER JOIN public.tdp_gene gene ON attr.ensg = gene.ensg ' \
                'WHERE gene.species = {species} AND attr.ensg = {ensg}) cohort_score ON cohort.{entity_id_col} = cohort_score.{entity_id_col} '\
                'WHERE {str_values}'\
-        .format(attribute=attribute, table=table, entity_id_col=entity_id_col, schema=cohort.entity_schema, base_table=cohort.entity_table, entities=cohort.statement, species="'human'", ensg=ensg, str_values=str_values)
+        .format(attribute=attribute, table=table, entity_id_col=entity_id_col, schema=cohort.entity_schema, entities=cohort.statement, species="'human'", ensg=ensg, str_values=str_values)
 
     new_cohort = Cohort(name=name, previous_cohort=cohort.id, is_initial=0, entity_database=cohort.entity_database, entity_schema=cohort.entity_schema, entity_table=cohort.entity_table, statement=sql_text)
     return new_cohort
@@ -645,7 +712,6 @@ class QueryElements:
 
     sql_text = 'SELECT cohort.{entity_id_col}, cohort_score.score AS score FROM ({entities}) cohort LEFT OUTER JOIN ' \
                '(SELECT attr.{entity_id_col}, attr.{attribute} AS score FROM {schema}.tdp_{table} attr ' \
-               'INNER JOIN ({entities}) cohort ON attr.{entity_id_col} = cohort.{entity_id_col} ' \
                'INNER JOIN public.tdp_gene gene ON attr.ensg = gene.ensg ' \
                'WHERE gene.species = {species} AND attr.ensg = {ensg}) cohort_score ON cohort.{entity_id_col} = cohort_score.{entity_id_col}'\
         .format(attribute=attribute, table=table, entity_id_col=entity_id_col, schema=cohort.entity_schema, entities=cohort.statement, species="'human'", ensg=ensg)
@@ -672,7 +738,6 @@ class QueryElements:
 
     sql_text = 'SELECT cohort.celllinename, cohort_score.score AS score FROM ({entities}) cohort LEFT OUTER JOIN ' \
                '(SELECT attr.celllinename, attr.{attribute} AS score FROM cellline.tdp_{table} attr ' \
-               'INNER JOIN ({entities}) cohort ON attr.celllinename = cohort.celllinename ' \
                'INNER JOIN public.tdp_gene gene ON attr.ensg = gene.ensg ' \
                'WHERE gene.species = {species} AND attr.ensg = {ensg} AND attr.depletionscreen = {screen}) cohort_score ON cohort.celllinename = cohort_score.celllinename'\
         .format(attribute=attribute, table=table, entities=cohort.statement, species="'human'", ensg=ensg, screen=depletionscreen)
@@ -711,10 +776,9 @@ class QueryElements:
                'INNER JOIN ' \
                '(SELECT cohort.celllinename, cohort_score.score AS score FROM ({entities}) cohort LEFT OUTER JOIN ' \
                '(SELECT attr.celllinename, attr.{attribute} AS score FROM cellline.tdp_{table} attr ' \
-               'INNER JOIN (SELECT * FROM {schema}.{base_table}) cohort ON attr.celllinename = cohort.celllinename ' \
                'INNER JOIN public.tdp_gene gene ON attr.ensg = gene.ensg ' \
-               'WHERE gene.species = {species} AND attr.ensg = {ensg} AND attr.depletionscreen = {screen}) cohort_score ON cohort.celllinename = cohort_score.id) x ' \
-               'ON p.celllinename = x.id WHERE {ranges}'\
+               'WHERE gene.species = {species} AND attr.ensg = {ensg} AND attr.depletionscreen = {screen}) cohort_score ON cohort.celllinename = cohort_score.celllinename) x ' \
+               'ON p.celllinename = x.celllinename WHERE {ranges}'\
         .format(attribute=attribute, table=table, entities=cohort.statement, schema=cohort.entity_schema, base_table=cohort.entity_table, species="'human'", ensg=ensg, screen=depletionscreen, ranges=sql_ranges)
 
     new_cohort = Cohort(name=name, previous_cohort=cohort.id, is_initial=0, entity_database=cohort.entity_database, entity_schema=cohort.entity_schema, entity_table=cohort.entity_table, statement=sql_text)
@@ -817,10 +881,21 @@ class QueryElements:
 
     return sql_text
 
+  def format_number(self, n):
+    # function to check if n has decimal place of zero if not convert to integer
+    # removes the X.0 decimal place
+    if n % 1 == 0:
+      return int(n)
+    else:
+      return n
+
   def format_num_hist(self, hist_dict, num_bins):
     # print('----- current Hist from DB:  ', hist_dict)
     max_list = []
     min_list = []
+    # last_bin is the num_bins+1 because the underling sql statement
+    # does not include the max value in the num_bins-th bin, but
+    # creates an additional one that includes the max values.
     last_bin = None
     null_bin = None
     # get min and max value
@@ -863,9 +938,12 @@ class QueryElements:
     for b in hist_dict:
       if b.get('bin') is not None:
         b_idx = b.get('bin')
-        lb = min_val + (b_idx - 1) * bin_width
-        ub = min_val + b_idx * bin_width
-        b['bin'] = '[{lb}, {ub})'.format(lb=lb, ub=ub)
+        lb = self.format_number(min_val + (b_idx - 1) * bin_width)
+        ub = self.format_number(min_val + b_idx * bin_width)
+        if b_idx == num_bins:
+          b['bin'] = '[{lb}, {ub}]'.format(lb=lb, ub=ub)
+        else:
+          b['bin'] = '[{lb}, {ub})'.format(lb=lb, ub=ub)
         b['index'] = b_idx
       else:
         b['bin'] = None
@@ -876,10 +954,9 @@ class QueryElements:
       for bin_n in bin_numbers:
         if bin_n not in bin_exist:
           new_bin = {}
-          lb = min_val + (bin_n - 1) * bin_width
-          ub = min_val + bin_n * bin_width
+          lb = self.format_number(min_val + (bin_n - 1) * bin_width)
+          ub = self.format_number(min_val + bin_n * bin_width)
           new_bin['index'] = bin_n
-          # new_bin['bin'] = bin_n
           new_bin['bin'] = '[{lb}, {ub})'.format(lb=lb, ub=ub)
           new_bin['count'] = 0
           hist_dict.append(new_bin)
@@ -888,8 +965,8 @@ class QueryElements:
       if last_bin is not None:
         for b in hist_dict:
           if b.get('index') == num_bins:
-            lb = min_val + (num_bins - 1) * bin_width
-            ub = max_val
+            lb = self.format_number(min_val + (num_bins - 1) * bin_width)
+            ub = self.format_number(max_val)
             b['bin'] = '[{lb}, {ub}]'.format(lb=lb, ub=ub)
             b['count'] = b.get('count') + last_bin.get('count')
         hist_dict.remove(last_bin)  # remove the last bin
@@ -902,7 +979,8 @@ class QueryElements:
         new_bin['count'] = 0
         hist_dict.append(new_bin)
 
-    # print('----- formated Hist from DB:  ', hist_dict)
+    # print('----- formated Hist from DB:  ')
+    # print(*hist_dict, sep='\n')
 
     return jsonify(hist_dict)
 
@@ -955,7 +1033,6 @@ class QueryElements:
                'SELECT DISTINCT  COALESCE(cohort_score.score::varchar,{null_value}) AS cat FROM ' \
                '(SELECT * FROM {schema}.{base_table}) cohort LEFT OUTER JOIN ' \
                '(SELECT attr.{entity_id_col}, attr.{attribute} AS score FROM {schema}.tdp_{table} attr ' \
-               'INNER JOIN (SELECT * FROM {schema}.{base_table}) cohort ON attr.{entity_id_col} = cohort.{entity_id_col} ' \
                'INNER JOIN public.tdp_gene gene ON attr.ensg = gene.ensg ' \
                'WHERE gene.species = {species} AND attr.ensg = {ensg}) cohort_score ' \
                'ON cohort.{entity_id_col} = cohort_score.{entity_id_col}' \
@@ -964,7 +1041,6 @@ class QueryElements:
                'LEFT OUTER JOIN ' \
                '(SELECT p.score AS attr, COUNT(*) AS count FROM (SELECT cohort.{entity_id_col}, COALESCE(cohort_score.score::varchar,{null_value}) AS score FROM ({entities}) cohort LEFT OUTER JOIN ' \
                '(SELECT attr.{entity_id_col}, COALESCE(attr.{attribute}::varchar,{null_value}) AS score FROM {schema}.tdp_{table} attr ' \
-               'INNER JOIN ({entities}) cohort ON attr.{entity_id_col} = cohort.{entity_id_col} ' \
                'INNER JOIN public.tdp_gene gene ON attr.ensg = gene.ensg ' \
                'WHERE gene.species = {species} AND attr.ensg = {ensg}) cohort_score ON cohort.{entity_id_col} = cohort_score.{entity_id_col}) p '\
                'GROUP BY p.score) c ' \
@@ -1001,7 +1077,6 @@ class QueryElements:
                'SELECT MIN(c.score) as min, '\
                'MAX(c.score) as max '\
                'FROM (SELECT attr.{entity_id_col}, attr.{attribute} AS score FROM {schema}.tdp_{table} attr ' \
-               'INNER JOIN (SELECT * FROM {schema}.{base_table}) cohort ON attr.{entity_id_col} = cohort.{entity_id_col} ' \
                'INNER JOIN public.tdp_gene gene ON attr.ensg = gene.ensg ' \
                'WHERE gene.species = {species} AND attr.ensg = {ensg}) c '\
                ')'\
@@ -1012,11 +1087,10 @@ class QueryElements:
                '({entities}) cohort ' \
                'LEFT OUTER JOIN ' \
                '(SELECT attr.{entity_id_col}, attr.{attribute} AS score FROM {schema}.tdp_{table} attr ' \
-               'INNER JOIN ({entities}) cohort ON attr.{entity_id_col} = cohort.{entity_id_col} ' \
                'INNER JOIN public.tdp_gene gene ON attr.ensg = gene.ensg ' \
                'WHERE gene.species = {species} AND attr.ensg = {ensg}) cohort_score ON cohort.{entity_id_col} = cohort_score.{entity_id_col}) p, c_stats '\
                'GROUP BY bin '\
-               'ORDER BY bin'.format(attribute=attribute, schema=cohort.entity_schema, table=table, entity_id_col=entity_id_col, entities=cohort.statement, base_table=cohort.entity_table, species="'human'", ensg=ensg, num_bins=num_bins)
+               'ORDER BY bin'.format(attribute=attribute, schema=cohort.entity_schema, table=table, entity_id_col=entity_id_col, entities=cohort.statement, species="'human'", ensg=ensg, num_bins=num_bins)
 
     return sql_text
 
@@ -1044,7 +1118,6 @@ class QueryElements:
                'SELECT MIN(c.score) as min, '\
                'MAX(c.score) as max '\
                'FROM (SELECT attr.celllinename, attr.{attribute} AS score FROM cellline.tdp_{table} attr ' \
-               'INNER JOIN (SELECT * FROM {schema}.{base_table}) cohort ON attr.celllinename = cohort.celllinename ' \
                'INNER JOIN public.tdp_gene gene ON attr.ensg = gene.ensg ' \
                'WHERE gene.species = {species} AND attr.ensg = {ensg} AND attr.depletionscreen = {screen}) c '\
                ')'\
@@ -1053,11 +1126,10 @@ class QueryElements:
                'COUNT(*) '\
                'FROM (SELECT cohort.celllinename, cohort_score.score AS score FROM ({entities}) cohort LEFT OUTER JOIN ' \
                '(SELECT attr.celllinename, attr.{attribute} AS score FROM cellline.tdp_{table} attr ' \
-               'INNER JOIN ({entities}) cohort ON attr.celllinename = cohort.celllinename ' \
                'INNER JOIN public.tdp_gene gene ON attr.ensg = gene.ensg ' \
                'WHERE gene.species = {species} AND attr.ensg = {ensg} AND attr.depletionscreen = {screen}) cohort_score ON cohort.celllinename = cohort_score.celllinename) p, c_stats '\
                'GROUP BY bin '\
-               'ORDER BY bin'.format(attribute=attribute, schema=cohort.entity_schema, table=table, entities=cohort.statement, base_table=cohort.entity_table, species="'human'", ensg=ensg, screen=depletionscreen, num_bins=num_bins)
+               'ORDER BY bin'.format(attribute=attribute, table=table, entities=cohort.statement, species="'human'", ensg=ensg, screen=depletionscreen, num_bins=num_bins)
 
     return sql_text
 

@@ -9,7 +9,52 @@
 
 
 .loading {
+  margin: 0;
+
+  &.large {
     font-size: 1.5em;
+  }
+
+  span {
+    /**
+    * Use the blink animation, which is defined above
+    */
+    animation-name: blink;
+    /**
+    * The animation should take 1.4 seconds
+    */
+    animation-duration: 1.4s;
+    /**
+    * It will repeat itself forever
+    */
+    animation-iteration-count: infinite;
+    /**
+    * This makes sure that the starting style (opacity: .2)
+    * of the animation is applied before the animation starts.
+    * Otherwise we would see a short flash or would have
+    * to set the default styling of the dots to the same
+    * as the animation. Same applies for the ending styles.
+    */
+    animation-fill-mode: both;
+  }
+
+  span:nth-child(2) {
+    /**
+    * Starts the animation of the third dot
+    * with a delay of .2s, otherwise all dots
+    * would animate at the same time
+    */
+    animation-delay: .2s;
+  }
+
+  span:nth-child(3) {
+    /**
+    * Starts the animation of the third dot
+    * with a delay of .4s, otherwise all dots
+    * would animate at the same time
+    */
+    animation-delay: .4s;
+  }
 }
 
 
@@ -37,43 +82,54 @@
     }
 }
 
-.loading span {
-    /**
-     * Use the blink animation, which is defined above
-     */
-    animation-name: blink;
-    /**
-     * The animation should take 1.4 seconds
-     */
-    animation-duration: 1.4s;
-    /**
-     * It will repeat itself forever
-     */
-    animation-iteration-count: infinite;
-    /**
-     * This makes sure that the starting style (opacity: .2)
-     * of the animation is applied before the animation starts.
-     * Otherwise we would see a short flash or would have
-     * to set the default styling of the dots to the same
-     * as the animation. Same applies for the ending styles.
-     */
-    animation-fill-mode: both;
+
+.loading-bars {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.loading span:nth-child(2) {
-    /**
-     * Starts the animation of the third dot
-     * with a delay of .2s, otherwise all dots
-     * would animate at the same time
-     */
-    animation-delay: .2s;
+.loading-bars div {
+  width: 10px;
+  height: 15px;
+  background: $color-animation-bar-default;
+  -webkit-animation: bars 2s  infinite ease-in;
+  animation: bars 2s  infinite ease-in;
+  -webkit-animation-delay: calc(var(--n) * 0.2s);
+  animation-delay: calc(var(--n) * 0.2s);
 }
 
-.loading span:nth-child(3) {
-    /**
-     * Starts the animation of the third dot
-     * with a delay of .4s, otherwise all dots
-     * would animate at the same time
-     */
-    animation-delay: .4s;
+.loading-bars div:not(:first-child) {
+  margin-left: 3px;
+}
+
+@keyframes bars {
+  0% {
+    background: $color-animation-bar-default;
+  }
+  25% {
+    background: $color-animation-bar-highlight;
+  }
+  50% {
+    background: $color-animation-bar-default;
+  }
+  100% {
+    background: $color-animation-bar-default;
+  }
+}
+@-webkit-keyframes bars {
+  0% {
+    background: $color-animation-bar-default;
+  }
+  25% {
+    background: $color-animation-bar-highlight;
+  }
+  50% {
+    background: $color-animation-bar-default;
+  }
+  100% {
+    background: $color-animation-bar-default;
+  }
 }

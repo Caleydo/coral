@@ -17,4 +17,5 @@ export declare class DensityPlot extends SingleAttributeVisualization {
         from: string | number;
         to: string | number;
     }[];
+    showImpl(chart: HTMLDivElement, data: Array<IdValuePair>): Promise<void>;
 }

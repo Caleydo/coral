@@ -1,5 +1,6 @@
 import {IRectTaskRep} from './CohortInterfaces';
 import {Task} from './Tasks';
+import {TaskRemoveEvent} from './utilCustomEvents';
 
 export class RectTaskRep implements IRectTaskRep {
   id: string;
@@ -10,6 +11,7 @@ export class RectTaskRep implements IRectTaskRep {
   private _height: number;
   private _width: number;
   image: string; //url to the image for the representation
+  private _removeButton: HTMLAnchorElement;
 
   constructor(private task: Task, height: number, width: number) {
     this.id = task.id;
@@ -35,6 +37,13 @@ export class RectTaskRep implements IRectTaskRep {
     const imgHeight = height - labelHeight;
     const fontSize = labelHeight < 15 ? labelHeight - 1 : 14;
 
+    // remove button
+    this._removeButton = document.createElement('a');
+    this._removeButton.classList.add('remove-task');
+    this._removeButton.toggleAttribute('hidden', true);
+    this._removeButton.innerHTML = '<i class="fas fa-trash" aria-hidden="true"></i>';
+    container.appendChild(this._removeButton);
+
     // create image div
     const divImage: HTMLDivElement = document.createElement('div');
     divImage.className = 'rectTask-image';
@@ -53,6 +62,49 @@ export class RectTaskRep implements IRectTaskRep {
     divLabel.style.lineHeight = labelHeight + 'px';
     divLabel.style.fontSize = fontSize + 'px';
     container.appendChild(divLabel);
+
+    // show remove icon on hover
+    container.addEventListener('mouseenter', (event) => {
+      event.stopPropagation();
+      // show remove icon (=trash can)
+      this._removeButton.removeAttribute('hidden');
+    });
+    container.addEventListener('mouseleave', (event) => {
+      event.stopPropagation();
+      // hide remove icon (=trash can)
+      this._removeButton.toggleAttribute('hidden', true);
+    });
+    container.addEventListener('click', (event) => {
+      if (event.target === this._removeButton.childNodes[0]) {
+        // open modal
+        ($('#deleteModal') as any).modal('show');
+        // get modal
+        const modal = document.getElementById('deleteModal');
+        if (modal) {
+          // set type text of element
+          const text = modal.querySelector('.element-name');
+          text.innerHTML = 'operation';
+
+          // get delete button in modal
+          let delConfirm = modal.querySelector('.confirm-delete');
+          if (delConfirm) {
+            // replace element with copy of it to remove the eventlisteners
+            delConfirm.replaceWith(delConfirm.cloneNode(true));
+            delConfirm = modal.querySelector('.confirm-delete');
+
+            // add click event to delete button
+            delConfirm.addEventListener('click', (event) => {
+              // dispatch event to remove task and its children
+              container.dispatchEvent(new TaskRemoveEvent(this.task));
+              event.stopPropagation();
+              // hide modal
+              ($('#deleteModal') as any).modal('hide');
+            });
+          }
+        }
+        event.stopPropagation();
+      }
+    });
 
     return container;
   }

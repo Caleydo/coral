@@ -1,4 +1,5 @@
-import { TaskType } from './CohortInterfaces';
+import { ElementProvType, TaskType } from './CohortInterfaces';
+import { toAttribute } from './data/Attribute';
 import { deepCopy, log } from './util';
 export class Task {
     constructor(id, label, attributes) {
@@ -16,11 +17,47 @@ export class TaskFilter extends Task {
         super(id, label, attributes);
         this.type = TaskType.Filter;
     }
+    toProvenanceJSON() {
+        return {
+            id: this.id,
+            type: ElementProvType.TaskFilter,
+            label: this.label,
+            parent: this.parents.map((elem) => elem.id),
+            children: this.children.map((elem) => elem.id),
+            attrAndValues: {
+                attributes: this.attributes.map((elem) => elem.toJSON())
+            }
+        };
+    }
 }
 export class TaskSplit extends Task {
     constructor(id, label, attributes) {
         super(id, label, attributes);
         this.type = TaskType.Split;
+    }
+    toProvenanceJSON() {
+        return {
+            id: this.id,
+            type: ElementProvType.TaskSplit,
+            label: this.label,
+            parent: this.parents.map((elem) => elem.id),
+            children: this.children.map((elem) => elem.id),
+            attrAndValues: {
+                attributes: this.attributes.map((elem) => elem.toJSON())
+            }
+        };
+    }
+}
+export function createTaskFromProvJSON(config) {
+    const attrJSON = config.attrAndValues.attributes;
+    const attributes = attrJSON.map((elem) => {
+        return toAttribute(elem.option, elem.currentDB, elem.currentView);
+    });
+    if (config.type === ElementProvType.TaskFilter) {
+        return new TaskFilter(config.id, config.label, attributes);
+    }
+    else {
+        return new TaskSplit(config.id, config.label, attributes);
     }
 }
 function mergerAllFilterPart(filterType, existingFilter, newFilter) {

@@ -1,0 +1,25 @@
+.icon-custom-layers {
+  display: inline-grid;
+  grid-template-columns: 1fr; //only a single grid row and column that will be used to put icon on top of each other
+  grid-template-rows: 1fr;
+
+  > * {
+    grid-area: 1 / 1 / 2 / 2; // put children in same grid element
+  }
+
+  .icon-layer-shrink { // reduced height of a layered icon
+    font-size: 0.5em;
+  }
+
+  .icon-layer {
+    display: flex;
+    align-items: flex-start; // do'nt stretch icon over full height
+
+    .icon-top-left { // utility class for position, add others when needed
+      border-radius: 50%;
+      padding: 0.1em;
+      margin-left: -0.25em;
+      margin-top: -0.1em;
+    }
+  }
+}

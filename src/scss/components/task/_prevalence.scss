@@ -100,7 +100,7 @@ $error-bar-line-width: 1px !default;
 
   // define the labels for each row (tasks, bars, result text)
   .prev-label {
-    width: 120px;
+    width: 148px;
     flex-grow: 0;
     flex-shrink: 0;
   }
@@ -189,10 +189,18 @@ $error-bar-line-width: 1px !default;
   }
 
   // mark for all legend items
-  .prev-legend-mark{
+  .prev-legend-mark {
     height: 16px;
     width: 8px;
+    min-width: 8px;
     margin-right: 3px;
+  }
+
+  // text for all legend items
+  .prev-legend-text {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   // mark for the reference item

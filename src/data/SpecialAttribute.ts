@@ -5,7 +5,7 @@ import {getRootCohort} from '../cohortview';
 import {getCohortData, HistRouteType, ICohortDBHistDataParms, ICohortDBHistPanelParms, ICohortDBHistScoreDepletionParms, ICohortDBHistScoreParms, IEqualsList, INumRange} from '../rest';
 import {deepCopy, getSessionStorageItem, log, setSessionStorageItem} from '../util';
 import {niceName} from '../utilLabels';
-import {IdValuePair} from './Attribute';
+import {AttributeType, IdValuePair} from './Attribute';
 
 
 export interface ISpecialAttribute {
@@ -22,6 +22,7 @@ export interface ISpecialAttribute {
   readonly id: string;
 
   label: string;
+  type: AttributeType;
   dataKey: string;
   /**
    * Possible options the attribute could be formated
@@ -54,6 +55,7 @@ export class SATreatment implements ISpecialAttribute {
   readonly overrideGetCount: boolean = true;
   readonly overrideFilter: boolean = true;
   static ID: string = 'treatment';
+  type = 'string' as AttributeType;
   readonly id: string;
 
   options: {id: string; name: string;}[] = [];

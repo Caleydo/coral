@@ -1,8 +1,8 @@
 import { select } from 'd3-selection';
+import { OnboardingManager } from '../../OnboardingManager';
 import { SortType } from '../../util';
 import { ColumnSortEvent } from '../../utilCustomEvents';
 import { ADataColumn } from './AColumn';
-import { OnboardingManager } from '../../OnboardingManager';
 /**
  * Displays cohorts with their given representation as a column
  */
@@ -13,8 +13,8 @@ export class ACohortColumn extends ADataColumn {
             { idx: 1, type: SortType.Default, icon: 'fas fa-sort-alpha-down', active: false, next: 2 },
             { idx: 2, type: SortType.Alpha_AZ, icon: 'fas fa-sort-alpha-down', active: true, next: 3 },
             { idx: 3, type: SortType.Alpha_ZA, icon: 'fas fa-sort-alpha-up', active: true, next: 4 },
-            { idx: 4, type: SortType.Size_19, icon: 'fas fa-sort-amount-down', active: true, next: 5 },
-            { idx: 5, type: SortType.Size_91, icon: 'fas fa-sort-amount-up', active: true, next: 1 },
+            { idx: 4, type: SortType.Size_91, icon: 'fas fa-sort-amount-down', active: true, next: 5 },
+            { idx: 5, type: SortType.Size_19, icon: 'fas fa-sort-amount-up', active: true, next: 1 },
         ];
         this.$column.classList.add('cohort');
         this.currSortOptIdx = 1; // default sort
@@ -34,14 +34,13 @@ export class ACohortColumn extends ADataColumn {
     changeSortOption(sortOpt) {
         this.currSortOptIdx = sortOpt.idx;
         this.sortElemIcon.className = sortOpt.icon;
-        this.sortElemIcon.parentElement.classList.toggle('active', sortOpt.active);
+        this.sortElemIcon.classList.add('options');
+        this.sortElemIcon.classList.toggle('active', sortOpt.active);
     }
     addSortButton() {
         // button for name
-        const sortElemDiv = select(this.$headerOptions).append('div');
-        sortElemDiv.classed('options', true);
         const initSort = this.getSortOption(this.currSortOptIdx);
-        this.sortElemIcon = sortElemDiv.append('i').node();
+        this.sortElemIcon = select(this.$headerOptions).append('i').node();
         this.sortElemIcon.setAttribute('aria-hidden', 'true');
         this.changeSortOption(initSort);
         this.sortElemIcon.title = 'Sort';

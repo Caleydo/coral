@@ -26,9 +26,9 @@ export class VegaHistogram extends SingleAttributeVisualization {
       mark: {
         type: 'bar',
         tooltip: true,
-        cursor: 'pointer'
+        cursor: 'pointer',
+        height: 15
       },
-      height: {step: this.cohorts.length > 1 ? 10 : 15},
       encoding: {
         [this.type === 'quantitative' ? 'x' : 'y']: {
           bin,
@@ -47,34 +47,36 @@ export class VegaHistogram extends SingleAttributeVisualization {
           title: 'Count'
         },
         color: {
-          // bars will only change color on selection if the type is ordinal/nominal
-          // for quantitative this does not work due the applied data transofrmations (binning)
-          // which leads to errors on select/hovering selected data (data in the interval)
           field: DATA_LABEL,
+          type: 'nominal',
+          legend: null  // use custom legend
+        },
+        stroke: {
+          field: DATA_LABEL, // same color as fill, except for hover
           type: 'nominal',
           condition: [
             {
-              selection: 'highlight',
-              value: colors.hoverColor
+              param: AVegaVisualization.HIGHLIGHT_SIGNAL_NAME,
+              empty: false,
+              value: colors.darkBorder
             }
-          ],
-          legend: null  // use custom legend
+          ]
         },
-        fillOpacity: {
+        opacity: {
           condition: [
             {
-              test: {
-                or: [
-                  {selection: AVegaVisualization.SELECTION_SIGNAL_NAME},
-                  {selection: AVegaVisualization.HIGHLIGHT_SIGNAL_NAME}
-                ]
-              },
+              param: AVegaVisualization.SELECTION_SIGNAL_NAME,
               value: 1
+            },
+            {
+              param: AVegaVisualization.HIGHLIGHT_SIGNAL_NAME,
+              empty: false,
+              value: 0.8 // not fully opaque --> you will notice a change when selection the bar
             }
           ],
           value: 0.3
         }
-      },
+      }
     };
     const histSpec: VegaLiteSpec = Object.assign(super.getSpec(data), vegaLiteSpecPart) as VegaLiteSpec; //the combination gives a full spec
 
@@ -105,14 +107,14 @@ export class VegaHistogram extends SingleAttributeVisualization {
         this.cohorts.forEach((cohort) => {
           filters.push({from: attrSelection[0], to: attrSelection[1], cohort});
 
-          const nullFilter = this.getNullValueSelectedData(cohort);
+          const nullFilter = this.getNullValueSelectedData(cohort, this.attribute);
           if(nullFilter) {
             filters.push(nullFilter);
           }
         });
       } else {
         this.cohorts.forEach((cohort) => {
-          const nullFilter = this.getNullValueSelectedData(cohort);
+          const nullFilter = this.getNullValueSelectedData(cohort, this.attribute);
           if(nullFilter) {
             filters.push(nullFilter);
           }

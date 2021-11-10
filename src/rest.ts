@@ -84,6 +84,14 @@ export interface ICohortDBSizeParams extends IParams {
   cohortId: number;
 }
 
+export interface ICohortDBCohortDataParams extends IParams {
+  cohortIds: number[];
+}
+
+export interface ICohortDBUpdateName extends IParams {
+  cohortId: number;
+  name: string;
+}
 export interface ICohortDBGeneScoreParams extends IParams {
   cohortId: number;
   table: string;
@@ -160,6 +168,8 @@ enum CohortRoutes {
   dataUseGeneEqualsFilter = 'dataUseGeneEqualsFilter',
   cohortData = 'cohortData',
   size = 'size',
+  getDBCohorts = 'getDBCohorts',
+  updateCohortName = 'updateCohortName',
   geneScore = 'geneScore',
   celllineDepletionScore = 'celllineDepletionScore',
   createUseDepletionScoreFilter = 'createUseDepletionScoreFilter',
@@ -200,6 +210,18 @@ const mapMutationCat: IDataBaseToDisplay[] = [
   {value: 'null', name: 'Unknown'},
   {value: '!null', name: '!null'}
 ];
+
+/**
+ * Interface for the cohort tuple (row) in the DB
+ */
+export interface ICohortRow {
+  id: number;
+  name: string;
+  entity_database: string;
+  entity_schema: string;
+  entity_table: string;
+  is_initial: number;
+}
 
 enum DataMappingDirection {
   DB2Display,
@@ -374,6 +396,9 @@ export function createDBCohortWithTreatmentFilter(params: ICohortDBWithTreatment
 
 
 // const ENTITY_ROUTES = 'size' | 'cohortData';
+/**
+ * returns the data a cohort represents
+ */
 export function getCohortData(params: ICohortDBDataParams, assignIds: boolean = false): Promise<IRow[]> {
   return getCohortDataImpl(CohortRoutes.cohortData, params, assignIds);
 }
@@ -383,6 +408,24 @@ export async function getCohortSize(params: ICohortDBSizeParams, assignIds: bool
   return Promise.resolve(Number(sizeResp[0].size));
 }
 
+/**
+ * returns the saved cohort tuples in the DB
+ */
+export function getDBCohortData(params: ICohortDBCohortDataParams, assignIds: boolean = false): Promise<ICohortRow[]> {
+  const cohortIdsString = params.cohortIds.join(valueListDelimiter);
+  delete params.cohortIds;
+  const newParams = deepCopy(params) as IParams;
+  newParams.cohortIds = cohortIdsString;
+  return getCohortDataImpl(CohortRoutes.getDBCohorts, newParams, assignIds);
+}
+
+/**
+ * updates the name of the cohort in the DB
+ * @returns the updated cohort data from the DB
+ */
+export function updateCohortName(params: ICohortDBUpdateName, assignIds: boolean = false): Promise<ICohortRow[]> {
+  return getCohortDataImpl(CohortRoutes.updateCohortName, params, assignIds);
+}
 
 // const CLONE_FILTER_ENTITY_ROUTES = 'sizeUseEqulasFilter' | 'dataUseEqulasFilter' | 'sizeUseNumFilter' | 'dataUseNumFilter';
 export async function sizeDBCohortWithEqualsFilter(params: ICohortEqualsFilterParams, assignIds: boolean = false): Promise<number> {

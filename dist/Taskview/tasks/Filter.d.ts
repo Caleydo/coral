@@ -18,7 +18,7 @@ export declare class Filter extends ATask {
     cohorts: ICohort[];
     supports(attributes: IAttribute[], cohorts: ICohort[]): boolean;
     showSearchBar(): boolean;
-    show(container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]): Promise<void>;
+    show(columnHeader: HTMLDivElement, container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]): Promise<void>;
     addVisSelector(): void;
     private show1Attribute;
     private show2Attributes;

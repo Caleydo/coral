@@ -3,13 +3,11 @@ import { IdValuePair } from '../../data/Attribute';
 import { SingleAttributeVisualization } from './AVegaVisualization';
 import { ICohort } from '../../CohortInterfaces';
 export declare class KaplanMeierPlot extends SingleAttributeVisualization {
-    static readonly NAME = "Kaplan Meier Plot";
+    static readonly NAME = "Kaplan-Meier Plot";
     static readonly SURVIVAL = "survival";
     static readonly TIME = "days";
     static readonly ERROR = "error_95";
     protected readonly type = "quantitative";
-    private days2death;
-    private censoring;
     constructor(vegaLiteOptions?: Object);
     getData(): Promise<(IdValuePair & {
         Cohort: string;
@@ -21,7 +19,7 @@ export declare class KaplanMeierPlot extends SingleAttributeVisualization {
      *  https://towardsdatascience.com/kaplan-meier-curves-c5768e349479
      *  Test calculations: https://observablehq.com/d/5426a198a7a2dca7
      */
-    convertData(data: IdValuePair[]): any;
+    convertData(data: IdValuePair[]): IdValuePair[];
     /**
      * From == To for categorical data, e.g. FROM: male, TO: male
      * From is inclusive (>=) and TO exclusive (<) for numerical data, e.g. FROM 50 TO 60 = [50,60)
@@ -31,4 +29,5 @@ export declare class KaplanMeierPlot extends SingleAttributeVisualization {
         from: string | number;
         to: string | number;
     }[];
+    showImpl(chart: HTMLDivElement, data: Array<IdValuePair>): Promise<void>;
 }

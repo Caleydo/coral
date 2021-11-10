@@ -1,24 +1,32 @@
 import { select } from 'd3-selection';
-import { Compression } from 'phovea_clue';
-import { ActionMetaData, ActionUtils, AppContext, ObjectRefUtils } from 'phovea_core';
+import { AppContext, ObjectRefUtils } from 'phovea_core';
 import { AppMetaDataUtils } from 'phovea_ui';
 import SplitGrid from 'split-grid';
-import { ATDPApplication, RestBaseUtils } from 'tdp_core';
+import { ATDPApplication, NotificationHandler, RestBaseUtils } from 'tdp_core';
 import { cellline, tissue } from 'tdp_publicdb';
-import { cohortOverview, createCohortOverview, destroyOld, taskview } from './cohortview';
+import { createCohort, createCohortFromDB } from './Cohort';
+import { cohortOverview, createCohortOverview, destroyOld, loadViewDescription, taskview } from './cohortview';
+import { PanelScoreAttribute } from './data/Attribute';
 import { OnboardingManager } from './OnboardingManager';
+import { setDatasetAction } from './Provenance/General';
+import { getDBCohortData } from './rest';
+import deleteModal from './templates/DeleteModal.html';
 import loginDialog from './templates/LoginDialog.html';
 import welcomeHtml from './templates/Welcome.html'; // webpack imports html to variable
 import * as aboutDisclaimer from './templates/_aboutDisclaimer.html';
-import { handleDataLoadError, log, removeFromArray } from './util';
+import { getAnimatedLoadingText, handleDataLoadError, log, removeFromArray } from './util';
 import { CohortSelectionEvent, COHORT_SELECTION_EVENT_TYPE, CONFIRM_TASK_EVENT_TYPE, PreviewConfirmEvent } from './utilCustomEvents';
 import { idCellline, idCovid19, idStudent, idTissue } from './utilIdTypes';
+import { niceName } from './utilLabels';
 /**
  * The Cohort app that does the acutal stuff.
  */
-export class CoralApp {
+export class CohortApp {
     constructor(graph, manager, parent, name = 'Cohort') {
         this.dataset = null;
+        this._cohortOverview = null;
+        this._taskview = null;
+        this.rootCohort = null;
         this.datasetEventID = 0;
         this.firstOutput = true;
         this.graph = graph;
@@ -68,7 +76,35 @@ export class CoralApp {
     async build() {
         log.debug('Build app html structure');
         this.$node.selectAll('*').remove();
-        // get all databses
+        const controlBar = this.$node.append('div').attr('class', 'control-bar');
+        controlBar.append('span').classed('control-bar-label', true).text('Datasets:');
+        const btnGrp = controlBar.append('div').attr('id', 'db_btnGrp').attr('style', 'display: flex;gap: 0.5em;');
+        const loading = btnGrp.append('div').html(getAnimatedLoadingText('available datasets', false).outerHTML);
+        // new div for the css grid overview
+        this.$overview = this.$node.append('div').attr('id', 'chtOverview').node();
+        this.$overview.insertAdjacentHTML('beforeend', welcomeHtml);
+        // add delete modal to document body
+        document.body.insertAdjacentHTML('beforeend', deleteModal);
+        try {
+            this._addSplitScreenDraggerFunctionality(this.$node); // add the dragger and the functionality to the app
+            this.$detail = this.$node.append('div').node();
+            this.setAppGridLayout('top'); // set grid layout of app
+            // get all databses
+            const dataBtns = await this.builDataSelector(btnGrp);
+            loading.remove();
+            // btnGrp.html(dataBtns.outerHTML);
+            this.datasetTip = OnboardingManager.addTip('dataset', btnGrp.node(), true);
+        }
+        catch {
+            NotificationHandler.pushNotification('error', 'Loading datasets failed');
+            loading.html(`
+      <i class="fas fa-exclamation-circle"></i>
+      Loading datasets failed. Please try to reload or <a href="https://github.com/Caleydo/coral/issues/new">report the issue</a>.
+      `);
+        }
+        return Promise.resolve(this);
+    }
+    async builDataSelector(btnGrp) {
         const databases = await this.getDatabases();
         // find databases with idtypes (i.e. with data we can use in Coral)
         const dataSources = this.defineIdTypes(databases);
@@ -81,60 +117,67 @@ export class CoralApp {
             //  * const namedSets = await RestStorageUtils.listNamedSets();
             //  * const namedSetOptions = await RestStorageUtils.listNamedSetsAsOptions();
         })));
-        const that = this;
-        const controlBar = this.$node.append('div').attr('class', 'control-bar');
-        controlBar.append('span').text('Datasets:');
-        const btnGrp = controlBar.append('div').attr('id', 'db_btnGrp').attr('style', 'display: flex;gap: 0.5em;');
         const datasetGroup = btnGrp.selectAll('div.btn-group').data(dataSourcesAndPanels) //create a btngroup for each data source
             .enter().append('div').classed('btn-group btn-group-sm', true);
         datasetGroup.append('button')
             .attr('type', 'button')
-            .attr('class', 'db_btn btn btn-default')
+            .attr('class', 'db_btn btn btn-coral')
             .attr('data-db', (d) => d.source.dbConnectorName)
             .attr('data-dbview', (d) => d.source.viewName)
             .html((d) => { return d.source.idType.toUpperCase(); })
-            .on('click', async function (d) {
+            .on('click', async (d) => {
             var _a, _b;
-            if (((_b = (_a = that.dataset) === null || _a === void 0 ? void 0 : _a.source) === null || _b === void 0 ? void 0 : _b.idType) === d.source.idType) {
-                //deselect
-                that.graph.push(App.setDataset(that.ref, { source: null }, that.dataset));
-            }
-            else {
-                //set data
-                that.graph.push(App.setDataset(that.ref, { source: d.source }, that.dataset));
-            }
+            const newDataset = ((_b = (_a = this.dataset) === null || _a === void 0 ? void 0 : _a.source) === null || _b === void 0 ? void 0 : _b.idType) === d.source.idType ? //same as current?
+                { source: null, rootCohort: null, chtOverviewElements: null } : // deselect
+                { source: d.source, rootCohort: null, chtOverviewElements: null }; // select
+            this.handleDatasetClick(newDataset);
+        });
+        select('nav a.navbar-brand.caleydo_app').on('click', async () => {
+            this.handleDatasetClick({ source: null, rootCohort: null, chtOverviewElements: null });
         });
         datasetGroup.append('button')
             .attr('type', 'button')
-            .attr('class', 'db_btn btn btn-default dropdown-toggle')
-            .attr('data-toggle', 'dropdown')
+            .attr('class', 'db_btn btn btn-coral dropdown-toggle')
+            .attr('data-bs-toggle', 'dropdown')
             .append('span').classed('caret', true);
-        const dropdown = datasetGroup
-            .append('ul').classed('dropdown-menu', true);
-        dropdown.append('li').append('a').text('All')
-            .on('click', async (d) => that.graph.push(App.setDataset(that.ref, { source: d.source }, that.dataset))); // don't toggle data by checkging what is selected in dropdown
-        dropdown.append('li').attr('role', 'separator').classed('divider', true);
+        const dropdown = datasetGroup.append('ul').classed('dropdown-menu', true);
+        dropdown.append('li').classed('dropdown-item', true).append('a').text('All')
+            .on('click', async (d) => {
+            const newDataset = { source: d.source, rootCohort: null, chtOverviewElements: null };
+            this.handleDatasetClick(newDataset);
+        });
+        dropdown.append('li').attr('role', 'separator').classed('dropdown-divider', true);
         dropdown.append('li').classed('dropdown-header', true).text('Predefined Sets');
+        const that = this;
         dropdown
-            .selectAll('li.panel')
+            .selectAll('li.data-panel')
             .data((d) => d.panels)
             .enter()
-            .append('li') //.classed('panel', true)
+            .append('li').classed('data-panel', true).classed('dropdown-item', true)
             .append('a').text((d) => d.id).attr('title', (d) => d.description)
-            .on('click', function (d) {
+            .on('click', async function (d) {
+            // don't toggle data by checkging what is selected in dropdown
             const dataSourcesAndPanels = select(this.parentNode.parentNode).datum(); // a -> parent = li -> parent = dropdown = ul
-            that.graph.push(App.setDataset(that.ref, { source: dataSourcesAndPanels.source, panel: d }, that.dataset));
+            const newDataset = { source: dataSourcesAndPanels.source, panel: d, rootCohort: null, chtOverviewElements: null };
+            that.handleDatasetClick.bind(that)(newDataset);
         });
-        OnboardingManager.addTip('dataset', btnGrp.node());
-        // new div for the css grid overview
-        this.$overview = this.$node.append('div').attr('id', 'chtOverview').node();
-        this.$overview.insertAdjacentHTML('beforeend', welcomeHtml);
-        // add the dragger and the functionality to the app
-        this._addSplitScreenDraggerFunctionality(this.$node);
-        this.$detail = this.$node.append('div').node();
-        // set grid layout of app
-        this.setAppGridLayout('top');
-        return Promise.resolve(this);
+    }
+    async handleDatasetClick(newDataset) {
+        // clean up/destory the old parts of the application
+        destroyOld(); // remove old overview -> otherwise loading information will be added next to the overview
+        if (newDataset.source) { // only add loading animation if new dataset is not null
+            const loading = select(this.$overview).append('div').html(getAnimatedLoadingText('initial cohort').outerHTML).attr('class', 'loading-inital-animation');
+        }
+        else {
+            this.datasetTip.show();
+        }
+        const rootJSON = await this._createRootCohort(newDataset);
+        newDataset.rootCohort = rootJSON;
+        // perpare oldDataset for proveance
+        if (this.dataset) {
+            this.dataset.chtOverviewElements = this._getOldCohortOverviewElements();
+        }
+        this.graph.push(setDatasetAction(this.ref, newDataset, this.dataset));
     }
     async getDatabases() {
         let databases;
@@ -164,32 +207,102 @@ export class CoralApp {
         }
         return idTypes;
     }
+    _getOldCohortOverviewElements() {
+        if (this._cohortOverview === null) {
+            return null;
+        }
+        else {
+            return this._cohortOverview.getElementsAsJSON();
+        }
+    }
+    getAppOverview() {
+        return this._cohortOverview;
+    }
+    async _createRootCohort(dataset) {
+        if (dataset.source === null) {
+            this.rootCohort = null;
+            return null;
+        }
+        else {
+            const idTypeConfig = dataset.source;
+            const panel = dataset.panel;
+            const viewDescription = await loadViewDescription(idTypeConfig.dbConnectorName, idTypeConfig.viewName);
+            log.debug('retrievedViewDesctiprion', viewDescription);
+            const idColumn = viewDescription.columns.find((col) => col.label === 'id') || { column: 'id', label: 'id', type: 'string' };
+            // create root cohort
+            let root = await createCohort(niceName(idTypeConfig.idType), 'All', true, -1, idTypeConfig.dbConnector, idTypeConfig.dbConnectorName, idTypeConfig.schema, idTypeConfig.tableName, idTypeConfig.viewName, idTypeConfig.idType, idColumn, { normal: {}, lt: {}, lte: {}, gt: {}, gte: {} });
+            if (panel) {
+                const panelAttr = new PanelScoreAttribute(panel.id, idTypeConfig.viewName, idTypeConfig.dbConnectorName, 'categorical');
+                root = await panelAttr.filter(root, { values: ['true'] });
+                root.setLabels(idTypeConfig.idType, panel.id);
+            }
+            root.isInitial = true; // set cohort as root
+            // referenceCohort = reference; // save reference cohort
+            this.rootCohort = root;
+            const rootAsJSON = root.toProvenanceJSON();
+            rootAsJSON.attrAndValues.isRoot = true;
+            return rootAsJSON;
+        }
+    }
     /**
      * loads the needed data and creates the graph
      * @param database name of the database
      * @param view name of the view
      */
     async setDataset(dataset) {
-        select('#db_btnGrp').selectAll('button').classed('btnSel', false); //remove selected class from all buttons
+        select('#db_btnGrp').selectAll('button').classed('selected', false); //remove selected class from all buttons
         const currEventID = ++this.datasetEventID; // save current EventId that and incerease the gloabl one
+        log.debug('setDataset parameters: ', dataset);
         CohortSelectionListener.reset();
         if (dataset !== null && dataset.source) {
             const source = dataset.source;
             if (source.dbConnectorName && source.viewName) {
-                const viewDescription = await this.loadViewDescription(source.dbConnectorName, source.viewName);
-                log.debug('retrievedViewDesctiprion', viewDescription);
                 // check if current event is the last called event
                 if (currEventID === this.datasetEventID) {
                     this.dataset = dataset;
-                    select('#db_btnGrp').select(`button[data-db="${source.dbConnectorName}"][data-dbview="${source.viewName}"]`).classed('btnSel', true); //add selected class to current button
-                    createCohortOverview(this.$overview, viewDescription, this.$detail, this.dataset.source, this.dataset.panel);
+                    // get current rootCohorts, doesn't have to be created again
+                    let rootCohort = this.rootCohort;
+                    const datasetRootCohortId = dataset.rootCohort.id;
+                    // create new rootCohort if none is defined or is not matching the current configuration
+                    if (rootCohort === null || rootCohort.id !== datasetRootCohortId) {
+                        const dbCohortInfo = await getDBCohortData({ cohortIds: [Number(datasetRootCohortId)] });
+                        const jsonCht = dataset.rootCohort;
+                        const provJSON = {
+                            idColumn: jsonCht.attrAndValues.idColumn,
+                            idType: jsonCht.attrAndValues.idType,
+                            values: jsonCht.attrAndValues.values,
+                            view: jsonCht.attrAndValues.view,
+                            database: jsonCht.attrAndValues.database,
+                            selected: jsonCht.attrAndValues.selected,
+                            isRoot: true
+                        };
+                        rootCohort = createCohortFromDB(dbCohortInfo[0], provJSON);
+                        this.rootCohort = rootCohort;
+                    }
+                    this._showChangeLayoutOptions(true);
+                    select('#db_btnGrp').select(`button[data-db="${source.dbConnectorName}"][data-dbview="${source.viewName}"]`).classed('selected', true); //add selected class to current button
+                    const views = await createCohortOverview(this.graph, this.ref, this.$overview, this.$detail, this.dataset.source, rootCohort);
+                    // get loading animation
+                    const loading = select(this.$overview).select('.loading-inital-animation');
+                    if (loading) {
+                        loading.remove(); // remove loading animation
+                    }
+                    this._cohortOverview = views.cohortOV;
+                    this._taskview = views.taskV;
+                    // get Old elements
+                    if (dataset.chtOverviewElements !== null) {
+                        await this._cohortOverview.generateOverviewProv(dataset.chtOverviewElements);
+                    }
                 }
             }
         }
         else if (currEventID === this.datasetEventID) {
             destroyOld();
             this.dataset = dataset;
+            this._taskview = null;
+            this._cohortOverview = null;
             this.setAppGridLayout('top');
+            this._showChangeLayoutOptions(false);
         }
     }
     // /**
@@ -225,21 +338,9 @@ export class CoralApp {
     //   }
     //   return genericViews;
     // }
-    /**
-     * load the description of the given database and view
-     * @param database database name
-     * @param view view id
-     */
-    async loadViewDescription(database, view) {
-        log.debug('getTDPDesc for: db:', database, ' |view: ', view);
-        try {
-            const descr = await RestBaseUtils.getTDPDesc(database, view);
-            log.debug('descr= ', descr);
-            return descr;
-        }
-        catch (e) {
-            handleDataLoadError(e);
-        }
+    _showChangeLayoutOptions(show) {
+        const screenControls = this.$node.select('.control-bar').select('.screen-controls').node();
+        screenControls.toggleAttribute('hidden', !show);
     }
     _addSplitScreenDraggerFunctionality(container) {
         // add slider between the two containers
@@ -258,8 +359,8 @@ export class CoralApp {
             onDragEnd: () => window.dispatchEvent(new Event('resize')) //update responsive vega charts
         });
         // add buttons to switch
-        const screenControls = container.select('.control-bar').append('div').attr('class', 'screen-controls');
-        screenControls.append('span').html('Change Layout:&ensp;');
+        const screenControls = container.select('.control-bar').append('div').attr('class', 'screen-controls hidden');
+        screenControls.append('span').classed('control-bar-label', true).html('Change Layout:');
         // add overview fullscreen control
         const ovBtn = this._createScreenControlBtn('Overview', 'top');
         ovBtn.addEventListener('click', (event) => {
@@ -281,15 +382,23 @@ export class CoralApp {
     }
     _createScreenControlBtn(label, type) {
         const divBtn = document.createElement('div');
-        divBtn.classList.add('sc-button');
+        divBtn.classList.add('sc-button', 'btn-coral');
         divBtn.title = label;
         // icon
         const divIcon = document.createElement('div');
         divIcon.classList.add('icon');
-        // separator
-        const divIconSeparator = document.createElement('div');
-        divIconSeparator.style.height = type === 'top' ? '85%' : (type === 'split' ? '50%' : '15%');
-        divIcon.appendChild(divIconSeparator);
+        if (type === 'top') {
+            divIcon.style.borderBottomWidth = '3px';
+        }
+        else if (type === 'bot') {
+            divIcon.style.borderTopWidth = '3px';
+        }
+        else {
+            // separator that has 50% of the height
+            const divIconSeparator = document.createElement('div');
+            divIconSeparator.style.height = '50%';
+            divIcon.appendChild(divIconSeparator);
+        }
         divBtn.appendChild(divIcon);
         return divBtn;
     }
@@ -319,38 +428,38 @@ export class CoralApp {
 export class App extends ATDPApplication {
     constructor(name) {
         super({
-            prefix: 'cohort',
+            prefix: 'coral',
             name,
             loginForm: loginDialog,
-            showAboutLink,
+            /**
+             * Link to help and show help in `Ordino at a Glance` page instead
+             */
+            showHelpLink: `${(window.location.href).split('app/')[0] + '#/help'}`,
             showCookieDisclaimer: true,
+            /**
+             * Show content in the `Ordino at a Glance` page instead
+             */
+            // showAboutLink,
+            showAboutLink: false,
+            /**
+             * Show content in the `Ordino at a Glance` page instead
+             */
+            showReportBugLink: false,
         });
     }
     createApp(graph, manager, main) {
         log.debug('Create App');
-        return new CoralApp(graph, manager, main, this.options.name).init();
+        this.replaceHelpIcon();
+        return new CohortApp(graph, manager, main, this.options.name).init();
+    }
+    replaceHelpIcon() {
+        const helpButton = select(this.header.rightMenu).select('li[data-header="helpLink"]');
+        helpButton.select('span.fa-stack').remove();
+        helpButton.select('a.nav-link').insert('i', ':first-child').attr('class', 'fa fa-question-circle');
     }
     initSessionImpl(app) {
         log.debug('initSessionImpl. Is Graph empty?', app.graph.isEmpty);
         this.jumpToStoredOrLastState();
-    }
-    static async setDatasetImpl(inputs, parameter) {
-        log.debug('setDataset impl', parameter.oldDataset, parameter.newDataset);
-        const app = await inputs[0].v;
-        app.setDataset(parameter.newDataset);
-        return {
-            inverse: App.setDataset(inputs[0], parameter.oldDataset, parameter.newDataset)
-        };
-    }
-    static setDataset(provider, newDataset, oldDataset) {
-        log.debug('Create setDataset Action');
-        return ActionUtils.action(ActionMetaData.actionMeta('Change Dataset', ObjectRefUtils.category.data, ObjectRefUtils.operation.update), 'chtSetDataset', App.setDatasetImpl, [provider], {
-            newDataset,
-            oldDataset
-        });
-    }
-    static compressChtSetDataset(path) {
-        return Compression.lastOnly(path, 'chtSetDataset', (p) => `${p.requires[0].id}_${p.parameter.newDataset}`);
     }
 }
 export class CohortSelectionListener {

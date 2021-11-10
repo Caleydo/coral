@@ -1,17 +1,24 @@
-import { UniqueIdManager } from 'phovea_core';
+import { ObjectRefUtils, UniqueIdManager } from 'phovea_core';
 import tippy from 'tippy.js';
-import { Cohort } from '../Cohort';
-import { TaskType } from '../CohortInterfaces';
+import { Cohort, createCohortFromDB } from '../Cohort';
+import { ElementProvType, TaskType } from '../CohortInterfaces';
 import { RectCohortRep } from '../CohortRepresentations';
+import { addOverviewCohortAction, removeOverviewCohortAction } from '../Provenance/CohortEV';
+import { getDBCohortData } from '../rest';
 import { RectTaskRep } from '../TaskRepresentations';
-import { Task, TaskFilter, TaskSplit } from '../Tasks';
-import { log, ScrollLinker } from '../util';
-import { CohortSelectionEvent, COHORT_REMOVE_EVENT_TYPE, OVERVIEW_PREVIEW_CHANGE_EVENT_TYPE, OVERVIEW_PREVIEW_CONFIRM_EVENT_TYPE } from '../utilCustomEvents';
+import { createTaskFromProvJSON, Task, TaskFilter, TaskSplit } from '../Tasks';
+import { deepCopy, log, ScrollLinker } from '../util';
+import { CohortSelectionEvent, COHORT_REMOVE_EVENT_TYPE, OVERVIEW_PREVIEW_CHANGE_EVENT_TYPE, OVERVIEW_PREVIEW_CONFIRM_EVENT_TYPE, TASK_REMOVE_EVENT_TYPE } from '../utilCustomEvents';
 import { niceName } from '../utilLabels';
+import { RectangleLayout } from './OverviewLayout';
 export class CohortOverview {
-    constructor(parent, layout, root, viewDescr) {
+    constructor(parent, graph, ref, layout, root, viewDescr) {
         this.parent = parent;
+        this.elements = [];
+        this.refName = 'CohortApp-Overview';
         this.root = root;
+        this.rootDBid = root.dbId;
+        this._reference = root;
         this.layout = layout;
         this.elements = [root];
         this.taskHistory = [];
@@ -20,10 +27,15 @@ export class CohortOverview {
         this._showTaskHistoryDetails = false;
         this._currentPreviewTasks = [];
         this._lastAddedTasks = [];
+        this.graph = graph;
+        this.appRef = ref;
+        this.ref = this.graph.findOrAddObject(this, this.refName, ObjectRefUtils.category.visual); // cat.visual = it is a visual operation
+        // this.ref = ObjectRefUtils.objectRef(this, this.refName, ObjectRefUtils.category.visual, 'coral_123');
         if (viewDescr) {
             this.viewDescr = viewDescr;
         }
         this.setReferenceSize();
+        this.updateJSONElements();
         this.cohortAppNode = document.querySelector('.cohort_app');
         this.eventListenerChange = (ev) => this.handlePreviewChange(ev);
         this.eventListenerConfirm = (ev) => this.handlePreviewConfirm();
@@ -31,6 +43,11 @@ export class CohortOverview {
         this.cohortAppNode.addEventListener(OVERVIEW_PREVIEW_CHANGE_EVENT_TYPE, this.eventListenerChange);
         // event listener to confirm the preview
         this.cohortAppNode.addEventListener(OVERVIEW_PREVIEW_CONFIRM_EVENT_TYPE, this.eventListenerConfirm);
+    }
+    // private static generate_hash(desc: IPluginDesc, selection: ISelection) {
+    static generate_hash(viewDescr) {
+        // const s = (selection.idtype ? selection.idtype.id : '') + 'r' + (selection.range.toString());
+        return 'test_123';
     }
     setReferenceSize() {
         this.root.size.then((size) => {
@@ -58,6 +75,33 @@ export class CohortOverview {
         this.container.remove();
         this.container = null;
     }
+    getElementsAsJSON() {
+        return this._elementsAsJSON;
+    }
+    /**
+     * Updates the '_elementsAsJSON' array.
+     * Converts the current state of the 'elements' array into array of JSON objects
+     * and saves it in the '_elementsAsJSON' array
+     */
+    updateJSONElements() {
+        this._elementsAsJSON = [];
+        const jsonElem = this.convertElementsToJSON();
+        this._elementsAsJSON.push(...jsonElem);
+    }
+    /**
+     * Converts the current 'elements' array into JSON objects
+     * @returns array of JSON objects based on the 'elements' array
+     */
+    convertElementsToJSON() {
+        const jsonElem = this.elements.map((elem) => {
+            const jConf = elem.toProvenanceJSON();
+            if (jConf.id === String(this.rootDBid)) {
+                jConf.attrAndValues.isRoot = true;
+            }
+            return jConf;
+        });
+        return jsonElem;
+    }
     addElements(elems) {
         for (const e of elems) {
             this.addElement(e);
@@ -68,15 +112,41 @@ export class CohortOverview {
             this.elements.push(elem);
         }
     }
+    removeElement(elem) {
+        this.removeElementWithID(elem.id);
+    }
+    removeElementWithID(eleId) {
+        // get index of the element in the elements array
+        const eleIdx = this.elements.findIndex((a) => a.id === eleId);
+        if (eleIdx !== -1) {
+            // remove element from the elements arry
+            this.elements.splice(eleIdx, 1);
+        }
+    }
+    removeElements(elems) {
+        for (const e of elems) {
+            this.removeElement(e);
+        }
+    }
     // maybe remove, and only keep getElementsWithId
     getElement(elem) {
-        const target = this.elements.filter((e) => e.id === elem.id);
-        return target.length === 1 ? target[0] : null;
+        if (elem !== null) {
+            const eleId = elem.id;
+            return this.getElementWithId(eleId);
+        }
+        else {
+            return null;
+        }
     }
     // maybe remove, and only keep getElements
     getElementWithId(eleId) {
-        const target = this.elements.filter((e) => e.id === eleId);
-        return target.length === 1 ? target[0] : null;
+        if (this.elements !== null) {
+            const target = this.elements.filter((e) => e.id === eleId);
+            return target.length === 1 ? target[0] : null;
+        }
+        else {
+            return null;
+        }
     }
     getLastAddedTasks() {
         return this._lastAddedTasks;
@@ -113,10 +183,13 @@ export class CohortOverview {
             if (addToTaskHistory) {
                 this.taskHistory.push(task);
             }
+            // console.log('execute Task - task: ', task);
+            // console.log('execute Task - elements: ', this.elements);
         }
         return task;
     }
-    handlePreviewChange(ev) {
+    async handlePreviewChange(ev) {
+        // console.log('handlePreviewCHange: ', ev);
         const taskParams = ev.detail.params; // task parameters (e.g. column/category to filter)
         const taskAttributes = ev.detail.attributes;
         // log.debug('handle Preview Change: ', {taskParams, taskAttribute, _currentPreviewTasks: this._currentPreviewTasks});
@@ -163,23 +236,6 @@ export class CohortOverview {
             }
         }
     }
-    handlePreviewConfirm() {
-        // add tasks to the task history and remove the preview class from them and their cohorts
-        for (const task of this._currentPreviewTasks) {
-            this.taskHistory.push(task);
-            // remove preview class to task
-            task.representation.getRepresentation().classList.remove('preview');
-            // remove preview class to output cohorts
-            for (const outCh of task.children) {
-                outCh.representation.getRepresentation().classList.remove('preview');
-            }
-        }
-        // set the confirmed task as the last added ones
-        this._lastAddedTasks = this._currentPreviewTasks;
-        // set current tasks of preview to empty
-        this._currentPreviewTasks = [];
-        this.generateOverview();
-    }
     clearPreview() {
         log.debug('clear old preview');
         for (const task of this._currentPreviewTasks) {
@@ -209,8 +265,171 @@ export class CohortOverview {
         // set current tasks of preview to empty
         this._currentPreviewTasks = [];
     }
+    handlePreviewConfirm() {
+        // add tasks to the task history and remove the preview class from them and their cohorts
+        for (const task of this._currentPreviewTasks) {
+            this.taskHistory.push(task);
+            // remove preview class to task
+            if (task.representation) {
+                task.representation.getRepresentation().classList.remove('preview');
+            }
+            // remove preview class to output cohorts
+            for (const outCh of task.children) {
+                outCh.representation.getRepresentation().classList.remove('preview');
+            }
+        }
+        // set the confirmed task as the last added ones
+        this._lastAddedTasks = this._currentPreviewTasks;
+        // set current tasks of preview to empty
+        this._currentPreviewTasks = [];
+        const oldElements = deepCopy(this._elementsAsJSON);
+        this.updateJSONElements();
+        const newElements = deepCopy(this._elementsAsJSON);
+        // console.log('call "Add Cohort(s)" provenance function with: ', {oldElements, newElements});
+        this.graph.push(addOverviewCohortAction(this.ref, this.appRef, newElements, oldElements));
+        // this.generateOverview();
+    }
+    async generateOverviewProv(jsonElements = []) {
+        const provElements = [];
+        // check if the elements and the jsonElements are the same
+        const porvElemIDs = jsonElements.map((elem) => elem.id);
+        // const copyElem = this.elements !== null ? this.elements : [];
+        const elemIDs = this.elements !== null ? this.elements.map((elem) => elem.id) : [];
+        const sizeEquals = elemIDs.length === porvElemIDs.length ? true : false;
+        const containsAll = elemIDs.every((e) => porvElemIDs.includes(e));
+        // console.log('check all Elements exist: ', {porvElemIDs, elemIDs, sizeEquals, containsAll});
+        // reduced double loading when the no switch the the cohort evolution tree state has been made
+        if (!(containsAll && sizeEquals)) {
+            // let rootProv = null;
+            // let foundRoot = false;
+            // console.log('root element found (BEFORE): ', foundRoot);
+            const jsonElementsToCreate = [];
+            // check which elemets already exist and only create the non-existing ones
+            for (const jElem of jsonElements) {
+                const eid = jElem.id;
+                const existingElem = this.getElementWithId(eid);
+                if (existingElem === null) {
+                    // element doesn't exist -> query DB
+                    jsonElementsToCreate.push(jElem);
+                }
+                else {
+                    // element exist -> add to provElements
+                    // and clear parents and children arrays
+                    existingElem.children = [];
+                    existingElem.parents = [];
+                    provElements.push(existingElem);
+                }
+            }
+            // create missing Cohorts
+            const jsonCohorts = jsonElementsToCreate.filter((elem) => elem.type === ElementProvType.Cohort);
+            const cohortIDs = jsonCohorts.map((elem) => Number(elem.id));
+            // get cohort DB data
+            const chtSizes = [];
+            if (cohortIDs.length > 0) {
+                const dbCohortInfos = await getDBCohortData({ cohortIds: cohortIDs });
+                for (const cInfo of dbCohortInfos) {
+                    const chtId = cInfo.id;
+                    const jsonCht = jsonCohorts.filter((elem) => elem.id === String(chtId))[0];
+                    const provJSON = {
+                        idColumn: jsonCht.attrAndValues.idColumn,
+                        idType: jsonCht.attrAndValues.idType,
+                        values: jsonCht.attrAndValues.values,
+                        view: jsonCht.attrAndValues.view,
+                        database: jsonCht.attrAndValues.database,
+                        selected: jsonCht.attrAndValues.selected,
+                        isRoot: jsonCht.attrAndValues.isRoot,
+                    };
+                    const newCohort = createCohortFromDB(cInfo, provJSON);
+                    // Set representation of new cohort
+                    const layout = new RectangleLayout();
+                    newCohort.representation = new RectCohortRep(newCohort, layout.rowHeight, layout.cohortWidth);
+                    provElements.push(newCohort);
+                }
+            }
+            // console.log('root element found (AFTER): ', foundRoot);
+            // create missing Tasks
+            const jsonTasks = jsonElementsToCreate.filter((elem) => elem.type !== ElementProvType.Cohort);
+            for (const jsonT of jsonTasks) {
+                const newTask = createTaskFromProvJSON(jsonT);
+                provElements.push(newTask);
+            }
+            // set parents and children
+            for (const jsonElem of jsonElements) {
+                const parentsIDs = jsonElem.parent;
+                const childrenIDs = jsonElem.children;
+                const currentElement = provElements.filter((elem) => elem.id === jsonElem.id)[0];
+                // set parents (set child of parent too)
+                for (const pId of parentsIDs) {
+                    // check if parent is already part of the parents array
+                    const existingPIDs = currentElement.parents.map((elem) => elem.id);
+                    if (existingPIDs.indexOf(pId) === -1) {
+                        const currP = provElements.filter((elem) => elem.id === pId)[0];
+                        // set parent for current element
+                        currentElement.parents.push(currP);
+                        // set child of parent element
+                        currP.children.push(currentElement);
+                    }
+                }
+                // set children (set parent of children too)
+                for (const cId of childrenIDs) {
+                    // check if child is already part of the children array
+                    const existingCIDs = currentElement.children.map((elem) => elem.id);
+                    if (existingCIDs.indexOf(cId) === -1) {
+                        const currC = provElements.filter((elem) => elem.id === cId)[0];
+                        // set child for current element
+                        currentElement.children.push(currC);
+                        // set parents of child element
+                        currC.parents.push(currentElement);
+                    }
+                }
+            }
+            // console.log('elements from JSON - provElements: ', {provElements, rootDBid: this.rootDBid});
+            // deselect the old cohorts
+            // console.log('deselect old cohorts');
+            const chtIDselected = [];
+            if (this.elements) {
+                for (const elem of this.elements) {
+                    if (elem instanceof Cohort) {
+                        if (elem.selected === true) {
+                            chtIDselected.push(elem.id);
+                            this.parent.dispatchEvent(new CohortSelectionEvent(elem));
+                        }
+                    }
+                }
+            }
+            // set the newly created 'provElements' as the new 'elements'
+            this.elements = [];
+            this.elements = provElements;
+            // set root cohort
+            // console.log('Elements to find the root cohort ', {thisElements: this.elements, rootDBid: this.rootDBid, provElements});
+            this.root = provElements.filter((elem) => elem.id === String(this.rootDBid))[0];
+            // set root as reference, too
+            this._reference = this.root;
+            // get sizes for the cohorts and their representation
+            // console.log('get sizes for the new cohorts and their representation');
+            for (const elem of provElements) {
+                if (elem instanceof Cohort) {
+                    const sizePromises = [elem.size, this._reference.size];
+                    chtSizes.push(...sizePromises);
+                    Promise.all(sizePromises).then(([newSize, refSize]) => {
+                        elem.representation.setSize(newSize, refSize);
+                    });
+                }
+            }
+            await Promise.all(chtSizes); // wait for the cohort sizes to properly display the representation
+            // update bloodline for cohorts
+            for (const elem of provElements) {
+                if (elem instanceof Cohort) {
+                    elem.updateBloodline();
+                }
+            }
+        }
+        // console.log('elemets after Prov generation: ', this.getElementsAsJSON());
+        this.generateOverview();
+    }
     //maybe add a updateOverview function
     generateOverview() {
+        // console.log('current elements in generateOverview function', this.elements);
         // remove old graph
         if (this.container) {
             while (this.container.firstChild) {
@@ -259,16 +478,73 @@ export class CohortOverview {
         chtGraph.style.transformOrigin = '0% 0% 0px';
         // add eventlistern for the removal of a cohort
         chtGraph.addEventListener(COHORT_REMOVE_EVENT_TYPE, (event) => this.handleRemoveCohort(event));
+        // add eventlistern for the removal of a task
+        chtGraph.addEventListener(TASK_REMOVE_EVENT_TYPE, (event) => this.handleRemoveTask(event));
         // NOTE: commented out for paper ready version
         // create task history
         // this.setupTaskHistory();
     }
+    getAllChildren(elementsToRemove, elem) {
+        const children = elem.children;
+        for (const c of children) {
+            if (elementsToRemove.map((a) => a.id).indexOf(c.id) === -1) {
+                elementsToRemove.push(c);
+            }
+        }
+        for (const chi of children) {
+            const grandchildren = this.getAllChildren(elementsToRemove, chi);
+            for (const gc of grandchildren) {
+                if (elementsToRemove.map((a) => a.id).indexOf(gc.id) === -1) {
+                    elementsToRemove.push(gc);
+                }
+            }
+        }
+        return elementsToRemove;
+    }
+    // function to handle the remove cohort event
+    handleRemoveTask(event) {
+        const task = event.detail.task;
+        // remove all child elements
+        const elementsToRemove = [];
+        this.getAllChildren(elementsToRemove, task);
+        // console.log('remove all children: ', elementsToRemove);
+        // get selected cohorts
+        const elemRemoveSelected = elementsToRemove.filter((elem) => {
+            if (elem instanceof Cohort) {
+                return elem.selected;
+            }
+            else {
+                return false;
+            }
+        });
+        // deselect selected children
+        for (const elemRS of elemRemoveSelected) {
+            elemRS.selected = false; // set selected state to false
+            // dispatch event to remove cohort from taskview if it was selected
+            elemRS.representation.getRepresentation().dispatchEvent(new CohortSelectionEvent(elemRS));
+        }
+        // remove all child elements
+        this.removeElements(elementsToRemove);
+        // remove task from the elements arry
+        this.removeElement(task);
+        // get all parents (cohorts) of the task
+        const parents = task.parents;
+        for (const p of parents) {
+            // get index of the task in the children of the parent
+            const childIndex = p.children.findIndex((a) => a.id === task.id);
+            // remove task from the children of parent (cohort)
+            p.children.splice(childIndex, 1);
+        }
+        const oldElements = deepCopy(this._elementsAsJSON);
+        this.updateJSONElements();
+        const newElements = deepCopy(this._elementsAsJSON);
+        // console.log('call "Remove Cohort" provenance function with: ',{oldElements, newElements});
+        this.graph.push(removeOverviewCohortAction(this.ref, this.appRef, newElements, oldElements));
+    }
     // function to handle the remove cohort event
     handleRemoveCohort(event) {
         const cohort = event.detail.cohort;
-        log.debug('cohort to remove: ', cohort);
-        // get index of the cohort in the elements array
-        const chtIndex = this.elements.findIndex((a) => a.id === cohort.id);
+        // log.debug('cohort to remove: ', cohort);
         // remove clone from taskview if selected
         if (cohort.selected) {
             cohort.selected = false; // set selected state to false
@@ -277,8 +553,29 @@ export class CohortOverview {
         }
         // remove backtracking highlighting
         cohort.representation.removeBacktrackingHighlighting();
+        // remove all child elements
+        const elementsToRemove = [];
+        this.getAllChildren(elementsToRemove, cohort);
+        // console.log('remove all children: ', elementsToRemove);
+        // get selected cohorts
+        const elemRemoveSelected = elementsToRemove.filter((elem) => {
+            if (elem instanceof Cohort) {
+                return elem.selected;
+            }
+            else {
+                return false;
+            }
+        });
+        // deselect selected children
+        for (const elemRS of elemRemoveSelected) {
+            elemRS.selected = false; // set selected state to false
+            // dispatch event to remove cohort from taskview if it was selected
+            elemRS.representation.getRepresentation().dispatchEvent(new CohortSelectionEvent(elemRS));
+        }
+        // remove all child elements
+        this.removeElements(elementsToRemove);
         // remove cohort from the elements arry
-        this.elements.splice(chtIndex, 1);
+        this.removeElement(cohort);
         // get all parents (task) of the cohort
         const parents = cohort.parents;
         for (const p of parents) {
@@ -303,7 +600,117 @@ export class CohortOverview {
                 this.elements.splice(taskElemIndex, 1);
             }
         }
-        this.generateOverview();
+        const oldElements = deepCopy(this._elementsAsJSON);
+        this.updateJSONElements();
+        const newElements = deepCopy(this._elementsAsJSON);
+        // console.log('call "Remove Cohort" provenance function with: ',{oldElements, newElements});
+        this.graph.push(removeOverviewCohortAction(this.ref, this.appRef, newElements, oldElements));
+        // this.generateOverview();
+    }
+    _generatePlacement(containerCSSGrid) {
+        if (this.elements && this.elements.length > 0) {
+            // generate the layout assignment of the elements
+            this._arrangements = this.layout.createLayout(this.root);
+            log.debug('Layout for placement finished: ', { root: this.root, elements: this.elements, arrangement: this._arrangements });
+            // console.log('Layout for placement finished: ', {root: this.root, elements: this.elements, arrangement: this._arrangements});
+            while (containerCSSGrid.firstChild) {
+                containerCSSGrid.removeChild(containerCSSGrid.firstChild);
+            }
+            const numCol = Math.max(...this._arrangements.map((a) => a.column));
+            const numRow = Math.max(...this._arrangements.map((a) => a.row));
+            // define CSS grid for the container
+            this.layout.setContainerGrid(containerCSSGrid, numCol, numRow);
+            const rowHeight = this.layout.rowHeight;
+            const chtWidth = this.layout.cohortWidth;
+            const opWidth = this.layout.taskWidth;
+            for (const elem of this.elements) {
+                if (elem.representation === null) {
+                    if (elem instanceof Task) {
+                        elem.representation = new RectTaskRep(elem, rowHeight, opWidth);
+                    }
+                    else if (elem instanceof Cohort) {
+                        elem.representation = new RectCohortRep(elem, rowHeight, chtWidth);
+                    }
+                }
+                const elemPos = this._arrangements.find((a) => a.elemID === elem.id);
+                log.debug('current element placement: ', elemPos);
+                // console.log('current element placement: ', elemPos);
+                const tmpNode = elem.representation.getRepresentation();
+                // assign CSS classes to elements
+                this.layout.setPositionInGrid(tmpNode, elemPos.column, elemPos.row);
+                containerCSSGrid.appendChild(tmpNode);
+                if (elem instanceof Task) {
+                    if (elem.type === TaskType.Filter) {
+                        elem.representation.setInformation(elem.label, 'filter');
+                    }
+                    else {
+                        elem.representation.setInformation(elem.label, 'split');
+                    }
+                }
+                else {
+                    elem.representation.setLabel(elem.labelOne, elem.labelTwo);
+                    elem.size.then(async (size) => {
+                        let refSize = this.sizeReference;
+                        if (refSize === null || refSize === undefined) {
+                            refSize = await this.retrieveReferenceSize();
+                            this.sizeReference = refSize;
+                        }
+                        log.debug(`Size of cohort ${size} while refernce is ${this.sizeReference}`);
+                        elem.representation.setSize(size, this.sizeReference);
+                    });
+                }
+            }
+            // clear highlighting when updating overview
+            const allHovered = Array.from(containerCSSGrid.querySelectorAll('.overview-element-highlight'));
+            for (const elemH of allHovered) {
+                elemH.classList.remove('overview-element-highlight');
+            }
+        }
+    }
+    _generatePaths(containerCSSGrid) {
+        // create a Overview Layout mit grid sizes and arrangement
+        // get dimensions of the HTML/CSS GridLayout
+        const gridDimension = document.getElementById(containerCSSGrid.id).getBoundingClientRect();
+        const svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svgElement.setAttribute('id', 'svg-path-container');
+        svgElement.setAttribute('width', '' + gridDimension.width);
+        svgElement.setAttribute('height', '' + gridDimension.height);
+        containerCSSGrid.appendChild(svgElement);
+        const chtOverviewGraph = document.getElementById('chtOverviewGraph').getBoundingClientRect();
+        log.debug('chtOverviewGraph: ', chtOverviewGraph);
+        if (this.elements) {
+            for (const ceParent of this.elements) {
+                for (const ceChild of ceParent.children) {
+                    log.debug('svg-line: ceParent: ', ceParent, ' | ceChild: ', ceChild);
+                    const parent = document.getElementById(ceParent.id).getBoundingClientRect();
+                    const child = document.getElementById(ceChild.id).getBoundingClientRect();
+                    log.debug('svg-line: parent: ', parent, ' | child: ', child);
+                    // get cohort bars size
+                    const cohort = ceParent instanceof Cohort ? document.getElementById(ceParent.id).querySelector('.rectCohort-sizeBar') : document.getElementById(ceChild.id).querySelector('.rectCohort-sizeBar');
+                    const barHeight = cohort.getBoundingClientRect().height;
+                    const x1 = parent.left + (parent.width) - chtOverviewGraph.left;
+                    let y1 = parent.top + (parent.height / 2) - chtOverviewGraph.top;
+                    const x2 = child.left - chtOverviewGraph.left;
+                    let y2 = child.top + (child.height / 2) - chtOverviewGraph.top;
+                    // 2px because of the upper border
+                    y1 = y1 + 1;
+                    y2 = y2 + 1;
+                    const mx1 = (x2 - x1) / 2 + x1;
+                    const my1 = y1;
+                    const mx2 = (x2 - x1) / 2 + x1;
+                    const my2 = y2;
+                    const d = 'M ' + x1 + ' ' + y1 +
+                        ' C ' + mx1 + ' ' + my1 + ', ' + mx2 + ' ' + my2 + ', ' + x2 + ' ' + y2;
+                    const currPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    currPath.setAttribute('id', 'path-' + ceParent.id + '-to-' + ceChild.id);
+                    // currPath.setAttribute('class', 'svg-path');
+                    currPath.classList.add('svg-path', `path-ep-out-${ceParent.id}`, `path-ep-in-${ceChild.id}`);
+                    currPath.setAttribute('d', d);
+                    currPath.setAttribute('stroke-width', '5px');
+                    svgElement.appendChild(currPath);
+                }
+            }
+        }
     }
     // sets up the task history with details and adds the tasks
     setupTaskHistory() {
@@ -523,110 +930,6 @@ export class CohortOverview {
         }
         divDetails.appendChild(divOutput);
         return divDetails;
-    }
-    _generatePlacement(containerCSSGrid) {
-        if (this.elements && this.elements.length > 0) {
-            // generate the layout assignment of the elements
-            this._arrangements = this.layout.createLayout(this.root);
-            log.debug('layout finished');
-            log.debug('cohortOverview arrangment: ', this._arrangements);
-            while (containerCSSGrid.firstChild) {
-                containerCSSGrid.removeChild(containerCSSGrid.firstChild);
-            }
-            const numCol = Math.max(...this._arrangements.map((a) => a.column));
-            const numRow = Math.max(...this._arrangements.map((a) => a.row));
-            // define CSS grid for the container
-            this.layout.setContainerGrid(containerCSSGrid, numCol, numRow);
-            const rowHeight = this.layout.rowHeight;
-            const chtWidth = this.layout.cohortWidth;
-            const opWidth = this.layout.taskWidth;
-            for (const elem of this.elements) {
-                if (elem.representation === null) {
-                    if (elem instanceof Task) {
-                        elem.representation = new RectTaskRep(elem, rowHeight, opWidth);
-                    }
-                    else if (elem instanceof Cohort) {
-                        elem.representation = new RectCohortRep(elem, rowHeight, chtWidth);
-                    }
-                }
-                const elemPos = this._arrangements.find((a) => a.elemID === elem.id);
-                log.debug('current layout: ', elemPos);
-                const tmpNode = elem.representation.getRepresentation();
-                // assign CSS classes to elements
-                this.layout.setPositionInGrid(tmpNode, elemPos.column, elemPos.row);
-                containerCSSGrid.appendChild(tmpNode);
-                if (elem instanceof Task) {
-                    if (elem.type === TaskType.Filter) {
-                        elem.representation.setInformation(elem.label, 'filter');
-                    }
-                    else {
-                        elem.representation.setInformation(elem.label, 'split');
-                    }
-                }
-                else {
-                    elem.representation.setLabel(elem.labelOne, elem.labelTwo);
-                    elem.size.then(async (size) => {
-                        let refSize = this.sizeReference;
-                        if (refSize === null || refSize === undefined) {
-                            refSize = await this.retrieveReferenceSize();
-                            this.sizeReference = refSize;
-                        }
-                        log.debug(`Size of cohort ${size} while refernce is ${this.sizeReference}`);
-                        elem.representation.setSize(size, this.sizeReference);
-                    });
-                }
-            }
-            // clear highlighting when updating overview
-            const allHovered = Array.from(containerCSSGrid.querySelectorAll('.overview-element-highlight'));
-            for (const elemH of allHovered) {
-                elemH.classList.remove('overview-element-highlight');
-            }
-        }
-    }
-    _generatePaths(containerCSSGrid) {
-        // create a Overview Layout mit grid sizes and arrangement
-        // get dimensions of the HTML/CSS GridLayout
-        const gridDimension = document.getElementById(containerCSSGrid.id).getBoundingClientRect();
-        const svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svgElement.setAttribute('id', 'svg-path-container');
-        svgElement.setAttribute('width', '' + gridDimension.width);
-        svgElement.setAttribute('height', '' + gridDimension.height);
-        containerCSSGrid.appendChild(svgElement);
-        const chtOverviewGraph = document.getElementById('chtOverviewGraph').getBoundingClientRect();
-        log.debug('chtOverviewGraph: ', chtOverviewGraph);
-        if (this.elements) {
-            for (const ceParent of this.elements) {
-                for (const ceChild of ceParent.children) {
-                    log.debug('svg-line: ceParent: ', ceParent, ' | ceChild: ', ceChild);
-                    const parent = document.getElementById(ceParent.id).getBoundingClientRect();
-                    const child = document.getElementById(ceChild.id).getBoundingClientRect();
-                    log.debug('svg-line: parent: ', parent, ' | child: ', child);
-                    // get cohort bars size
-                    const cohort = ceParent instanceof Cohort ? document.getElementById(ceParent.id).querySelector('.rectCohort-sizeBar') : document.getElementById(ceChild.id).querySelector('.rectCohort-sizeBar');
-                    const barHeight = cohort.getBoundingClientRect().height;
-                    const x1 = parent.left + (parent.width) - chtOverviewGraph.left;
-                    let y1 = parent.top + (parent.height / 2) - chtOverviewGraph.top;
-                    const x2 = child.left - chtOverviewGraph.left;
-                    let y2 = child.top + (child.height / 2) - chtOverviewGraph.top;
-                    // 2px because of the upper border
-                    y1 = y1 + 1;
-                    y2 = y2 + 1;
-                    const mx1 = (x2 - x1) / 2 + x1;
-                    const my1 = y1;
-                    const mx2 = (x2 - x1) / 2 + x1;
-                    const my2 = y2;
-                    const d = 'M ' + x1 + ' ' + y1 +
-                        ' C ' + mx1 + ' ' + my1 + ', ' + mx2 + ' ' + my2 + ', ' + x2 + ' ' + y2;
-                    const currPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    currPath.setAttribute('id', 'path-' + ceParent.id + '-to-' + ceChild.id);
-                    // currPath.setAttribute('class', 'svg-path');
-                    currPath.classList.add('svg-path', `path-ep-out-${ceParent.id}`, `path-ep-in-${ceChild.id}`);
-                    currPath.setAttribute('d', d);
-                    currPath.setAttribute('stroke-width', '5px');
-                    svgElement.appendChild(currPath);
-                }
-            }
-        }
     }
     zoomIn() {
         this._zoomFactor = Math.min(this._zoomFactor + 0.1, 3.0);

@@ -10,15 +10,14 @@ import {select, Selection} from 'd3-selection';
 import {IMeasureResult, IMeasureVisualization, ISetParameters, ISimilarityMeasure, MethodManager, SCOPE, Type, WorkerManager} from 'tourdino';
 import {Cohort} from '../../Cohort';
 import {Attribute, IAttribute} from '../../data/Attribute';
-import {ATask} from './ATask';
 import {log} from '../../util';
+import {ATask} from './ATask';
 
 export class Compare extends ATask {
   public label = `Compare`;
   public id = `compare`;
   public hasOutput = false;
 
-  // private eventID = 0;
   attributes: IAttribute[];
   cohorts: Cohort[];
 
@@ -30,8 +29,8 @@ export class Compare extends ATask {
     return true;
   }
 
-  async show(container: HTMLDivElement, attributes: IAttribute[], cohorts: Cohort[]) {
-    super.show(container, attributes, cohorts);
+  async show(columnHeader: HTMLDivElement, container: HTMLDivElement, attributes: IAttribute[], cohorts: Cohort[]) {
+    super.show(columnHeader, container, attributes, cohorts);
     this.attributes = attributes;
     this.cohorts = cohorts;
     this.body.classed('tourdino', true);
@@ -482,7 +481,7 @@ export class Compare extends ATask {
     //button for mini visualization removal
     const that = this;
     const detailRemoveButton = divDetailInfoContainer.append('button');
-    detailRemoveButton.attr('class', 'btn btn-default removeMiniVis-btn');
+    detailRemoveButton.attr('class', 'btn btn-coral removeMiniVis-btn');
     detailRemoveButton.on('click', function () {that.removeCellDetails.bind(that)(miniVisualisation);});
     detailRemoveButton.html('x');
 

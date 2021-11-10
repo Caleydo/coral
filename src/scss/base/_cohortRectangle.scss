@@ -67,15 +67,16 @@ div.rectCohort {
     margin: 0 0 2px 0 !important;
   }
 
-  .remove {
+  .remove-cohort {
+    position: absolute;
+    top: 1px;
+    right: 1px;
     color: $color-remove-icon;
+    font-size: 0.7em;
 
     &:hover {
-      color: $color-hover !important;
+      color: $color-red !important;
     }
-  }
-
-  .hidden {
-    display: none !important;
+ 
   }
 }

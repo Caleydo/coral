@@ -19,6 +19,16 @@ $hover-animation-time: 0.4s !default;
     // gap: $gap; // handled by margin of search bar below because chrome doesnt support "gap" yet
     margin: 0 $gap;
 
+    .task-title {
+      font-size: 16px;
+      padding: 0.1em 0.5em;
+      margin: 0 0 0 $gap;
+      height: 35px;
+      line-height: 35px;
+      display: flex;
+      align-items: center;
+    }
+
     .search-bar {
       flex-shrink: 1; // can shrink
       flex-grow: 1; // can grow
@@ -77,6 +87,7 @@ $hover-animation-time: 0.4s !default;
     display: flex;
     flex-direction: column;
     padding: 1em;
+    overflow-y: auto;
 
     @import "./task/taskchooser";
     @import "./task/tasks";

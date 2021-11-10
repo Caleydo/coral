@@ -22,6 +22,7 @@ export declare class SearchBar {
     private _databaseConfig;
     private _geneDataTypes;
     private _eventListenerCloseOptionWindow;
+    private _geneHoverOptionId;
     constructor(parentContainer: HTMLDivElement, database: string, view: string, optionWrapperCSSClass?: string);
     private _createContainer;
     private _getGeneDataTypes;

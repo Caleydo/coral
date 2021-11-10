@@ -3,7 +3,7 @@ import vegaEmbed from 'vega-embed';
 import {TopLevelSpec as VegaLiteSpec} from 'vega-lite';
 import {Cohort} from '../../Cohort';
 import {colors} from '../../colors';
-import {getAnimatedLoadingText} from '../../util';
+import {getAnimatedLoadingBars} from '../../util';
 import {ADataColumn} from './AColumn';
 
 export default class PrevalenceColumn extends ADataColumn {
@@ -31,7 +31,7 @@ class PrevalenceBar {
 
     this.$loader = document.createElement('div');
     this.$loader.classList.add('loader'); // center content with flexbox
-    this.$loader.appendChild(getAnimatedLoadingText());
+    this.$loader.appendChild(getAnimatedLoadingBars());
 
     this.$hist = document.createElement('div');
 
@@ -64,11 +64,11 @@ class PrevalenceBar {
    */
   public getMinimalVegaSpec(length: number, maxLength: number): VegaLiteSpec {
     return {
-      $schema: 'https://vega.github.io/schema/vega-lite/v4.json',
+      $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
       width: 'container', //responsive width
       height: 50,
       autosize: {type: 'fit', contains: 'padding'}, //plots fit a bit better, if though they are specified as responsive
-      data: {values: [length/maxLength]},
+      data: {values: [length / maxLength]},
       mark: 'bar',
       encoding: {
         x: {
@@ -88,30 +88,32 @@ class PrevalenceBar {
           value: colors.barColor,
           condition: [
             {
-              selection: 'highlight',
+              param: 'highlight',
               value: colors.hoverColor
             }
           ]
         },
-        tooltip:  {
-            field: 'data',
-            type: 'quantitative',
-            format: '.1%'
-          }
+        tooltip: {
+          field: 'data',
+          type: 'quantitative',
+          format: '.1%'
+        }
       },
       config: {
         view: {
           stroke: 'transparent' // https://vega.github.io/vega-lite/docs/spec.html#view-background
         }
       },
-      selection: {
-        'highlight': {
-          type: 'single',
-          empty: 'none',
-          on: 'mouseover',
-          clear: 'mouseout',
+      params: [
+        {
+          name: 'highlight',
+          select: {
+            type: 'point',
+            on: 'mouseover',
+            clear: 'mouseout'
+          }
         }
-      }
+      ]
     };
   }
 }

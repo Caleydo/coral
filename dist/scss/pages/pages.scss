@@ -1,0 +1,51 @@
+.news-page {
+  .news-page-section:not(:first-child) {
+    padding-top: 3.75rem;
+  }
+}
+
+.ordino-publication-page {
+  .card-footer {
+    background-color: transparent;
+  }
+
+  iframe {
+    height: 15em;
+  }
+
+  @media only screen and (min-width: 768px) {
+    iframe {
+      height: 40em;
+    }
+  }
+}
+
+.ordino-icon-1 {
+  font-size: 2rem;
+  color: #0084c8;
+}
+
+.ordino-icon-2 {
+  background-color: #0084c8;
+  color: $white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  font-size: 1rem;
+}
+
+// class to use in pages without scrollspy, in order to have a consistent scrolling behavior in all pages
+// same as `.ordino-scrollspy-container`
+.ordino-container {
+  position: absolute;
+  overflow: auto;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-rows: 1fr auto;
+}

@@ -11,6 +11,7 @@ export class SATreatment {
         this.overrideGetHist = true;
         this.overrideGetCount = true;
         this.overrideFilter = true;
+        this.type = 'string';
         this.options = [];
         this.id = SATreatment.ID;
         this.setupOptions();

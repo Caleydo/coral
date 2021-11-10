@@ -1,11 +1,11 @@
 .task-view {
   display: grid;
-  grid-template-columns: 4fr 5fr 4fr;
+  grid-template-columns: 4fr 8fr 4fr;
   transition: grid-template-columns 0.66s ease-in-out;
   grid-template-rows: 100%;
 
   &.no-output {
-    grid-template-columns: 4fr 6fr 0fr;
+    grid-template-columns: 4fr 12fr 0fr;
     transition: grid-template-columns 0.5s ease-out;
   }
 

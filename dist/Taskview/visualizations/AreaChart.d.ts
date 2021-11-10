@@ -17,4 +17,5 @@ export declare class AreaChart extends MultiAttributeVisualization {
     }[];
     filter(): void;
     split(): void;
+    addControls(): void;
 }

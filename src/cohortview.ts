@@ -1,84 +1,47 @@
-import {IDatabaseViewDesc, IServerColumn} from 'tdp_core';
-import {CohortSelectionListener, IPanelDesc} from './app';
-import {Cohort, createCohort} from './Cohort';
-import {PanelScoreAttribute} from './data/Attribute';
+import {IObjectRef, ProvenanceGraph} from 'phovea_core';
+import {IDatabaseViewDesc, RestBaseUtils} from 'tdp_core';
+import {CohortApp, CohortSelectionListener} from './app';
+import {Cohort} from './Cohort';
 import {OnboardingManager} from './OnboardingManager';
 import {CohortOverview} from './Overview/CohortOverview';
 import {RectangleLayout} from './Overview/OverviewLayout';
 import Taskview from './Taskview/Taskview';
-import {log} from './util';
+import {handleDataLoadError, log} from './util';
 import {IEntitySourceConfig} from './utilIdTypes';
-import {niceName} from './utilLabels';
+
 
 export let cohortOverview: CohortOverview;
 export let taskview: Taskview;
 
 let referenceCohort: Cohort;
 
-export async function createCohortOverview(container, viewDescr, detailView: HTMLDivElement, idTypeConfig: IEntitySourceConfig, panel: IPanelDesc) {
-  const viewDescription: IDatabaseViewDesc = viewDescr;
-  // set idColumn for task view
-  // export interface IEntitySourceConfig {
-  //   idType: string;
-  //   name: string;
-  //   dbConnectorName: string;
-  //   dbConnector: string;
-  //   schema: string;
-  //   viewName: string;
-  //   tableName: string;
-  //   entityName: string;
-  //   base: string;
-  //   baseStatement: string;
-  // }
+export async function createCohortOverview(graph: ProvenanceGraph, ref: IObjectRef<CohortApp>, container: HTMLDivElement, detailView: HTMLDivElement, idTypeConfig: IEntitySourceConfig, rootCohort: Cohort): Promise<{cohortOV: CohortOverview; taskV: Taskview;}> {
+  const viewDescription: IDatabaseViewDesc = await loadViewDescription(idTypeConfig.dbConnectorName, idTypeConfig.viewName);
+  log.debug('retrievedViewDesctiprion', viewDescription);
 
-  const idColumn: IServerColumn = viewDescription.columns.find((col) => col.label === 'id') || {column: 'id', label: 'id', type: 'string'};
-  // create overview class
-  /*createCohort(
-    name: string,
-    isInitial: boolean,
-    previousCohortId: number,
-    database: string,
-    schema: string,
-    table: string,
-    statement: string,
-    idType: IDTypeLike,
-    idColumn: string,
-    filters: IAllFilters {normal: {}, lt: {}, lte: {}, gt: {}, gte: {}} ) {*/
-
-
-  let reference: Cohort = await createCohort(
-    niceName(idTypeConfig.idType), 'All', true, -1,
-    idTypeConfig.dbConnector, idTypeConfig.dbConnectorName, idTypeConfig.schema, idTypeConfig.tableName, idTypeConfig.viewName, idTypeConfig.idType, idColumn,
-    {normal: {}, lt: {}, lte: {}, gt: {}, gte: {}}
-  );
-  if (panel) {
-    const panelAttr = new PanelScoreAttribute(
-      panel.id,
-      idTypeConfig.viewName,
-      idTypeConfig.dbConnectorName,
-      'categorical'
-    );
-    reference = await panelAttr.filter(reference, {values: ['true']});
-    reference.labelOne = idTypeConfig.idType;
-    reference.labelTwo = panel.id;
-  }
-  reference.isInitial = true; // set cohort as root
-  log.debug('root: ', reference);
-  // clean up/destory the old parts of the application
   destroyOld();
-  // save reference cohort
-  referenceCohort = reference;
+
+  // set reference/root cohort
+  referenceCohort = rootCohort; // save reference cohort
+  log.debug('cohortview - root: ', rootCohort);
+
+
   // create Overview
-  cohortOverview = new CohortOverview(container, new RectangleLayout(130, 50, 50, 50), reference, viewDescription);
+  cohortOverview = new CohortOverview(container, graph, ref, new RectangleLayout(130, 50, 50, 50), rootCohort, viewDescription);
   // create Taskview
-  taskview = new Taskview(detailView, reference);
+  taskview = new Taskview(detailView, rootCohort);
 
   CohortSelectionListener.get().taskview = taskview;
   // draw overview in container element
   updateOverview(cohortOverview);
 
-  OnboardingManager.addTip('rootCohort', reference.representation.getRepresentation());
+  OnboardingManager.addTip('rootCohort', rootCohort.representation.getRepresentation());
+  return {
+    cohortOV: cohortOverview,
+    taskV: taskview
+  };
 }
+
 
 export function getRootCohort(): Cohort {
   return referenceCohort;
@@ -96,7 +59,26 @@ export function destroyOld() {
   referenceCohort = null;
 }
 
+export function getCohortOverview(): CohortOverview {
+  return cohortOverview;
+}
+
+export function getTaskview(): Taskview {
+  return taskview;
+}
+
 
 export function updateOverview(overview: CohortOverview) {
   overview.generateOverview();
+}
+
+export async function loadViewDescription(database: string, view: string) {
+  log.debug('getTDPDesc for: db:', database, ' |view: ', view);
+  try {
+    const descr: IDatabaseViewDesc = await RestBaseUtils.getTDPDesc(database, view);
+    log.debug('descr= ', descr);
+    return descr;
+  } catch (e) {
+    handleDataLoadError(e);
+  }
 }

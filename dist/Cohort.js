@@ -1,11 +1,12 @@
 import { format } from 'd3-format';
 import { IDTypeManager, UniqueIdManager } from 'phovea_core';
-import { createDBCohort, createDBCohortWithDepletionScoreFilter, createDBCohortWithEqualsFilter, createDBCohortWithGeneEqualsFilter, createDBCohortWithGeneNumFilter, createDBCohortWithNumFilter, createDBCohortWithPanelAnnotationFilter, createDBCohortWithTreatmentFilter, dataDBCohortDepletionScoreFilter, dataDBCohortGeneWithEqualsFilter, dataDBCohortGeneWithNumFilter, dataDBCohortPanelAnnotationFilter, dataDBCohortWithEqualsFilter, dataDBCohortWithNumFilter, getCohortData, getCohortSize, sizeDBCohortDepletionScoreFilter, sizeDBCohortGeneWithEqualsFilter, sizeDBCohortGeneWithNumFilter, sizeDBCohortPanelAnnotationFilter, sizeDBCohortWithEqualsFilter, sizeDBCohortWithNumFilter } from './rest';
+import { ElementProvType } from './CohortInterfaces';
+import { createDBCohort, createDBCohortWithDepletionScoreFilter, createDBCohortWithEqualsFilter, createDBCohortWithGeneEqualsFilter, createDBCohortWithGeneNumFilter, createDBCohortWithNumFilter, createDBCohortWithPanelAnnotationFilter, createDBCohortWithTreatmentFilter, dataDBCohortDepletionScoreFilter, dataDBCohortGeneWithEqualsFilter, dataDBCohortGeneWithNumFilter, dataDBCohortPanelAnnotationFilter, dataDBCohortWithEqualsFilter, dataDBCohortWithNumFilter, getCohortData, getCohortSize, sizeDBCohortDepletionScoreFilter, sizeDBCohortGeneWithEqualsFilter, sizeDBCohortGeneWithNumFilter, sizeDBCohortPanelAnnotationFilter, sizeDBCohortWithEqualsFilter, sizeDBCohortWithNumFilter, updateCohortName, valueListDelimiter } from './rest';
 import { mergeTwoAllFilters } from './Tasks';
 import { deepCopy, handleDataLoadError, handleDataSaveError, log } from './util';
 export async function createCohort(labelOne, labelTwo, isInitial, previousCohortId, database, databaseName, schema, table, view, idType, idColumn, filters) {
     const params = {
-        name: `${labelOne}#${labelTwo}`,
+        name: combineLabelsForDB(labelOne, labelTwo),
         isInitial: isInitial ? 1 : 0,
         previous: previousCohortId,
         database,
@@ -35,7 +36,7 @@ function getLegacyRangeFilter(parentFilters, attribute, range) {
 export async function createCohortWithEqualsFilter(parentCohort, labelOne, labelTwo, attribute, numeric, values) {
     const params = {
         cohortId: parentCohort.dbId,
-        name: `${labelOne}#${labelTwo}`,
+        name: combineLabelsForDB(labelOne, labelTwo),
         attribute,
         numeric,
         values
@@ -51,7 +52,7 @@ export async function createCohortWithEqualsFilter(parentCohort, labelOne, label
 export async function createCohortWithTreatmentFilter(parentCohort, labelOne, labelTwo, baseAgent, agent, regimen) {
     const params = {
         cohortId: parentCohort.dbId,
-        name: `${labelOne}#${labelTwo}`,
+        name: combineLabelsForDB(labelOne, labelTwo),
         baseAgent,
         agent,
         regimen
@@ -67,7 +68,7 @@ export async function createCohortWithTreatmentFilter(parentCohort, labelOne, la
 export async function createCohortWithNumFilter(parentCohort, labelOne, labelTwo, attribute, ranges) {
     const params = {
         cohortId: parentCohort.dbId,
-        name: `${labelOne}#${labelTwo}`,
+        name: combineLabelsForDB(labelOne, labelTwo),
         attribute,
         ranges
     };
@@ -82,7 +83,7 @@ export async function createCohortWithNumFilter(parentCohort, labelOne, labelTwo
 export async function createCohortWithGeneNumFilter(parentCohort, labelOne, labelTwo, table, attribute, ensg, ranges) {
     const params = {
         cohortId: parentCohort.dbId,
-        name: `${labelOne}#${labelTwo}`,
+        name: combineLabelsForDB(labelOne, labelTwo),
         table,
         attribute,
         ensg,
@@ -100,7 +101,7 @@ export async function createCohortWithGeneNumFilter(parentCohort, labelOne, labe
 export async function createCohortWithGeneEqualsFilter(parentCohort, labelOne, labelTwo, table, attribute, ensg, numeric, values) {
     const params = {
         cohortId: parentCohort.dbId,
-        name: `${labelOne}#${labelTwo}`,
+        name: combineLabelsForDB(labelOne, labelTwo),
         table,
         attribute,
         ensg,
@@ -119,7 +120,7 @@ export async function createCohortWithGeneEqualsFilter(parentCohort, labelOne, l
 export async function createCohortWithDepletionScoreFilter(parentCohort, labelOne, labelTwo, table, attribute, ensg, depletionscreen, ranges) {
     const params = {
         cohortId: parentCohort.dbId,
-        name: `${labelOne}#${labelTwo}`,
+        name: combineLabelsForDB(labelOne, labelTwo),
         table,
         attribute,
         ensg,
@@ -138,7 +139,7 @@ export async function createCohortWithDepletionScoreFilter(parentCohort, labelOn
 export async function createCohortWithPanelAnnotationFilter(parentCohort, labelOne, labelTwo, panel, values) {
     const params = {
         cohortId: parentCohort.dbId,
-        name: `${labelOne}#${labelTwo}`,
+        name: combineLabelsForDB(labelOne, labelTwo),
         panel,
         values
     };
@@ -166,6 +167,40 @@ async function cohortCreationDBHandler(craeteDBCohortMethod, params) {
     } // end of try-catch
     return dbId;
 }
+function combineLabelsForDB(labelOne, labelTwo) {
+    return `${labelOne}${valueListDelimiter}${labelTwo}`;
+}
+function splitLabelsFromDB(name) {
+    const split = name.split(valueListDelimiter);
+    // console.log('name, labels:', {name, split});
+    return {
+        labelOne: split[0],
+        labelTwo: split[1]
+    };
+}
+export function createCohortFromDB(data, provJSON) {
+    // ATTENTION : database != databaseName
+    const labels = splitLabelsFromDB(data.name);
+    const isInitial = data.is_initial === 1 ? true : false;
+    const basicValues = {
+        id: `${data.id}`,
+        dbId: data.id,
+        labelOne: labels.labelOne,
+        labelTwo: labels.labelTwo
+    };
+    const databaseValues = {
+        database: provJSON.database,
+        schema: data.entity_schema,
+        table: data.entity_table,
+        view: provJSON.view,
+        idType: provJSON.idType,
+        idColumn: provJSON.idColumn
+    };
+    const cht = new Cohort(basicValues, provJSON.values, databaseValues, { normal: {}, lt: {}, lte: {}, gt: {}, gte: {} }, null, isInitial);
+    const test = cht.size;
+    // cht.selected = provJSON.selected;
+    return cht;
+}
 export var cloneFilterTypes;
 (function (cloneFilterTypes) {
     cloneFilterTypes[cloneFilterTypes["none"] = 0] = "none";
@@ -184,9 +219,9 @@ export class Cohort {
         this._bloodline = [];
         this.id = basicValues.id;
         this.dbId = basicValues.dbId;
-        this.labelOne = basicValues.labelOne;
-        this.labelTwo = basicValues.labelTwo;
-        this.label = `${this.labelOne} (${this.labelTwo})`;
+        this._labelOne = basicValues.labelOne;
+        this._labelTwo = basicValues.labelTwo;
+        this._combineLabels(false);
         this._database = databaseValues.database;
         this._schema = databaseValues.schema;
         this._view = databaseValues.view;
@@ -218,11 +253,16 @@ export class Cohort {
         // return this._hasFilterConflict;
         return false; // TODO remove legacy code with the filter object and filter conflict check
     }
-    _combineLabels() {
-        this.label = `${this.labelOne}: ${this.labelTwo}`;
+    _combineLabels(updateDBCohort = true) {
+        this.label = `${this._labelOne}: ${this._labelTwo}`;
+        // console.log('combineLabels', {updateDBCohort, l1: this._labelOne, l2: this._labelTwo});
+        if (updateDBCohort) {
+            updateCohortName({ cohortId: this.dbId, name: combineLabelsForDB(this.labelOne, this.labelTwo) });
+        }
     }
-    set labelOne(labelOne) {
+    setLabels(labelOne, labelTwo) {
         this._labelOne = labelOne;
+        this._labelTwo = labelTwo;
         this._combineLabels();
         if (this.representation !== null && this.representation !== undefined) {
             this.representation.setLabel(this._labelOne, this._labelTwo);
@@ -230,13 +270,6 @@ export class Cohort {
     }
     get labelOne() {
         return this._labelOne;
-    }
-    set labelTwo(labelTwo) {
-        this._labelTwo = labelTwo;
-        this._combineLabels();
-        if (this.representation !== null && this.representation !== undefined) {
-            this.representation.setLabel(this._labelOne, this._labelTwo);
-        }
     }
     get labelTwo() {
         return this._labelTwo;
@@ -304,7 +337,7 @@ export class Cohort {
         this._size = undefined;
     }
     get schema() {
-        return this._view;
+        return this._schema;
     }
     set view(view) {
         this._view = view;
@@ -356,7 +389,9 @@ export class Cohort {
     }
     set selected(selected) {
         this._selected = selected;
-        this.representation.setSelection(this._selected);
+        if (this.representation) {
+            this.representation.setSelection(this._selected);
+        }
     }
     async _fetchSize() {
         const params = {
@@ -474,6 +509,24 @@ export class Cohort {
     }
     updateBloodline() {
         this._bloodline = this._getHeritage([], this);
+    }
+    toProvenanceJSON() {
+        return {
+            id: this.id,
+            type: ElementProvType.Cohort,
+            label: this.label,
+            parent: this._parents.map((elem) => elem.id),
+            children: this._children.map((elem) => elem.id),
+            attrAndValues: {
+                values: this.values,
+                view: this._view,
+                database: this._database,
+                idType: this.idType,
+                idColumn: this.idColumn,
+                selected: this._selected,
+                isRoot: false
+            }
+        };
     }
 }
 export const EMPTY_COHORT_ID = '--EMPTY--';

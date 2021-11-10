@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width" />
+
+    <title>Coral • Interactive Cohort Analysis</title>
+    <meta name="description" content="Coral is a web-based cohort analysis tool to interactively create, refine, and analyze patient cohorts." />
+    <meta name="keywords" content=" cohort analysis, visualization">
+    <meta name="author" content="Patrick Adelberger, Klaus Eckelt, Markus J. Bauer, Marc Streit, Christian Haslinger, Thomas Zichner">
+    <meta name="application-name" content="Coral">
+    <!--<meta name="theme-color" content="#006192">-->
+    <meta name="robots" content="index,nofollow">
+    <link rel="icon" type="image/svg+xml" href="<%=require('./assets/favicon.svg')%>"/>
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@marc_streit">
+    <meta name="twitter:title" value="Coral: Interactive Cohort Analysis" />
+    <meta name="twitter:description" value="Coral is a web-based cohort analysis tool to interactively create, refine, and analyze patient cohorts." />
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/Caleydo/coral/master/media/screenshot.full.png" />
+    <meta name="twitter:image:alt" content="Screenshot of an analysis session in Coral.">
+    <meta name="twitter:url" value="https://coral.caleydoapp.org" />
+
+    <!-- Other Social Media -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Coral: Interactive Cohort Analysis"/>
+    <meta property="og:site_name" content="Coral"/>
+    <meta property="og:description" content="Coral is a web-based cohort analysis tool to interactively create, refine, and analyze patient cohorts." />
+    <meta property="og:image" content="https://raw.githubusercontent.com/Caleydo/coral/master/media/screenshot.full.png" />
+    <meta property="og:image:secure_url" content="https://raw.githubusercontent.com/Caleydo/coral/master/media/screenshot.full.png" />
+    <meta property="og:image:alt" content="Screenshot of an analysis session in Coral.">
+    <meta property="og:url" content="https://coral.caleydoapp.org" />
+
+    <link href="https://fonts.googleapis.com/css?family=Yantramanav:700,500,400" rel="stylesheet" type="text/css"/>
+    <script src="https://cdn.polyfill.io/v3/polyfill.min.js"></script>
+  </head>
+
+  <body>
+    <!-- body is empty, created by our app -->
+
+    <!-- ----------------------------------------------------------------------------------------------- -->
+    <script>
+      (function () {
+        let alertText = "";
+
+        const isChrome =
+          /Chrome/.test(navigator.userAgent) &&
+          /Google Inc/.test(navigator.vendor);
+        const isFireFox = /Firefox/.test(navigator.userAgent);
+
+        if (!isChrome && !isFireFox) {
+          console.warn("User Agent", navigator.userAgent);
+          alertText +=
+            "We designed and tested this application with Firefox, Edge, and Google Chrome. Running the application in other browsers might result in performance issues or other misbehavior.";
+        }
+
+        if (alertText.length > 0) {
+          alert(alertText);
+        }
+      })();
+    </script>
+  </body>
+</html>

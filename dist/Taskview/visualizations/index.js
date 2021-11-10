@@ -1,6 +1,5 @@
 export * from './AreaChart';
 export * from './AVegaVisualization';
-export * from './Barcode';
 export * from './constants';
 export * from './DensityPlot';
 export * from './GroupedHistogram';

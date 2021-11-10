@@ -1,0 +1,36 @@
+.ordino-getting-started {
+  .ordino-getting-started-steps {
+    list-style: none; // ordered list items and use custom counter for easier styling
+    counter-reset: getting-started-counter;
+
+    li {
+      counter-increment: getting-started-counter;
+
+      &::before {
+        content: counter(getting-started-counter);
+        background-color: $gray-800;
+        color: $white;
+        display: inline-block;
+        width: 2.8rem;
+        height: 2.8rem;
+        border-radius: 50%;
+        font-size: 1.8rem;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      p {
+        font-size: 1.2rem;
+        color: $gray-600;
+      }
+    }
+  }
+
+  .btn {
+    font-size: 1.4rem;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+}

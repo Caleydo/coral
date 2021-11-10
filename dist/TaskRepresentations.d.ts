@@ -9,6 +9,7 @@ export declare class RectTaskRep implements IRectTaskRep {
     private _height;
     private _width;
     image: string;
+    private _removeButton;
     constructor(task: Task, height: number, width: number);
     getRepresentation(): HTMLDivElement;
     _create(height: number, width: number): HTMLDivElement;

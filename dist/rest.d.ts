@@ -64,6 +64,13 @@ export interface ICohortDBDataParams extends IParams {
 export interface ICohortDBSizeParams extends IParams {
     cohortId: number;
 }
+export interface ICohortDBCohortDataParams extends IParams {
+    cohortIds: number[];
+}
+export interface ICohortDBUpdateName extends IParams {
+    cohortId: number;
+    name: string;
+}
 export interface ICohortDBGeneScoreParams extends IParams {
     cohortId: number;
     table: string;
@@ -114,6 +121,17 @@ export interface ICohortDBWithTreatmentFilterParams extends IParams {
     agent?: Array<string>;
     regimen?: number;
 }
+/**
+ * Interface for the cohort tuple (row) in the DB
+ */
+export interface ICohortRow {
+    id: number;
+    name: string;
+    entity_database: string;
+    entity_schema: string;
+    entity_table: string;
+    is_initial: number;
+}
 export declare function createDBCohort(params: ICohortDBParams, assignIds?: boolean): Promise<IRow[]>;
 export declare function createDBCohortWithEqualsFilter(params: ICohortDBWithEqualsFilterParams, assignIds?: boolean): Promise<IRow[]>;
 export declare function createDBCohortWithNumFilter(params: ICohortDBWithNumFilterParams, assignIds?: boolean): Promise<IRow[]>;
@@ -122,8 +140,20 @@ export declare function createDBCohortWithGeneEqualsFilter(params: ICohortDBWith
 export declare function createDBCohortWithDepletionScoreFilter(params: ICohortDBWithDepletionScoreFilterParams, assignIds?: boolean): Promise<IRow[]>;
 export declare function createDBCohortWithPanelAnnotationFilter(params: ICohortDBWithPanelAnnotationFilterParams, assignIds?: boolean): Promise<IRow[]>;
 export declare function createDBCohortWithTreatmentFilter(params: ICohortDBWithTreatmentFilterParams, assignIds?: boolean): Promise<IRow[]>;
+/**
+ * returns the data a cohort represents
+ */
 export declare function getCohortData(params: ICohortDBDataParams, assignIds?: boolean): Promise<IRow[]>;
 export declare function getCohortSize(params: ICohortDBSizeParams, assignIds?: boolean): Promise<number>;
+/**
+ * returns the saved cohort tuples in the DB
+ */
+export declare function getDBCohortData(params: ICohortDBCohortDataParams, assignIds?: boolean): Promise<ICohortRow[]>;
+/**
+ * updates the name of the cohort in the DB
+ * @returns the updated cohort data from the DB
+ */
+export declare function updateCohortName(params: ICohortDBUpdateName, assignIds?: boolean): Promise<ICohortRow[]>;
 export declare function sizeDBCohortWithEqualsFilter(params: ICohortEqualsFilterParams, assignIds?: boolean): Promise<number>;
 export declare function dataDBCohortWithEqualsFilter(params: ICohortEqualsFilterParams, assignIds?: boolean): Promise<IRow[]>;
 export declare function sizeDBCohortWithNumFilter(params: ICohortNumFilterParams, assignIds?: boolean): Promise<number>;

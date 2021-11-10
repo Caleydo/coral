@@ -16,12 +16,12 @@ export class AreaChart extends MultiAttributeVisualization {
 
   getSpec(data: IdValuePair[]): VegaLiteSpec {
 
-    if (this.attributes.length === 2 && this.attributes.some((attr) => attr.type !== `categorical`)) {
+    if (!(this.attributes.length === 2 && this.attributes.every((attr) => ['categorical', 'string'].includes(attr.type)))) {
       throw new Error(`Area chart requires attributes of type categorical`); // TODO generalize, could also be used for binned numerical
     }
 
     const scatterSpec: VegaLiteSpec = {
-      $schema: 'https://vega.github.io/schema/vega-lite/v4.json',
+      $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
       data: {values: data},
       padding: {left: 5, top: 0, right: 5, bottom: 0},
       mark: {type: 'square', tooltip: true},
@@ -87,5 +87,9 @@ export class AreaChart extends MultiAttributeVisualization {
 
   split() {
     log.error('split is not implemented');
+  }
+
+  addControls() {
+    log.info('no controls for Area Chart yet');
   }
 }

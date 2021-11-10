@@ -10,7 +10,7 @@ export declare class Compare extends ATask {
     cohorts: Cohort[];
     supports(attributes: IAttribute[], cohorts: Cohort[]): boolean;
     showSearchBar(): boolean;
-    show(container: HTMLDivElement, attributes: IAttribute[], cohorts: Cohort[]): Promise<void>;
+    show(columnHeader: HTMLDivElement, container: HTMLDivElement, attributes: IAttribute[], cohorts: Cohort[]): Promise<void>;
     appendTable(): void;
     updateTableDescription(isTableEmpty: boolean): any;
     updateTable(): void;

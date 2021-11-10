@@ -18,7 +18,8 @@ export function easyLabelFromFilterArray(filter: INumRange[] | IEqualsList, attr
 export function easyLabelFromFilter(filter: INumRange | IEqualsList, attrLabel: string = null): string {
   const formatter = format('.1~f');
   if (isNumRangeFilter(filter)) { //INumRange Type Guard 💂‍♂️
-    if (filter.valueOne === 'null' || filter.valueTwo === 'null') {
+    if (filter.valueOne === 'null' || filter.valueTwo === 'null'
+          || filter.valueOne === null || filter.valueTwo === null) {
       return attrLabel === null ? `Missing Values` : `Missing ${attrLabel} Values`;
     } else {
       return `${formatter(filter.valueOne as number)} to ${formatter(filter.valueTwo as number)}`;
@@ -55,7 +56,8 @@ export function labelFromFilter(filter: INumRange | IEqualsList, attrLabel: stri
     const lowerOperator = filter.operatorOne === NumRangeOperators.gte ? '[' : '(';
     const upperOperator = filter.operatorTwo === NumRangeOperators.lte ? ']' : ')';
 
-    if (filter.valueOne === 'null' || filter.valueTwo === 'null') {
+    if (filter.valueOne === 'null' || filter.valueTwo === 'null'
+          || filter.valueOne === null || filter.valueTwo === null) {
       // return `Missing ${attr.label} Values`;
       return `Missing ${attrLabel} Values`;
     } else {

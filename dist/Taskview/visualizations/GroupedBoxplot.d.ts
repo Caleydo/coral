@@ -1,5 +1,4 @@
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
-import { InlineDataset } from 'vega-lite/build/src/data';
 import { ICohort } from '../../CohortInterfaces';
 import { IAttribute, IdValuePair } from '../../data/Attribute';
 import { MultiAttributeVisualization } from './MultiAttributeVisualization';
@@ -7,11 +6,9 @@ export declare class GroupedBoxplot extends MultiAttributeVisualization {
     static readonly NAME = "Boxplot";
     catAttribute: IAttribute;
     numAttribute: IAttribute;
-    brushData: InlineDataset;
+    brushData: object[];
     constructor(vegaLiteOptions?: Object);
     showImpl(chart: HTMLDivElement, data: Array<IdValuePair>): Promise<void>;
-    getSpec(data: IdValuePair[]): VegaLiteSpec;
-    generateSpec(catAttribute: IAttribute, numAttribute: IAttribute): Partial<import("vega-lite/build/src/spec").TopLevelFacetSpec>;
     addIntervalSelection(spec: any): void;
     protected addIntervalControls(attributeLabel: string, axis: any): void;
     handleInputIntervalEvent(event: any): void;
@@ -24,4 +21,5 @@ export declare class GroupedBoxplot extends MultiAttributeVisualization {
     }[];
     filter(): void;
     split(): void;
+    getSpec(data: IdValuePair[]): VegaLiteSpec;
 }

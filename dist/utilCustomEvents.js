@@ -1,7 +1,13 @@
 export const COHORT_REMOVE_EVENT_TYPE = 'cht:remove';
 export class CohortRemoveEvent extends CustomEvent {
-    constructor(cohort, replaceSelection = false) {
+    constructor(cohort) {
         super(COHORT_REMOVE_EVENT_TYPE, { detail: { cohort }, bubbles: true });
+    }
+}
+export const TASK_REMOVE_EVENT_TYPE = 'task:remove';
+export class TaskRemoveEvent extends CustomEvent {
+    constructor(task) {
+        super(TASK_REMOVE_EVENT_TYPE, { detail: { task }, bubbles: true });
     }
 }
 export const COHORT_SELECTION_EVENT_TYPE = 'cht:select';

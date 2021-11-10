@@ -24,6 +24,7 @@
       text-overflow: ellipsis;
       white-space: nowrap; // No line breaks
       overflow: hidden; // require for text-overflow to work
+      text-align: center;
     }
   }
 
@@ -32,31 +33,42 @@
     flex-direction: row-reverse;
     height: 18px;
     line-height: 18px;
-    margin-left: auto;
+    
 
     .options {
       height: 18px;
-      width: 18px;
+      width: 12px;
       margin-left: 3px;
-      color: $color-bar;
-      background-color: $color-badge-background;
-      border: 1px solid $color-border-light;
-      border-radius: 3px;
+      font-size: 13px;
+      color: $color-tv-opt;
       text-align: center;
-      
 
-      i::before {
-        font-size: 14px;
+      &.left-side {
+        margin-right: auto;
       }
       
       &:hover {
-        //color: $color-hover;
-        border-color: $color-hover;
-        box-shadow: 0 0 8px $color-hover-opacity-75 !important; 
+        color: $color-tv-opt-hover;
+        cursor: pointer;
       }
 
       &.active {
-        background-color: $color-selected-light !important;
+        color: $color-tv-opt-active;
+
+        &:hover {
+          color: $color-tv-opt-hover;
+        }
+      }
+
+      &.remove{
+        font-size: 12px !important;
+        color: $color-tv-opt-active;
+        order: 100;
+
+        &:hover {
+        color: $color-red;
+        cursor: pointer;
+        }
       }
     }
 

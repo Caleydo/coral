@@ -1,0 +1,13 @@
+// see https://github.com/Caleydo/ordino_public/blob/7e5de76fdc2dc1278eaacaa8a3fbc06902e52c52/src/scss/components/VideoCard.scss
+
+.coral-video-card {
+  iframe {
+    height: 15em;
+  }
+
+  @media only screen and (min-width: 992px) {
+    iframe {
+      height: 35em;
+    }
+  }
+}

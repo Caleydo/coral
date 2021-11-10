@@ -5,7 +5,7 @@ import {IAttribute, multiAttributeFilter} from '../data/Attribute';
 import {RectangleLayout} from '../Overview/OverviewLayout';
 import {CohortColorSchema, log, removeFromArray, ScrollLinker, SortType} from '../util';
 import {CohortSelectionEvent, COHORT_SELECTION_EVENT_TYPE, ColumnCloseEvent, ColumnSortEvent, COLUMN_CLOSE_EVENT_TYPE, COLUMN_SORT_EVENT_TYPE, ConfirmOutputEvent, ConfirmTaskEvent, CONFIRM_OUTPUT_EVENT_TYPE, FilterEvent, FILTER_EVENT_TYPE, PreviewChangeEvent, SplitEvent, SPLIT_EVENT_TYPE} from '../utilCustomEvents';
-import {AColumn, ADataColumn, EmptyColumn} from './columns/AColumn';
+import AddColumnColumn, {AColumn, ADataColumn, EmptyColumn} from './columns/AColumn';
 import AttributeColumn from './columns/AttributeColumn';
 import {InputCohortColumn, OutputCohortColumn} from './columns/CohortColumn';
 import SearchColumn from './SearchColumn';
@@ -181,6 +181,7 @@ export default class Taskview {
 
   public confirmTask() {
     this.search.clear();
+    this.removeAttributeColumns();
     this.$node.dispatchEvent(new ConfirmTaskEvent(this.taskParams, this.taskAttributes));
   }
 
@@ -211,21 +212,28 @@ export default class Taskview {
     this.reference = reference;
   }
 
-  public addMultipleAttributeColumns(dArray: IAttribute[], allowDuplicates: boolean = false) {
-    dArray.forEach((d) => this.addAttributeColumn(d, allowDuplicates));
+  public addMultipleAttributeColumns(dArray: IAttribute[], allowDuplicates: boolean = false, pinned: boolean = false) {
+    dArray.forEach((d) => this.addAttributeColumn(d, allowDuplicates, pinned));
   }
 
-  public addAttributeColumn(d: IAttribute, allowDuplicates: boolean = false) {
-    this.addAttributeColumnForInput(d, allowDuplicates);
-    this.addAttributeColumnForOutput(d, allowDuplicates);
+  public addAttributeColumn(d: IAttribute, allowDuplicates: boolean = false, pinned: boolean = false) {
+    if (this.reference.idColumn.column !== d.id) {
+      this.addAttributeColumnForInput(d, allowDuplicates, pinned);
+      this.addAttributeColumnForOutput(d, allowDuplicates, pinned);
+    }
   }
 
-  public addAttributeColumnForInput(d: IAttribute, allowDuplicates: boolean = false) {
-    this.input.addAttributeColumn(d, allowDuplicates); // function is overwritten in and does not need the onInputCohortSide = true variable
+  public addAttributeColumnForInput(d: IAttribute, allowDuplicates: boolean = false, pinned: boolean = false) {
+    this.input.addAttributeColumn(d, allowDuplicates, pinned); // function is overwritten in and does not need the onInputCohortSide = true variable
   }
 
-  public addAttributeColumnForOutput(d: IAttribute, allowDuplicates: boolean = false) {
-    this.output.addAttributeColumn(d, allowDuplicates, false);
+  public addAttributeColumnForOutput(d: IAttribute, allowDuplicates: boolean = false, pinned: boolean = false) {
+    this.output.addAttributeColumn(d, allowDuplicates, false, false, pinned);
+  }
+
+  public removeAttributeColumns() {
+    this.input.getUnpinnedAttributeColumns().forEach((col) => col.close());
+    this.output.getUnpinnedAttributeColumns().forEach((col) => col.close());
   }
 
   public getTaskParams(): ITaskParams[] {
@@ -236,7 +244,9 @@ export default class Taskview {
     return this.taskAttributes;
   }
 
+  private currentEvent = 0;
   async handleFilterEvent(ev: FilterEvent | SplitEvent) {
+    const currentEv = ++this.currentEvent;
     let outputCohorts = []; //Stores the output cohorts in correct order, will replace the array currently used
     const taskWithSelectedOutput: ITaskParams[] = [];
     this.taskParams = [];
@@ -273,6 +283,8 @@ export default class Taskview {
         }
 
         const newChts = await Promise.all(chtPromises);
+        if (currentEv !== this.currentEvent) {return;}
+
         const chtSizes = [];
         newChts.sort((a, b) => this.sortLabelAlpha(a, b)); // sort output cohorts: A -> Z
         for (const newOutCht of newChts) {
@@ -296,6 +308,9 @@ export default class Taskview {
       } else {
         cht.outputCohorts.push(getEmptyCohort(cht));
       }
+
+      //the async/time instensive stuff is done now, check if we should continue:
+      if (currentEv !== this.currentEvent) {return;}
 
       (cht.outputCohorts[cht.outputCohorts.length - 1] as OutputCohort).isLastOutputCohort = true;
       (cht.outputCohorts[0] as OutputCohort).isFirstOutputCohort = true;
@@ -361,7 +376,7 @@ abstract class TaskviewTable {
 
     $wrapper.insertAdjacentHTML('beforeend', `
       <div class="floating-confirm" hidden>
-          <button type="button" class="btn btn-default clearBtn">
+          <button type="button" class="btn btn-coral clearBtn">
             <i class="fas fa-times" aria-hidden="true"></i> Clear
           </button>
       </div>
@@ -396,12 +411,43 @@ abstract class TaskviewTable {
     this.setCohorts(this.cohorts);
   }
 
-  public addAttributeColumn(attr: IAttribute, allowDuplicates: boolean = false, onInputCohortSide: boolean = true, color: boolean = false) {
+  public getAttributeColumns(): AttributeColumn[] {
+    const attCol = [];
+    for (const ac of this.columns) {
+      if (ac instanceof AttributeColumn) {
+        attCol.push(ac);
+      }
+    }
+    return attCol;
+  }
+
+  public getUnpinnedAttributeColumns(): AttributeColumn[] {
+    const attCol = [];
+    for (const ac of this.columns) {
+      if (ac instanceof AttributeColumn) {
+        if (!ac.pinned) {
+          attCol.push(ac);
+        }
+      }
+    }
+    return attCol;
+  }
+
+  public addAttributeColumn(attr: IAttribute, allowDuplicates: boolean = false, onInputCohortSide: boolean = true, color: boolean = false, pinned: boolean = false) {
     if (allowDuplicates || !this.columns.find((column) => column instanceof AttributeColumn && (column as AttributeColumn).attribute.dataKey === attr.dataKey)) {
       // if duplicates are allowed or the column wasn't added yet
-      const newCol = new AttributeColumn(attr, this.$node, onInputCohortSide, color);
+      const newCol = new AttributeColumn(attr, this.$node, onInputCohortSide, color, pinned);
       newCol.setCohorts(this.cohorts);
-      this.columns.push(newCol);
+      this.columns.unshift(newCol); // add columnt as first element
+      // only adding the new column as first element doesn't reorder column HTML elements
+      // because the new one gets added at the end -> set order attribute to define order of columns
+      let orderCnt = 0;
+      this.columns.map((elem) => {
+        if (elem instanceof AttributeColumn) {
+          elem.setOrder(orderCnt);
+          orderCnt++;
+        }
+      });
       window.dispatchEvent(new Event('resize')); //update vega chart sizes in case the columns became narrower
     }
   }
@@ -432,9 +478,10 @@ class TaskviewInput extends TaskviewTable {
 
     // this.columns.push(new NumberColumn(this.$node));
     this.inputCohortCol = new InputCohortColumn(this.$node);
+    this.columns.push(new AddColumnColumn(this.$node, taskview, reference.database, reference.view));
     this.columns.push(this.inputCohortCol);
     // this.columns.push(new PrevalenceColumn(reference, this.$node));
-    this.columns.push(new EmptyColumn(this.$node, taskview, reference.database, reference.view));
+    this.columns.push(new EmptyColumn(this.$node));
     this.clearColorCohorts();
   }
 
@@ -487,8 +534,8 @@ class TaskviewInput extends TaskviewTable {
     super.setCohorts(cohorts);
   }
 
-  public addAttributeColumn(attr: IAttribute, allowDuplicates: boolean = false) {
-    super.addAttributeColumn(attr, allowDuplicates, true, true);
+  public addAttributeColumn(attr: IAttribute, allowDuplicates: boolean = false, pinned: boolean = false) {
+    super.addAttributeColumn(attr, allowDuplicates, true, true, pinned);
   }
 
   clear() {
@@ -508,7 +555,7 @@ class TaskviewOutput extends TaskviewTable {
     $wrapper.classList.add('output');
 
     this.$floatingBtns.insertAdjacentHTML(`beforeend`, `
-      <button type="button" class="btn btn-default confirmBtn">
+      <button type="button" class="btn btn-coral-prime confirmBtn">
         <i class="fas fa-check" aria-hidden="true"></i> Add to Cohort Graph
       </button>
     `);
@@ -518,7 +565,8 @@ class TaskviewOutput extends TaskviewTable {
     );
 
 
-    this.columns.push(new EmptyColumn(this.$node, taskview, reference.database, reference.view, false)); // same flex order as outputcohort column -> ordered by position in DOM
+    this.columns.push(new EmptyColumn(this.$node)); // same flex order as outputcohort column -> ordered by position in DOM
+    this.columns.push(new AddColumnColumn(this.$node, taskview, reference.database, reference.view, false));
     this.outputCohortCol = new OutputCohortColumn(this.$node);
     this.columns.push(this.outputCohortCol);
 

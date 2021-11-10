@@ -3,9 +3,9 @@ import {Selection} from 'd3-selection';
 import {ICohort} from '../../CohortInterfaces';
 import {IAttribute} from '../../data/Attribute';
 import {getAnimatedLoadingText, log} from '../../util';
-import {niceName} from '../../utilLabels';
 import {AreaChart} from '../visualizations/AreaChart';
 import {AVegaVisualization} from '../visualizations/AVegaVisualization';
+import {Option, OptionGroup, VisConfig} from '../visualizations/config/VisConfig';
 import {DensityPlot} from '../visualizations/DensityPlot';
 import {GroupedBoxplot} from '../visualizations/GroupedBoxplot';
 import {VegaGroupedHistogram} from '../visualizations/GroupedHistogram';
@@ -14,7 +14,7 @@ import {Scatterplot, TsneScatterplot} from '../visualizations/Scatterplot';
 import {ATask} from './ATask';
 
 export class Filter extends ATask {
-  public label = `Filter & Split`;
+  public label = `View, Filter & Split`;
   public id = `filter`;
   public hasOutput = true;
 
@@ -35,8 +35,8 @@ export class Filter extends ATask {
     return true;
   }
 
-  async show(container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]) {
-    super.show(container, attributes, cohorts);
+  async show(columnHeader: HTMLDivElement, container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]) {
+    super.show(columnHeader, container, attributes, cohorts);
 
     if (attributes.length > 0) {
       this.addVisSelector();
@@ -46,7 +46,7 @@ export class Filter extends ATask {
     // TODO #427 check number of attributes and theid types to define the visualizations
     switch (attributes.length) {
       case 0:
-        this.$visContainer.innerHTML = '<p>Select one or more attributes to see visualizations <i class="fas fa-chart-bar" aria-hidden="true"></i></p>';
+        this.$visContainer.innerHTML = '';
         break;
       case 1:
         this.show1Attribute(attributes[0], cohorts);
@@ -64,30 +64,21 @@ export class Filter extends ATask {
     this.header.append('div')
       .classed('vis-selector', true)
       .html(`
-        <div class="input-group">
-          <div class="input-group-btn">
-              <div class="btn-group vis-type">
-              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-chart-bar"></i><span class="caret"></span></button>
-              <ul class="dropdown-menu">
-                <!-- Insert visualizations here, e.g.:
-                  <li><a href="#">Histogram</a></li>
-                  <li><a href="#">Density Plot</a></li>
-                -->
-              </ul>
-            </div>
-            <div class="btn-group vis-config">
-              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" disabled><i class="fas fa-cog"></i></button>
-              <ul class="dropdown-menu">
-                <!-- Insert options here, e.g.:
-                  <li><a href="#">Show abs freq</a></li>
-                  <li><a href="#">Show rel freq</a></li>
-                -->
-              </ul>
-            </div>
-          </div> <!-- dropdown buttons -->
-          <input type="text" class="form-control title" aria-label="..." value="" style="height: unset; background-color: white; cursor: not-allowed;" readonly> <!-- value will be the title -->
-        </div><!-- /input-group -->
-    `);
+        <div class="btn-group vis-header"> <!-- vis dropdown and settings -->
+          <div class="btn-group vis-type"> <!-- vis dropdown -->
+            <button type="button" class="btn btn-coral dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="type"></span>
+            </button>
+            <ul class="dropdown-menu">
+              <!-- Insert visualizations here, e.g.:
+                <li class="dropdown-item"><a>Histogram</a></li>
+                <li class="dropdown-item"><a>Density Plot</a></li>
+              -->
+            </ul>
+          </div>
+          <!-- insert vis configs here -->
+        </div>
+      `);
   }
 
   private async show1Attribute(attribute: IAttribute, cohorts: ICohort[]) {
@@ -122,24 +113,26 @@ export class Filter extends ATask {
           visualizations.unshift(KaplanMeierPlot);
         }
         this.setVisualizations(visualizations);
-      } else if (attributes.every((attr) => attr.type === 'categorical')) {
-        this.setVisualizations([TsneScatterplot, AreaChart]);
-      } else if (attributes.some((attr) => attr.type === 'number') && attributes.some((attr) => attr.type === 'categorical')) {
+      } else if (attributes.every((attr) => ['categorical', 'string'].includes(attr.type))) {
+        this.setVisualizations([AreaChart]);
+      } else if (attributes.some((attr) => attr.type === 'number') && attributes.some((attr) => ['categorical', 'string'].includes(attr.type))) {
         this.setVisualizations([GroupedBoxplot]);
       } else {
-        this.$visContainer.innerHTML = 'What are you doing? ☠';
+        this.$visContainer.innerHTML = 'Currently no visualization supports the selected attribute combination!';
       }
     }
   }
 
   private async showTsne(attributes: IAttribute[], cohorts: ICohort[]) {
-    this.attributes = attributes;
-    this.cohorts = cohorts;
-    this.setVisualizations([TsneScatterplot]);
+    this.$visContainer.innerHTML = 'Currently, we only support the visualization of up to two attributes.';
+    // TODO #647 fix tsne implementation
+    // this.attributes = attributes;
+    // this.cohorts = cohorts;
+    // this.setVisualizations([TsneScatterplot]);
   }
 
   set title(title: string) {
-    this.header.select('.vis-selector input.title').each(function () {(this as HTMLInputElement).value = title;});
+    this.header.select('.vis-selector .vis-type .type').each(function () {(this as HTMLSpanElement).textContent = title;});
   }
 
   setVisualizations(visualizations: {new(): AVegaVisualization}[]) {
@@ -149,17 +142,19 @@ export class Filter extends ATask {
     if (visualizations.length > 0) {
       this.showWithVis(new visualizations[0]());
 
+      // only add dropdown caret for vis types if there are more than one
+      this.header.select('.vis-selector .vis-type button').classed('dropdown-toggle', visualizations.length > 1);
+
       const entries = this.header.select('.vis-selector .vis-type ul.dropdown-menu')
         .selectAll('li').data(visualizations);
 
       entries.enter()
-        .append('li')
-        .append('a').text((vis) => (vis as any).NAME) // cast to any to access static property
-        .classed('selector', true)
+        .append('li').classed('dropdown-item', true)
         .classed('selected', (vis) => (vis as any).NAME === (this.vis.constructor as any).NAME)
+        .append('a').text((vis) => (vis as any).NAME) // cast to any to access static property
         .on('click', (visClass) => {
           if ((visClass as any).NAME !== (this.vis.constructor as any).NAME) { //check if vis has changed
-            this.header.selectAll('.vis-selector .vis-type a.selector').classed('selected', (vis) => (vis as any).NAME === (visClass as any).NAME);
+            this.header.selectAll('.vis-selector .vis-type li').classed('selected', (vis) => (vis as any).NAME === (visClass as any).NAME);
             this.showWithVis(new visClass());
           }
         });
@@ -181,29 +176,46 @@ export class Filter extends ATask {
 
     // set new vis
     this.vis = vis;
-    this.title = `${(vis.constructor as any).NAME} of ${this.attributes.map((attr) => niceName(attr.label)).join(' & ')}`; // access static property from instance via constructor property
+    this.title = (vis.constructor as any).NAME; // access static property from instance via constructor property
     try {
       await vis.show(this.$visContainer, this.attributes, this.cohorts);
       if (eventId !== this.eventID) { // remove the visualization if we changed it in the meantime
         vis.destroy();
       } else {
         //Show options
-        const options = vis.getOptions();
-        this.header.select('.vis-selector .vis-config button').attr('disabled', options.length === 0 ? true : null);
+        const configs = vis.getConfig();
 
-        const entries = this.header.select('.vis-selector .vis-config ul.dropdown-menu').selectAll('li').data(options);
-        entries.enter()
-          .append('li')
-          .append('a').text((option) => option)
-          .classed('selector', true)
-          .classed('selected', (option) => vis.getOption() === option)
-          .on('click', (option) => {
-            vis.setOption(option);
+        const entries = this.header.select('.vis-selector .vis-header')
+          .selectAll('.vis-config').data(configs, (d) => (d as VisConfig).label);
+
+        const configGrps = entries.enter()
+          .append('div').classed('vis-config btn-group', true);
+
+        configGrps
+          .append('button').attr('type', 'button')
+          .classed('btn btn-coral', true) //  dropdown-toggle class to avoid dropdown caret symbol
+          .attr('data-bs-toggle', 'dropdown').attr('title', (d) => `${d.label} Config`)
+          .append('span').classed('icon', true).html((d) => d.icon);
+
+        const configDropdown = configGrps
+          .append('ul').classed('dropdown-menu dropdown-menu-right', true)
+          .selectAll('li').data((d) => d.groups.flatMap((group) => [group, ...group.options])); // headers and options are on the same level, so create one array that contains both
+
+        const configHeader = configDropdown.enter()
+          .append('li').attr('class', (d) => (d as OptionGroup).options ? 'dropdown-header' : 'dropdown-item')
+          .html((d) => 'icon' in d ? `${d.icon} ${d.label}` : `<a>${d.label}</a>`);
+
+        configHeader.filter('.dropdown-item')
+          .attr('data-group', (d: Option) => d.group.label)
+          .classed('selected', (d) => (d as Option).selected)
+          .on('click', (d: Option) => {
             this.header
-              .select('.vis-selector .vis-config ul.dropdown-menu')
-              .selectAll('li a')
-              .classed('selected', (option) => vis.getOption() === option);
+              .selectAll(`li.dropdown-item[data-group="${d.group.label}"]`)
+              .classed('selected', (option) => d === option);
+            vis.selectOption(d);
           });
+
+        entries.exit().remove();
       }
 
       //remove loading

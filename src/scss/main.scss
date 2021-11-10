@@ -1,9 +1,13 @@
 @import './abstracts/variables';
 @import './base/animations';
 @import './base/loading';
+@import './base/icon_layer';
 @import './base/base';
 
 @import './vendors/tippy';
+
+@import './pages/main.scss';
+@import './components/StartMenu.scss';
 
 @import './components/taskview';
 @import './components/overview';

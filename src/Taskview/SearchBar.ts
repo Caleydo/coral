@@ -30,6 +30,7 @@ export class SearchBar {
   };
   private _geneDataTypes: Array<IDataTypeConfig>;
   private _eventListenerCloseOptionWindow: (e: any) => void;
+  private _geneHoverOptionId: string;
 
   constructor(parentContainer: HTMLDivElement, database: string, view: string, optionWrapperCSSClass: string = 'standard') {
     this._pageSize = 30;
@@ -268,7 +269,24 @@ export class SearchBar {
         }
       })
       .on('mouseover', (d, i, nodes) => {
-        this._mouseOverHandler(d, nodes[i]);
+        if (d.optionType === 'gene') {
+          // set global optionId
+          this._geneHoverOptionId = d.optionId;
+          setTimeout(() => {
+            // update detail after timeout time global and current optionId is equal
+            if (d.optionId === this._geneHoverOptionId) {
+              this._mouseOverHandler(d, nodes[i]);
+            }
+          }, 200);
+        } else {
+          this._mouseOverHandler(d, nodes[i]);
+        }
+      })
+      .on('mouseout', (d, i, nodes) => {
+        if (d.optionType === 'gene') {
+          // clear global optionId
+          this._geneHoverOptionId = null;
+        }
       });
   }
 
@@ -584,9 +602,11 @@ export class SearchBar {
 
     const removeX = document.createElement('div');
     removeX.className = 'remove-x';
-    removeX.innerHTML = 'x';
+    removeX.innerHTML = '×';
+    removeX.title = 'Remove';
 
     removeX.addEventListener('click', (e) => {
+      e.stopPropagation();
       elem.parentNode.removeChild(elem);
       const optionTarget = this._optionList.querySelectorAll(`.option[data-optid="${optionId}"]`) as NodeListOf<HTMLDivElement>;
       Array.from(optionTarget).forEach((opt) => {
@@ -687,7 +707,7 @@ export class SearchBar {
     }
 
     // options
-    const options = this._optionList.querySelectorAll('.option:not(.hidden)');
+    const options = this._optionList.querySelectorAll('.option:not([hidden])');
     this._optionFocusIndex = this._optionFocusIndex >= options.length ? 0 : this._optionFocusIndex;
     this._optionFocusIndex = this._optionFocusIndex < 0 ? options.length - 1 : this._optionFocusIndex;
     log.debug('Arrow-Key action -> new index: ', {focusIndex: this._optionFocusIndex});
@@ -743,12 +763,12 @@ export class SearchBar {
   // show/hide the options for the search field
   private _showOCW(show: boolean) {
     if (show) {
-      this._optionContainerWrapper.classList.remove('hidden');
+      this._optionContainerWrapper.removeAttribute('hidden');
     } else {
       this._setFocusAndScrollOfOptionList();
       this._clearDetail();
       this._clearOptionList();
-      this._optionContainerWrapper.classList.add('hidden');
+      this._optionContainerWrapper.toggleAttribute('hidden', true);
       this._searchBarInput.value = '';
       this._setSearchBarInputWidth();
     }
@@ -835,7 +855,7 @@ export class SearchBar {
     }
 
 
-    detail.addEventListener('mouseenter', () => parent.style.backgroundColor = colors.hoverColor);
+    detail.addEventListener('mouseenter', () => parent.style.backgroundColor = colors.searchbarHoverColor);
     detail.addEventListener('mouseleave', () => parent.style.backgroundColor = '');
 
     return detail;
@@ -1002,10 +1022,11 @@ export class SearchBar {
 
         const divClearAll = document.createElement('div');
         divClearAll.className = 'clear-all';
-        divClearAll.title = 'Clear Searchbar';
+        divClearAll.title = 'Remove all';
         divClearAll.innerHTML = '<i class="fas fa-eraser  fa-fw fa-flip-horizontal" aria-hidden="true"></i>';
 
         divClearAll.addEventListener('click', (e) => {
+          e.stopPropagation();
           this._removeAllSelectedItems();
           // options have changed in search bar
           this._container.dispatchEvent(new CustomEvent('optionchange'));
@@ -1050,8 +1071,8 @@ export type OptionType = 'dbc' | 'gene' | 'panel';
 export interface IOption {
   // id: string;
   optionId: string; // e.g. gender or ensg00000141510
-  optionType: OptionType; // e.g. Gender or TP53
-  optionText: string; // e.g. dbc or gene
+  optionType: OptionType; // e.g. dbc or gene
+  optionText: string; // e.g. Gender or TP53
   optionData?: {
     [key: string]: any; // keys are always strings, so we just specify it to be key/value pairs with values of any type
   };

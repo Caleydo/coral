@@ -14,6 +14,8 @@ export declare class RectCohortRep implements IRectCohortRep {
     private _bloodline;
     private _bloodlinePaths;
     private _removeButton;
+    private _size;
+    private _refSize;
     constructor(cohort: Cohort, height: number, width: number);
     getRepresentation(): HTMLDivElement;
     private _create;

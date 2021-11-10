@@ -2,6 +2,7 @@ import d3 from 'd3';
 import tippy from 'tippy.js';
 import {Cohort} from './Cohort';
 import {IElement, IRectCohortRep} from './CohortInterfaces';
+import {getRootCohort} from './cohortview';
 import {log} from './util';
 import {CohortRemoveEvent, CohortSelectionEvent} from './utilCustomEvents';
 import {labelFromFilter} from './utilLabels';
@@ -19,6 +20,8 @@ export class RectCohortRep implements IRectCohortRep {
   private _bloodline: Array<any>;
   private _bloodlinePaths: SVGPathElement[];
   private _removeButton: HTMLAnchorElement;
+  private _size: number;
+  private _refSize: number;
 
   constructor(private cohort: Cohort, height: number, width: number) {
     this.id = cohort.id;
@@ -57,6 +60,7 @@ export class RectCohortRep implements IRectCohortRep {
     divSizeBarIndicator.style.width = '0px';
     // add div for the size
     const divSizeBarLabel: HTMLDivElement = document.createElement('div');
+    divSizeBarLabel.textContent = 'loading...';
     divSizeBarLabel.className = 'size-label cht-part';
     divSizeBarLabel.style.height = labelHeight + 'px';
     divSizeBarLabel.style.lineHeight = labelHeight + 'px';
@@ -92,22 +96,14 @@ export class RectCohortRep implements IRectCohortRep {
     divLabel.style.fontSize = fontSize + 'px';
 
     // remove button
-    const divRemove: HTMLDivElement = document.createElement('div');
-    divRemove.classList.add('rectCohort-divRem', 'hidden');
-    divRemove.title = 'Remove Cohort';
-    divRemove.style.height = labelHeight + 'px';
-    divRemove.style.width = labelHeight + 'px';
-    divRemove.style.fontSize = fontSize + 'px';
-    divRemove.style.position = 'absolute';
-    divRemove.style.top = '0';
-    divRemove.style.right = '0';
     this._removeButton = document.createElement('a');
-    this._removeButton.classList.add('remove');
+    this._removeButton.classList.add('remove-cohort');
+    this._removeButton.toggleAttribute('hidden', true);
     this._removeButton.innerHTML = '<i class="fas fa-trash" aria-hidden="true"></i>';
-    divRemove.appendChild(this._removeButton);
+    divLabelBar.appendChild(this._removeButton);
 
     divLabelBar.appendChild(divLabel);
-    divLabelBar.appendChild(divRemove);
+
 
     // ------------------------------
     // *--- create 2nd row label ---*
@@ -130,14 +126,13 @@ export class RectCohortRep implements IRectCohortRep {
     container.addEventListener('mouseenter', (event) => {
       event.stopPropagation();
       // remove icon (=trash can)
-      const allowDel = this._cohort.children.length === 0;
-      const isRoot = this._cohort.isInitial;
+      const isRoot = this._cohort.dbId === getRootCohort().dbId;
       const isPreview = this._representation.classList.contains('preview');
       // onyl if it is not a preview
       if (!isPreview) {
-        // only leaf nodes (not including root)
-        if (!isRoot && allowDel) {
-          divRemove.classList.remove('hidden');
+        // the root cohort can not be deleted
+        if (!isRoot) {
+          this._removeButton.removeAttribute('hidden');
         }
 
         // make sure the paths are set
@@ -151,7 +146,7 @@ export class RectCohortRep implements IRectCohortRep {
     container.addEventListener('mouseleave', (event) => {
       event.stopPropagation();
       // remove trash can icon
-      divRemove.classList.add('hidden');
+      this._removeButton.toggleAttribute('hidden', true);
       // make sure the paths are set
       this._getPathsForBloodline();
       // cohort backtracking (remove highlight from the elements)
@@ -165,7 +160,34 @@ export class RectCohortRep implements IRectCohortRep {
         dbClickTimer = setTimeout(() => {
           log.debug('click on cohort');
           if (event.target === this._removeButton.childNodes[0]) {
-            container.dispatchEvent(new CohortRemoveEvent(this.cohort));
+            // open modal
+            ($('#deleteModal') as any).modal('show');
+            // get modal
+            const modal = document.getElementById('deleteModal');
+            if (modal) {
+              // set type text of element
+              const text = modal.querySelector('.element-name');
+              text.innerHTML = 'cohort';
+
+              // get delete button in modal
+              let delConfirm = modal.querySelector('.confirm-delete');
+              if (delConfirm) {
+
+                // replace element with copy of it to remove the eventlisteners
+                delConfirm.replaceWith(delConfirm.cloneNode(true));
+                delConfirm = modal.querySelector('.confirm-delete');
+
+                // add click event to delete button
+                delConfirm.addEventListener('click', (event) => {
+                  // dispatch event to remove cohort and its children
+                  container.dispatchEvent(new CohortRemoveEvent(this.cohort));
+                  event.stopPropagation();
+                  // hide modal
+                  ($('#deleteModal') as any).modal('hide');
+                });
+              }
+            }
+
             event.stopPropagation();
           } else {
             container.dispatchEvent(new CohortSelectionEvent(this.cohort));
@@ -177,6 +199,13 @@ export class RectCohortRep implements IRectCohortRep {
         container.dispatchEvent(new CohortSelectionEvent(this.cohort, true));
       }
     });
+
+    container.addEventListener('mousedown', function (event) {
+      if (event.detail > 1) {
+        event.preventDefault();
+        // prevent text highlighting on double click
+      }
+    }, false);
 
     return container;
   }
@@ -221,8 +250,9 @@ export class RectCohortRep implements IRectCohortRep {
 
   private _createClone(original: HTMLDivElement): HTMLDivElement {
     const clone = original.cloneNode(true) as HTMLDivElement;
-    const remDiv = clone.querySelector('.rectCohort-divRem');
-    remDiv.parentNode.removeChild(remDiv);
+    const remBtn = clone.querySelector('.remove-cohort');
+    remBtn.parentNode.removeChild(remBtn);
+
     clone.id = 'clone_' + this.id;
     clone.style.setProperty('grid-area', null);
 
@@ -245,6 +275,7 @@ export class RectCohortRep implements IRectCohortRep {
     this._isSelected = state;
     this._representation.classList.toggle('selected', state);
     this._repClone.classList.toggle('selected', state);
+    this.setSize(this._size, this._refSize);
     this.assignColor(state);
   }
 
@@ -311,6 +342,8 @@ export class RectCohortRep implements IRectCohortRep {
   }
 
   public setSize(size: number, sizeReference: number) {
+    this._size = size;
+    this._refSize = sizeReference;
     // calculate the size of bar and set its color accordingly
     const percentage = (size / sizeReference) * 100;
 
@@ -369,17 +402,25 @@ export class RectCohortRep implements IRectCohortRep {
     // this._repClone.title = summary;
     const summaryHTML = this._formatHoverSummary();
 
-    const prevInstRep = (this._representation as any)._tippy;
-    if (prevInstRep) {
-      prevInstRep.setContent(summaryHTML);
-    } else {
+    if (!this.cohort.isInitial) {
+      // Replace summary in overview, unless its the root cohort
+      const prevInstRep = (this._representation as any)._tippy;
+
+      if (prevInstRep && !this._cohort.isInitial) {
+        prevInstRep.destroy(); // destory old tippy
+      }
+
+      // create new tippy
       tippy(this._representation, {
         content: summaryHTML,
         allowHTML: true,
         placement: 'bottom-start',
+        duration: [300, null],
       });
     }
 
+    // set tooltip for clones of the cohort (i.e. representations in action view)
+    // also do this for the root cohort
     const summaryHTMLCopy = summaryHTML.cloneNode(true) as HTMLDivElement;
     const prevInstClone = (this._repClone as any)._tippy;
     if (prevInstClone) {
@@ -389,6 +430,7 @@ export class RectCohortRep implements IRectCohortRep {
         content: summaryHTMLCopy,
         allowHTML: true,
         placement: 'bottom-start',
+        duration: [300, null],
       });
     }
 

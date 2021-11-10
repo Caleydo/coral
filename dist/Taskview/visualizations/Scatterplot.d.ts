@@ -3,12 +3,13 @@ import { Cohort } from '../../Cohort';
 import { IAttribute, IdValuePair } from '../../data/Attribute';
 import { AxisType, MultiAttributeVisualization } from './MultiAttributeVisualization';
 import { TopLevel, LayerSpec } from 'vega-lite/build/src/spec';
+import { Field } from 'vega-lite/build/src/channeldef';
 export declare class Scatterplot extends MultiAttributeVisualization {
     static readonly NAME: string;
     protected checkAttributeType: boolean;
     constructor(vegaLiteOptions?: Object);
     getSpec(data: IdValuePair[]): VegaLiteSpec;
-    addIntervalSelection(spec: any): void;
+    showImpl(chart: HTMLDivElement, data: Array<IdValuePair>): Promise<void>;
     filter(): void;
     split(): void;
 }
@@ -26,7 +27,7 @@ export declare class TsneScatterplot extends Scatterplot {
     projData: any[];
     originalAttributes: IAttribute[];
     constructor(vegaLiteOptions?: Object);
-    getSpec(data: IdValuePair[]): TopLevel<LayerSpec>;
+    getSpec(data: IdValuePair[]): TopLevel<LayerSpec<Field>>;
     show(container: HTMLDivElement, attributes: IAttribute[], cohorts: Cohort[]): Promise<void>;
     showImpl(chart: HTMLDivElement, data: Array<IdValuePair>): Promise<void>;
     embeddStep(): Promise<void>;
@@ -35,7 +36,8 @@ export declare class TsneScatterplot extends Scatterplot {
     setProgress(iteration: number): void;
     run(run: boolean): void;
     protected addControls(): void;
-    addIntervalControls(attributeLabel: string, axis: AxisType): void;
+    addIntervalControls(attribute: string, axis: AxisType): void;
+    addNullCheckbox(attribute: string): void;
     filter(): void;
     split(): void;
 }
