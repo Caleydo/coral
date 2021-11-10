@@ -5,7 +5,7 @@ from logging import getLogger
 import logging.config
 import phovea_server.config
 
-config = phovea_server.config.view('cohort')  # Read the config
+config = phovea_server.config.view('coral')  # Read the config
 logging.config.dictConfig(config.logging)  # Configure logger based on settings in config file
 _log = getLogger(__name__)  # Logger name is file name
 

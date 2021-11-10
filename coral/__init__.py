@@ -11,11 +11,11 @@ def phovea(registry):
   :param registry:
   """
   # generator-phovea:begin
-  registry.append('tdp-sql-database-definition', 'cohortdb', 'cohort.db', {
-     'configKey': 'cohort'
+  registry.append('tdp-sql-database-definition', 'cohortdb', 'coral.db', {
+     'configKey': 'coral'
     })
 
-  registry.append('namespace', 'db_connector', 'cohort.sql', {
+  registry.append('namespace', 'db_connector', 'coral.sql', {
        'namespace': '/api/cohortdb/db'
     })
   # generator-phovea:end

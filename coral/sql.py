@@ -11,7 +11,7 @@ from .sql_query_mapper import QueryElements
 _log = logging.getLogger(__name__)
 
 app = Namespace(__name__)
-config = phovea_server.config.view('cohort')
+config = phovea_server.config.view('coral')
 
 
 @app.route('/create', methods=['GET', 'POST'])

@@ -9,7 +9,7 @@
     "version": 1,
     "disable_existing_loggers": false,
     "loggers": {
-      "cohort": {
+      "coral": {
         "level": "DEBUG"
       }
     }

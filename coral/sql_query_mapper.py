@@ -16,7 +16,7 @@ logging.getLogger('sqlalchemy').setLevel(logging.INFO)
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
-config = phovea_server.config.view('cohort')
+config = phovea_server.config.view('coral')
 config_ordino = phovea_server.config.view('tdp_publicdb')
 config_student = phovea_server.config.view('tdp_student')
 config_covid19 = phovea_server.config.view('tdp_covid19')
