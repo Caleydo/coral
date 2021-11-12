@@ -13,11 +13,12 @@ Coral can be utilized to explore any type of cohort and sample set. Our focus, h
 
 ![screenshot](media/screenshot.full.png?raw=true "Screenshot")
 
+The application welcomes you with an overview of Coral and its features.
 
-Learn more about Coral by reading the [preprint](https://jku-vds-lab.at/publications/2021_preprint_coral/) and its supplemental material with two cancer genomics case studies.  
+Learn more about Coral by reading the [paper](https://jku-vds-lab.at/publications/2021_bioinformatics_coral/) and its supplemental material with two cancer genomics case studies.  
 For a quick overview of Coral, see our preview video:
 
-[<img src="https://img.youtube.com/vi/eaYfPnrufyY/maxresdefault.jpg" width=50% height=50%>](https://www.youtube.com/watch?v=eaYfPnrufyY)
+[<img src="https://img.youtube.com/vi/vSd3a9J63wQ/maxresdefault.jpg" width=50% height=50%>](https://www.youtube.com/watch?v=vSd3a9J63wQ)
 
 Feedback
 ------------
@@ -26,7 +27,7 @@ Your comments and feedback are welcome. Write an email to coral@caleydo.org and 
 If you have discovered an issue or have a feature suggestion, feel free to [create an issue on GitHub](https://github.com/Caleydo/coral/issues).
 
 Future versions of Coral are planned in the milestones of the Github issue tracker. You can use the milestones to see what's currently planned for future releases.
-Past releases and changelogs are available at https://github.com/Caleydo/coral/releases
+Past releases and changelogs are available at https://github.com/Caleydo/coral/releases.
 
 
 Installation
@@ -41,12 +42,17 @@ Please refer to [the product repository](https://github.com/Caleydo/coral_produc
 Citing Coral
 ------------
 
+Patrick Adelberger, Klaus Eckelt, Markus J. Bauer, Marc Streit, Christian Haslinger, Thomas Zichner  
+**Coral: a web-based visual analysis tool for creating and characterizing cohorts**  
+Bioinformatics, doi:10.1093/bioinformatics/btab695, 2021.  
+
 ```
-@article{2021_preprint_coral,
+@article{2021_bioinformatics_coral,
     title = {Coral: a web-based visual analysis tool for creating and characterizing cohorts},
     author = {Patrick Adelberger and Klaus Eckelt and Markus J. Bauer and Marc Streit and Christian Haslinger and Thomas Zichner},
-    journal = {bioRxiv},
-    doi = {10.1101/2021.05.26.445802},
+    journal = {Bioinformatics},
+    publisher = {Oxford University Press},
+    doi = {10.1093/bioinformatics/btab695},
     year = {2021}
 }
 ```
