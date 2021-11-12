@@ -35,7 +35,7 @@ Installation
 
 Coral is based on the [Target Discovery Platform](https://github.com/datavisyn/tdp_core) and uses the [Phovea Server](https://github.com/phovea/phovea_server) to run the backend and multiple other Phovea plugins.
 
-The [Coral Product repository](https://github.com/Caleydo/coral_product) describes all parts needed to set up a a running instance of Coral and is used to deploy the [stable](https://coral.caleydoapp.org/) and [daily development]((https://coral-daily.caleydoapp.org/)) builds.
+The [Coral Product repository](https://github.com/Caleydo/coral_product) describes all parts needed to set up a a running instance of Coral and is used to deploy the [stable](https://coral.caleydoapp.org/) and [daily development](https://coral-daily.caleydoapp.org/) builds.
 Please refer to [the product repository](https://github.com/Caleydo/coral_product) for setup instructions.
 
 
