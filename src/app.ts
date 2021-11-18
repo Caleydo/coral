@@ -1,7 +1,7 @@
 import {select, Selection} from 'd3-selection';
-import {CLUEGraphManager} from 'phovea_clue';
-import {AppContext, IObjectRef, ObjectRefUtils, ProvenanceGraph} from 'phovea_core';
-import {AppMetaDataUtils} from 'phovea_ui';
+import {CLUEGraphManager} from 'tdp_core';
+import {AppContext, IObjectRef, ObjectRefUtils, ProvenanceGraph} from 'tdp_core';
+import {AppMetaDataUtils} from 'tdp_core';
 import SplitGrid from 'split-grid';
 import {ATDPApplication, IDatabaseViewDesc, IServerColumn, NotificationHandler, RestBaseUtils} from 'tdp_core';
 import {cellline, tissue} from 'tdp_publicdb';

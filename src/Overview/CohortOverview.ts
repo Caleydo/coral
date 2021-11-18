@@ -1,4 +1,4 @@
-import {IObjectRef, ObjectRefUtils, ProvenanceGraph, UniqueIdManager} from 'phovea_core';
+import {IObjectRef, ObjectRefUtils, ProvenanceGraph, UniqueIdManager} from 'tdp_core';
 import {IDatabaseViewDesc} from 'tdp_core';
 import tippy from 'tippy.js';
 import {CohortApp} from '../app';

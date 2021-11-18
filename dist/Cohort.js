@@ -1,5 +1,5 @@
 import { format } from 'd3-format';
-import { IDTypeManager, UniqueIdManager } from 'phovea_core';
+import { IDTypeManager, UniqueIdManager } from 'tdp_core';
 import { ElementProvType } from './CohortInterfaces';
 import { createDBCohort, createDBCohortWithDepletionScoreFilter, createDBCohortWithEqualsFilter, createDBCohortWithGeneEqualsFilter, createDBCohortWithGeneNumFilter, createDBCohortWithNumFilter, createDBCohortWithPanelAnnotationFilter, createDBCohortWithTreatmentFilter, dataDBCohortDepletionScoreFilter, dataDBCohortGeneWithEqualsFilter, dataDBCohortGeneWithNumFilter, dataDBCohortPanelAnnotationFilter, dataDBCohortWithEqualsFilter, dataDBCohortWithNumFilter, getCohortData, getCohortSize, sizeDBCohortDepletionScoreFilter, sizeDBCohortGeneWithEqualsFilter, sizeDBCohortGeneWithNumFilter, sizeDBCohortPanelAnnotationFilter, sizeDBCohortWithEqualsFilter, sizeDBCohortWithNumFilter, updateCohortName, valueListDelimiter } from './rest';
 import { mergeTwoAllFilters } from './Tasks';

@@ -1,4 +1,4 @@
-import { IDType, IDTypeLike } from 'phovea_core';
+import { IDType, IDTypeLike } from 'tdp_core';
 import { IAllFilters, IRow, IServerColumn } from 'tdp_core';
 import { ICohort, ICohortRep, IElement, IElementProvJSONCohort, IProvAttrAndValuesCohort } from './CohortInterfaces';
 import { ICohortDepletionScoreFilterParams, ICohortEqualsFilterParams, ICohortGeneEqualsFilterParams, ICohortGeneNumFilterParams, ICohortNumFilterParams, ICohortPanelAnnotationFilterParams, ICohortRow, IEqualsList, INumRange } from './rest';

@@ -3,9 +3,9 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  **************************************************************************** */
-import { PluginRegistry } from 'phovea_core';
+import { PluginRegistry } from 'tdp_core';
 import { EP_ORDINO_HEADER_MENU, EP_ORDINO_FOOTER_MENU, EP_ORDINO_START_MENU_TAB, EP_ORDINO_LOGO, EStartMenuSection, EP_ORDINO_START_MENU_TAB_SHORTCUT } from 'ordino';
-import { EXTENSION_POINT_CUSTOMIZED_LOGIN_FORM } from 'phovea_security_flask';
+import { EXTENSION_POINT_CUSTOMIZED_LOGIN_FORM } from 'tdp_core';
 export default function (registry) {
     // Coral's custom login form
     registry.push(EXTENSION_POINT_CUSTOMIZED_LOGIN_FORM, 'tdpBioinfoLoginForm', () => import('./LoginDialog'), {});

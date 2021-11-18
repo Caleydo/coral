@@ -1,4 +1,4 @@
-import { ActionMetaData, ActionUtils, ObjectRefUtils } from 'phovea_core';
+import { ActionMetaData, ActionUtils, ObjectRefUtils } from 'tdp_core';
 import { log } from '../util';
 /******************************
  ---------- GENERAL ----------

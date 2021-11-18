@@ -1,4 +1,4 @@
-import {ActionMetaData, ActionUtils, ICmdResult, IObjectRef, ObjectRefUtils} from 'phovea_core';
+import {ActionMetaData, ActionUtils, ICmdResult, IObjectRef, ObjectRefUtils} from 'tdp_core';
 import {CohortApp} from '../app';
 import {IElementProvJSON} from '../CohortInterfaces';
 import {CohortOverview} from '../Overview/CohortOverview';

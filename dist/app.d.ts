@@ -1,5 +1,5 @@
-import { CLUEGraphManager } from 'phovea_clue';
-import { IObjectRef, ProvenanceGraph } from 'phovea_core';
+import { CLUEGraphManager } from 'tdp_core';
+import { IObjectRef, ProvenanceGraph } from 'tdp_core';
 import { ATDPApplication } from 'tdp_core';
 import { Cohort } from './Cohort';
 import { IElementProvJSON, IElementProvJSONCohort } from './CohortInterfaces';
