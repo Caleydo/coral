@@ -1,5 +1,5 @@
 import { useAsync } from 'ordino';
-import { AppMetaDataUtils } from 'phovea_ui';
+import { AppMetaDataUtils } from 'tdp_core';
 import React from 'react';
 export function SourceCodeCard() {
     const loadMetaData = React.useMemo(() => () => AppMetaDataUtils.getMetaData(), []);
