@@ -1,4 +1,4 @@
-import { useAsync } from 'ordino';
+import { useAsync } from 'tdp_core';
 import { AppMetaDataUtils } from 'tdp_core';
 import React from 'react';
 export function SourceCodeCard() {
