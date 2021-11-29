@@ -1,4 +1,4 @@
-import { Ajax, AppContext } from 'phovea_core';
+import { Ajax, AppContext } from 'tdp_core';
 import { deepCopy, log } from './util';
 export const valueListDelimiter = '&#x2e31;';
 /**

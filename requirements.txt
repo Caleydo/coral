@@ -1,2 +1,2 @@
--e git+https://github.com/phovea/phovea_server.git@v7.2.0#egg=phovea_server
--e git+https://github.com/datavisyn/tdp_core.git@v12.1.2#egg=tdp_core
+-e git+https://github.com/phovea/phovea_server.git@develop#egg=phovea_server
+-e git+https://github.com/datavisyn/tdp_core.git@develop#egg=tdp_core

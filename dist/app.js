@@ -1,6 +1,6 @@
 import { select } from 'd3-selection';
-import { AppContext, ObjectRefUtils } from 'phovea_core';
-import { AppMetaDataUtils } from 'phovea_ui';
+import { AppContext, ObjectRefUtils } from 'tdp_core';
+import { AppMetaDataUtils } from 'tdp_core';
 import SplitGrid from 'split-grid';
 import { ATDPApplication, NotificationHandler, RestBaseUtils } from 'tdp_core';
 import { cellline, tissue } from 'tdp_publicdb';
