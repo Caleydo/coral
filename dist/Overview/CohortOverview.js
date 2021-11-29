@@ -1,4 +1,4 @@
-import { ObjectRefUtils, UniqueIdManager } from 'phovea_core';
+import { ObjectRefUtils, UniqueIdManager } from 'tdp_core';
 import tippy from 'tippy.js';
 import { Cohort, createCohortFromDB } from '../Cohort';
 import { ElementProvType, TaskType } from '../CohortInterfaces';

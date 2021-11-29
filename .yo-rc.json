@@ -2,8 +2,7 @@
   "generator-phovea": {
     "type": "app-slib",
     "modules": [
-      "phovea_core",
-      "phovea_ui",
+      "tdp_core",
       "phovea_server"
     ],
     "vendors": {

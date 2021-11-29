@@ -1,4 +1,4 @@
-import {IObjectRef, ProvenanceGraph} from 'phovea_core';
+import {IObjectRef, ProvenanceGraph} from 'tdp_core';
 import {IDatabaseViewDesc, RestBaseUtils} from 'tdp_core';
 import {CohortApp, CohortSelectionListener} from './app';
 import {Cohort} from './Cohort';

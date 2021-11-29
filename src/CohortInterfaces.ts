@@ -1,4 +1,4 @@
-import {IDType} from 'phovea_core';
+import {IDType} from 'tdp_core';
 import {IServerColumn} from 'tdp_core';
 import {Cohort} from './Cohort';
 import {IAttribute, IAttributeJSON} from './data/Attribute';
