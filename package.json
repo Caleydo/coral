@@ -104,7 +104,9 @@
     "vega-embed": "6.19.1",
     "vega-functions": "5.12.0",
     "vega-lite": "5.1.1",
-    "vega-parser": "6.1.3"
+    "vega-parser": "6.1.3",
+    "ordino": "github:caleydo/ordino#v10.0.0"
+
   },
   "devDependencies": {
     "@types/react": "^16.14.6",
