@@ -130,7 +130,7 @@ class QueryElements:
     if cnt > 0:
       str_values = str_values[:-2]  # remove the last ', ' from the value list
     else:
-      str_values = "-1" # returns no cohorts -> ids are only positiv
+      str_values = "-1"  # returns no cohorts -> ids are only positiv
 
     sql_text = 'SELECT id, name, is_initial, previous_cohort, entity_database, entity_schema, entity_table FROM cohort.cohort c WHERE c.id IN ({str_values})'.format(str_values=str_values)
     # print('sql_text', sql_text)
