@@ -119,11 +119,18 @@ class QueryElements:
       raise RuntimeError(error_msg)
     values_split = values.split(VALUE_LIST_DELIMITER)
 
+    cnt = 0
     for val in values_split:
       curr_val = "{val}".format(val=val)
-      str_values = str_values + ("{val}, ".format(val=curr_val))
+      # check for if value is interger
+      if curr_val.isdigit():
+        str_values = str_values + ("{val}, ".format(val=curr_val))
+        cnt += 1
 
-    str_values = str_values[:-2]  # remove the last ', ' from the value list
+    if cnt > 0:
+      str_values = str_values[:-2]  # remove the last ', ' from the value list
+    else:
+      str_values = "-1" # returns no cohorts -> ids are only positiv
 
     sql_text = 'SELECT id, name, is_initial, previous_cohort, entity_database, entity_schema, entity_table FROM cohort.cohort c WHERE c.id IN ({str_values})'.format(str_values=str_values)
     # print('sql_text', sql_text)
