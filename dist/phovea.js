@@ -90,6 +90,11 @@ export default function (registry) {
                 faIcon: 'fas fa-database fa-fw',
                 text: 'Datasets',
                 page: '/datasets'
+            }, ,
+            {
+                faIcon: 'fas fa-fw fa-book-open',
+                text: `Publications`,
+                page: '/publications',
             },
             {
                 faIcon: 'fas fa-question-circle fa-fw',
