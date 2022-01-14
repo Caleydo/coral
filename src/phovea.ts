@@ -105,7 +105,12 @@ export default function (registry: IRegistry) {
         faIcon: 'fas fa-database fa-fw',
         text: 'Datasets',
         page: '/datasets'
-      },
+      },,
+      {
+        faIcon: 'fas fa-fw fa-book-open',
+        text: `Publications`,
+        page: '/publications',
+      }
       {
         faIcon: 'fas fa-question-circle fa-fw',
         text: 'Help',
