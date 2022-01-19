@@ -9,6 +9,7 @@
     "url": "https://jku-vds-lab.at/"
   },
   "license": "SEE LICENSE FILE",
+  "main": "dist/index.js",
   "bugs": {
     "url": "https://github.com/Caleydo/coral/issues"
   },
