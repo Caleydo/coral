@@ -8,5 +8,5 @@ export * from './CohortRepresentations';
 export * from './cohortview';
 export * from './LoginDialog';
 export * from './rest';
-export * from './pages';
+export * from './util';
 export * from './utils';

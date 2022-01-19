@@ -84,11 +84,6 @@ export default function (registry: IRegistry) {
     priority: 10,
   });
 
-  registry.push(EP_ORDINO_START_MENU_TAB, 'ordino_help_tab', () => import('./menu/HelpTab'), {
-    icon: 'fas fa-question-circle fa-fw',
-    menu: EStartMenuSection.RIGHT,
-  });
-
   registry.push(EP_ORDINO_HEADER_MENU, 'ordino_header_menu', () => ({}), <IOrdinoHeaderMenuDesc>{
     links: [
       {
