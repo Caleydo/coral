@@ -28,14 +28,9 @@
         "template": "dist/app.template.ejs",
         "html": "app/index.html",
         "chunkName": "app",
-        "excludeChunks": ["welcome"]
-      },
-      "welcome": {
-        "js": "dist/initialize.welcome.js",
-        "template": "dist/welcome.template.ejs",
-        "html": "index.html",
-        "chunkName": "welcome",
-        "excludeChunks": ["app"]
+        "excludeChunks": [
+          "welcome"
+        ]
       }
     },
     "libraryAliases": {
