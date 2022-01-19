@@ -29,7 +29,7 @@
         "html": "app/index.html",
         "chunkName": "app",
         "excludeChunks": [
-          "welcome"
+
         ]
       }
     },
