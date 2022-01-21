@@ -8,6 +8,7 @@
     "email": "coral@caleydo.org",
     "url": "https://jku-vds-lab.at/"
   },
+  "main": "dist/index.js",
   "license": "SEE LICENSE FILE",
   "bugs": {
     "url": "https://github.com/Caleydo/coral/issues"
