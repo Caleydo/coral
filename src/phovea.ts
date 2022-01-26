@@ -3,11 +3,9 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  **************************************************************************** */
-import {EXTENSION_POINT_CUSTOMIZED_LOGIN_FORM, IRegistry} from 'tdp_core';
+import {IRegistry} from 'tdp_core';
 
 export default function (registry: IRegistry) {
-  // Coral's custom login form
-  registry.push(EXTENSION_POINT_CUSTOMIZED_LOGIN_FORM, 'tdpBioinfoLoginForm', () => import('./LoginDialog'), {});
 
   // helper functions copied from tdp_core:
   // -------------------------------------------------------------------------------------------------------

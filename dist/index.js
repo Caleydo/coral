@@ -6,7 +6,6 @@ export * from './Cohort';
 export * from './CohortInterfaces';
 export * from './CohortRepresentations';
 export * from './cohortview';
-export * from './LoginDialog';
 export * from './rest';
 export * from './util';
 export * from './utils';

@@ -11,7 +11,6 @@ import { OnboardingManager } from './OnboardingManager';
 import { setDatasetAction } from './Provenance/General';
 import { getDBCohortData } from './rest';
 import deleteModal from './templates/DeleteModal.html';
-import loginDialog from './templates/LoginDialog.html';
 import welcomeHtml from './templates/Welcome.html'; // webpack imports html to variable
 import * as aboutDisclaimer from './templates/_aboutDisclaimer.html';
 import { getAnimatedLoadingText, handleDataLoadError, log, removeFromArray } from './util';
@@ -426,7 +425,7 @@ export class CohortApp {
  * The app for this website, embeds our Cohort App
  */
 export class App extends ATDPApplication {
-    constructor(name) {
+    constructor(name, loginDialog) {
         super({
             prefix: 'coral',
             name,

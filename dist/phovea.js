@@ -1,12 +1,4 @@
-/* *****************************************************************************
- * Caleydo - Visualization for Molecular Biology - http://caleydo.org
- * Copyright (c) The Caleydo Team. All rights reserved.
- * Licensed under the new BSD license, available at http://caleydo.org/license
- **************************************************************************** */
-import { EXTENSION_POINT_CUSTOMIZED_LOGIN_FORM } from 'tdp_core';
 export default function (registry) {
-    // Coral's custom login form
-    registry.push(EXTENSION_POINT_CUSTOMIZED_LOGIN_FORM, 'tdpBioinfoLoginForm', () => import('./LoginDialog'), {});
     // helper functions copied from tdp_core:
     // -------------------------------------------------------------------------------------------------------
     function actionFunction(id, factory, loader, options) {
