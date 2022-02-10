@@ -1,4 +1,5 @@
 import * as aq from 'arquero';
+import { select } from 'd3-selection';
 import * as LineUpJS from 'lineupjs';
 import { colors } from '../../colors';
 import { getCohortData } from '../../rest';
@@ -26,6 +27,14 @@ export class Details extends ATask {
         const eventId = ++this.eventID; // get new eventID, we will compare it with the field again to see if it is still up to date
         if (cohorts.length > 0) {
             this.$lineUpContainer = this.body.append('div').classed('lineup-container', true).node();
+            select(columnHeader).selectAll('.export').remove();
+            select(columnHeader).append('button')
+                .text('Export')
+                .attr('type', 'button')
+                .attr('title', 'Export to CSV')
+                .classed('btn btn-coral-prime export', true)
+                .on('click', async () => this.download());
+            columnHeader.insertAdjacentHTML('beforeend', `<a href="#" id="downloadHelper" class="export" target="_blank" rel="noopener"></a>`);
             this.$lineUpContainer.insertAdjacentElement('beforeend', getAnimatedLoadingText('data'));
             const data = await this.getData(attributes, cohorts);
             if (eventId !== this.eventID) {
@@ -106,13 +115,24 @@ export class Details extends ATask {
         builder.rowHeight(21);
         builder.singleSelection(); // only single selection possible
         this.$lineUpContainer.firstChild.remove();
-        const lineup = builder.build(this.$lineUpContainer);
+        this.lineup = builder.build(this.$lineUpContainer);
     }
     getCategoryColorsForColumn(mergedDataArray, attr) {
         const uniqueCat = Array.from(new Set(mergedDataArray.map((elem) => elem[attr.dataKey])));
         const categoryColors = uniqueCat.map((cat, i) => { return { name: cat, color: CohortColorSchema.get(i) }; });
-        // log.debug('unique categories for "',attr.dataKey,'" : ', categoryColors);
         return categoryColors;
+    }
+    close() {
+        super.close();
+        select(this.$columnHeader).selectAll('.export').remove();
+    }
+    async download() {
+        const data = await this.lineup.data.exportTable(this.lineup.data.getRankings()[0], { separator: ',' });
+        const b = new Blob([data], { type: 'text/csv' });
+        const downloadHelper = this.$columnHeader.querySelector('a#downloadHelper');
+        downloadHelper.href = URL.createObjectURL(b);
+        downloadHelper.download = 'coral-cohorts.csv';
+        downloadHelper.click();
     }
 }
 //# sourceMappingURL=Details.js.map

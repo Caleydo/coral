@@ -9,6 +9,7 @@ export declare class Details extends ATask {
     private eventID;
     private _entityName;
     private $lineUpContainer;
+    private lineup;
     supports(attributes: IAttribute[], cohorts: ICohort[]): boolean;
     showSearchBar(): boolean;
     show(columnHeader: HTMLDivElement, container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]): Promise<void>;
@@ -18,4 +19,6 @@ export declare class Details extends ATask {
         name: string;
         color: string;
     }[];
+    close(): void;
+    download(): Promise<void>;
 }
