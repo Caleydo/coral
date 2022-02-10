@@ -136,7 +136,7 @@ export class Details extends ATask {
   }
 
   close() {
-    super.close()
+    super.close();
     select(this.$columnHeader).selectAll('.export').remove();
   }
 
