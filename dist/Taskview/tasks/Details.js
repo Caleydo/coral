@@ -29,10 +29,11 @@ export class Details extends ATask {
             this.$lineUpContainer = this.body.append('div').classed('lineup-container', true).node();
             select(columnHeader).selectAll('.export').remove();
             select(columnHeader).append('button')
-                .text('Export')
+                .text('Export Data')
                 .attr('type', 'button')
                 .attr('title', 'Export to CSV')
                 .classed('btn btn-coral-prime export', true)
+                .style('width', '18rem').style('margin-left', '1rem').style('margin-right', '1rem')
                 .on('click', async () => this.download());
             columnHeader.insertAdjacentHTML('beforeend', `<a href="#" id="downloadHelper" class="export" target="_blank" rel="noopener"></a>`);
             this.$lineUpContainer.insertAdjacentElement('beforeend', getAnimatedLoadingText('data'));
@@ -127,7 +128,7 @@ export class Details extends ATask {
         select(this.$columnHeader).selectAll('.export').remove();
     }
     async download() {
-        const data = await this.lineup.data.exportTable(this.lineup.data.getRankings()[0], { separator: ',' });
+        const data = await this.lineup.data.exportTable(this.lineup.data.getRankings()[0], { separator: ';' });
         const b = new Blob([data], { type: 'text/csv' });
         const downloadHelper = this.$columnHeader.querySelector('a#downloadHelper');
         downloadHelper.href = URL.createObjectURL(b);
