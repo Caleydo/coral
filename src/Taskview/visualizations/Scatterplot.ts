@@ -32,7 +32,7 @@ export class Scatterplot extends MultiAttributeVisualization {
       $schema: `https://vega.github.io/schema/vega/v5.json`,
       autosize: {type: `fit`, contains: `padding`},
       background: `white`,
-      padding: {left: 5, top: 5, right: 5, bottom: 0}, // top and right padding are necessary for split rulers
+      padding: {left: 5, top: 5, right: 5, bottom: 5}, // top and right padding are necessary for split rulers
       height: 300,
       style: `cell`,
       encode: {update: {cursor: {value: `crosshair`}}},

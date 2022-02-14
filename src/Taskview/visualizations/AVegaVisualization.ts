@@ -72,7 +72,7 @@ export abstract class AVegaVisualization implements IVegaVisualization {
       $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
       width: 'container', //responsive width
       autosize: {type: 'fit', contains: 'padding'},
-      padding: {left: 5, top: 0, right: 5, bottom: 0},
+      padding: {left: 5, top: 0, right: 5, bottom: 5},
       data: {values: data},
       //mark
       //encoding
