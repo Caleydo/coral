@@ -425,7 +425,7 @@ export class CohortApp {
  * The app for this website, embeds our Cohort App
  */
 export class App extends ATDPApplication {
-    constructor(name, loginDialog) {
+    constructor(name, loginDialog, showCookieDisclaimer = true) {
         super({
             prefix: 'coral',
             name,
@@ -434,7 +434,7 @@ export class App extends ATDPApplication {
              * Link to help and show help in `Ordino at a Glance` page instead
              */
             showHelpLink: `${(window.location.href).split('app/')[0] + '#/help'}`,
-            showCookieDisclaimer: true,
+            showCookieDisclaimer,
             /**
              * Show content in the `Ordino at a Glance` page instead
              */

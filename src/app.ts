@@ -510,7 +510,7 @@ export class CohortApp {
  */
 export class App extends ATDPApplication<CohortApp> {
 
-  constructor(name: string, loginDialog: string) {
+  constructor(name: string, loginDialog: string, showCookieDisclaimer: boolean = true) {
     super({
       prefix: 'coral',
       name,
@@ -519,7 +519,7 @@ export class App extends ATDPApplication<CohortApp> {
        * Link to help and show help in `Ordino at a Glance` page instead
        */
       showHelpLink: `${(window.location.href).split('app/')[0]+'#/help'}`,
-      showCookieDisclaimer: true,
+      showCookieDisclaimer,
       /**
        * Show content in the `Ordino at a Glance` page instead
        */
