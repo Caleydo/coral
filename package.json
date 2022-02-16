@@ -98,7 +98,7 @@
     "react-dom": "^16.13.0",
     "react-router-dom": "^5.2.0",
     "split-grid": "^1.0.9",
-    "tdp_publicdb": "github:caleydo/tdp_publicdb#keckelt/rem_dTiles",
+    "tdp_publicdb": "github:caleydo/tdp_publicdb#develop",
     "tippy.js": "^6.2.6",
     "tourdino": "github:caleydo/tourdino#keckelt/vega_boxplot",
     "vega": "~5.20.0",
