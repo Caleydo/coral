@@ -2,13 +2,14 @@
   "name": "coral",
   "description": "Coral is a web-based cohort analysis tool to interactively create, refine, and analyze patient cohorts.",
   "homepage": "https://caleydo.org",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "author": {
     "name": "PatrickAdelberger",
     "email": "coral@caleydo.org",
     "url": "https://jku-vds-lab.at/"
   },
   "license": "SEE LICENSE FILE",
+  "main": "dist/index.js",
   "bugs": {
     "url": "https://github.com/Caleydo/coral/issues"
   },
@@ -97,7 +98,7 @@
     "react-dom": "^16.13.0",
     "react-router-dom": "^5.2.0",
     "split-grid": "^1.0.9",
-    "tdp_publicdb": "github:caleydo/tdp_publicdb#keckelt/rem_dTiles",
+    "tdp_publicdb": "github:caleydo/tdp_publicdb#develop",
     "tippy.js": "^6.2.6",
     "tourdino": "github:caleydo/tourdino#keckelt/vega_boxplot",
     "vega": "~5.20.0",

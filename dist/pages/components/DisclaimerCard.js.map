@@ -1,1 +1,0 @@
-{"version":3,"file":"DisclaimerCard.js","sourceRoot":"","sources":["../../../src/pages/components/DisclaimerCard.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,KAAK,MAAM,OAAO,CAAC;AAE/B,MAAM,UAAU,cAAc;IAC1B,OAAO,CACH,6BAAK,SAAS,EAAC,oBAAoB;QAC/B,6BAAK,SAAS,EAAC,WAAW;YACtB,2BAAG,SAAS,EAAC,2CAA2C;gBAExD,kDAA4B;uFAExB,CACF,CACJ,CACT,CAAC;AACN,CAAC"}

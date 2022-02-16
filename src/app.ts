@@ -17,7 +17,6 @@ import {getDBCohortData} from './rest';
 import {Task} from './Tasks';
 import Taskview, {InputCohort} from './Taskview/Taskview';
 import deleteModal from './templates/DeleteModal.html';
-import loginDialog from './templates/LoginDialog.html';
 import welcomeHtml from './templates/Welcome.html'; // webpack imports html to variable
 import * as aboutDisclaimer from './templates/_aboutDisclaimer.html';
 import {getAnimatedLoadingText, handleDataLoadError, log, removeFromArray} from './util';
@@ -511,7 +510,7 @@ export class CohortApp {
  */
 export class App extends ATDPApplication<CohortApp> {
 
-  constructor(name: string) {
+  constructor(name: string, loginDialog: string) {
     super({
       prefix: 'coral',
       name,
