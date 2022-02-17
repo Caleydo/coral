@@ -34,8 +34,11 @@ export class Details extends ATask {
 
     if (cohorts.length > 0) {
       this.$lineUpContainer = this.body.append('div').classed('lineup-container', true).node();
+      this.$lineUpContainer.insertAdjacentElement('beforeend', getAnimatedLoadingText('data'));
       select(columnHeader).selectAll('.export').remove();
-      select(columnHeader).append('button')
+      
+      const data = await this.getData(attributes, cohorts as Cohort[]);
+      select(columnHeader).append('button') // add button after the data is available
         .text('Export Data')
         .attr('type', 'button')
         .attr('title', 'Export to CSV')
@@ -43,9 +46,6 @@ export class Details extends ATask {
         .style('width', '18rem').style('margin-left', '1rem').style('margin-right', '1rem')
         .on('click', async () => this.download());
       columnHeader.insertAdjacentHTML('beforeend', `<a href="#" id="downloadHelper" class="export" target="_blank" rel="noopener"></a>`);
-      this.$lineUpContainer.insertAdjacentElement('beforeend', getAnimatedLoadingText('data'));
-
-      const data = await this.getData(attributes, cohorts as Cohort[]);
       if (eventId !== this.eventID) {return;}
       this.createLineup(data, attributes, cohorts);
     }
