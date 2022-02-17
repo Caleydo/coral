@@ -36,7 +36,7 @@ export class Details extends ATask {
       this.$lineUpContainer = this.body.append('div').classed('lineup-container', true).node();
       this.$lineUpContainer.insertAdjacentElement('beforeend', getAnimatedLoadingText('data'));
       select(columnHeader).selectAll('.export').remove();
-      
+
       const data = await this.getData(attributes, cohorts as Cohort[]);
       select(columnHeader).append('button') // add button after the data is available
         .text('Export Data')
