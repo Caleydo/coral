@@ -64,7 +64,7 @@ export declare class CohortApp {
  * The app for this website, embeds our Cohort App
  */
 export declare class App extends ATDPApplication<CohortApp> {
-    constructor(name: string, loginDialog: string);
+    constructor(name: string, loginDialog: string, showCookieDisclaimer?: boolean);
     protected createApp(graph: ProvenanceGraph, manager: CLUEGraphManager, main: HTMLElement): CohortApp | PromiseLike<CohortApp>;
     private replaceHelpIcon;
     protected initSessionImpl(app: CohortApp): void;
