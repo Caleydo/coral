@@ -72,26 +72,26 @@ export abstract class AVegaVisualization implements IVegaVisualization {
       $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
       width: 'container', //responsive width
       autosize: {type: 'fit', contains: 'padding'},
-      padding: {left: 5, top: 0, right: 5, bottom: 0},
+      padding: {left: 5, top: 0, right: 5, bottom: 5},
       data: {values: data},
       //mark
       //encoding
       config: {
         axis: {
-          titleFontSize: 16, titleFontWeight: 500, titleFont: 'Yantramanav',
-          labelFontSize: 12, labelLimit: 150, labelFont: 'Yantramanav',
+          titleFontSize: 16, titleFontWeight: 500, titleFont: 'Roboto',
+          labelFontSize: 12, labelLimit: 150, labelFont: 'Roboto',
           labelOverlap: 'parity', // hide if labels overlap
           labelSeparation: 5,
           labelBound: true // clip labels if they are not within chart area
         },
         legend: {
-          titleFontSize: 16, titleFontWeight: 500, titleFont: 'Yantramanav',
-          labelFontSize: 12, labelLimit: 150, labelFont: 'Yantramanav',
+          titleFontSize: 16, titleFontWeight: 500, titleFont: 'Roboto',
+          labelFontSize: 12, labelLimit: 150, labelFont: 'Roboto',
           labelOverlap: 'parity'
         },
         header: {
-          titleFontSize: 16, titleFontWeight: 500, titleFont: 'Yantramanav',
-          labelFontSize: 12, labelLimit: 150, labelFont: 'Yantramanav'
+          titleFontSize: 16, titleFontWeight: 500, titleFont: 'Roboto',
+          labelFontSize: 12, labelLimit: 150, labelFont: 'Roboto'
         },
         range: {
           category: this.colorPalette //Cat16.COLOR_SCHEME

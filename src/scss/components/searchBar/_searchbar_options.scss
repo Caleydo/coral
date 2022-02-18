@@ -30,7 +30,6 @@
       border-top: 1px solid $color-search-bar-header-border;
       border-bottom: 1px solid $color-search-bar-header-border;
       font-weight: bolder;
-      font-family: "Helvetica";
     }
 
     .option {
@@ -123,7 +122,6 @@
       &.detail-dbc,
       &.detail-panel {
         font-size: 13px;
-        font-family: "Helvetica";
         overflow-x: hidden;
         p {
           word-wrap: break-word;
@@ -143,7 +141,6 @@
           padding: 5px 2px 5px 10px;
           background-color: $color-search-bar-option-detail-header-bg;
           font-weight: bolder;
-          font-family: "Helvetica";
           font-size: 14px;
         }
 
@@ -158,7 +155,6 @@
           border-top: 1px solid $color-search-bar-option-detail-top-border;
           border-bottom: 1px solid $color-search-bar-option-detail-bottom-border;
           font-weight: bolder;
-          font-family: "Helvetica";
           font-size: 12px;
         }
 
@@ -242,7 +238,6 @@
           padding: 5px 2px 5px 10px;
           background-color: $color-search-bar-option-detail-header-bg;
           font-weight: bolder;
-          font-family: "Helvetica";
           font-size: 14px;
 
           .detail-info-gene-ensemble {
@@ -257,7 +252,6 @@
           border-top: 1px solid $color-search-bar-option-detail-top-border;
           border-bottom: 1px solid $color-search-bar-option-detail-bottom-border;
           font-weight: bolder;
-          font-family: "Helvetica";
           font-size: 12px;
         }
 

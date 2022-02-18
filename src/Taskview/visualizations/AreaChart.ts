@@ -23,7 +23,7 @@ export class AreaChart extends MultiAttributeVisualization {
     const scatterSpec: VegaLiteSpec = {
       $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
       data: {values: data},
-      padding: {left: 5, top: 0, right: 5, bottom: 0},
+      padding: {left: 5, top: 0, right: 5, bottom: 5},
       mark: {type: 'square', tooltip: true},
       encoding: {
         row: {
