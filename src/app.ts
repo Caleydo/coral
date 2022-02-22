@@ -140,15 +140,14 @@ export class CohortApp {
   }
 
   private async builDataSelector(btnGrp) {
-    // first set back button, in case data retrieval fails
-    select('nav a.navbar-brand.caleydo_app')
-      .attr('href', '/')
-      .attr('title', 'Open Coral start page in a new tab')
-      .attr('target', '_blank')
-      .attr('rel', 'noopener noreferrer')
-    // .on('click', async () => { // click on logo
-    //   this.handleDatasetClick({source: null, rootCohort: null, chtOverviewElements: null});
-    // });
+    // reconfigure app link to open the homepage in a new tab
+    // do this first, in case data retrieval fails
+    const appLink = document.querySelector('*[data-header="appLink"]') as HTMLAnchorElement;
+    appLink.title = 'Open Coral start page in a new tab';
+    appLink.href = '/'; // domain root
+    appLink.target = '_blank';
+    appLink.rel = 'noopener noreferrer';
+    appLink.onclick = null; // remove default click listener from `ATDPApplication.createHeader()`
 
 
     const databases = await this.getDatabases();
