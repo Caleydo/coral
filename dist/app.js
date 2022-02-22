@@ -72,6 +72,14 @@ export class CohortApp {
     async build() {
         log.debug('Build app html structure');
         this.$node.selectAll('*').remove();
+        // reconfigure app link to open the homepage in a new tab
+        // do this first, in case data retrieval fails
+        const appLink = document.querySelector('*[data-header="appLink"]');
+        appLink.title = 'Open Coral start page in a new tab';
+        appLink.href = '/'; // domain root
+        appLink.target = '_blank';
+        appLink.rel = 'noopener noreferrer';
+        appLink.onclick = null; // remove default click listener from `ATDPApplication.createHeader()`
         const controlBar = this.$node.append('div').attr('class', 'control-bar');
         controlBar.append('span').classed('control-bar-label', true).text('Datasets:');
         const btnGrp = controlBar.append('div').attr('id', 'db_btnGrp').attr('style', 'display: flex;gap: 0.5em;');
@@ -101,14 +109,6 @@ export class CohortApp {
         return Promise.resolve(this);
     }
     async builDataSelector(btnGrp) {
-        // reconfigure app link to open the homepage in a new tab
-        // do this first, in case data retrieval fails
-        const appLink = document.querySelector('*[data-header="appLink"]');
-        appLink.title = 'Open Coral start page in a new tab';
-        appLink.href = '/'; // domain root
-        appLink.target = '_blank';
-        appLink.rel = 'noopener noreferrer';
-        appLink.onclick = null; // remove default click listener from `ATDPApplication.createHeader()`
         const databases = await this.getDatabases();
         // find databases with idtypes (i.e. with data we can use in Coral)
         const dataSources = this.defineIdTypes(databases);
@@ -161,6 +161,15 @@ export class CohortApp {
             const dataSourcesAndPanels = select(this.parentNode.parentNode).datum(); // a -> parent = li -> parent = dropdown = ul
             const newDataset = { source: dataSourcesAndPanels.source, panel: d, rootCohort: null, chtOverviewElements: null };
             that.handleDatasetClick.bind(that)(newDataset);
+        });
+        this.restartSession = btnGrp.append('button')
+            .attr('type', 'button')
+            .attr('class', 'btn btn-coral')
+            .html(`<i class="fas fa-redo fa-flip-horizontal"></i> New Session`)
+            .attr('style', 'margin-left: 2.5rem;')
+            .attr('hidden', true)
+            .on('click', async () => {
+            this.graphManager.newGraph();
         });
     }
     async handleDatasetClick(newDataset) {
@@ -281,6 +290,7 @@ export class CohortApp {
                         this.rootCohort = rootCohort;
                     }
                     this._showChangeLayoutOptions(true);
+                    this.restartSession.attr('hidden', null); // remove with null (not false)
                     select('#db_btnGrp').select(`button[data-db="${source.dbConnectorName}"][data-dbview="${source.viewName}"]`).classed('selected', true); //add selected class to current button
                     const views = await createCohortOverview(this.graph, this.ref, this.$overview, this.$detail, this.dataset.source, rootCohort);
                     // get loading animation

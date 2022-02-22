@@ -14,6 +14,7 @@ export declare class CohortApp {
     private readonly $node;
     private $overview;
     private $detail;
+    private restartSession;
     readonly name: string;
     private dataset;
     private _cohortOverview;
