@@ -144,6 +144,17 @@ export class CohortApp {
   }
 
   private async builDataSelector(btnGrp) {
+    // first set back button, in case data retrieval fails
+    select('nav a.navbar-brand.caleydo_app')
+      .attr('href', '/')
+      .attr('title', 'Open Coral start page in a new tab')
+      .attr('target', '_blank')
+      .attr('rel', 'noopener noreferrer')
+    // .on('click', async () => { // click on logo
+    //   this.handleDatasetClick({source: null, rootCohort: null, chtOverviewElements: null});
+    // });
+
+
     const databases = await this.getDatabases();
     // find databases with idtypes (i.e. with data we can use in Coral)
     const dataSources = this.defineIdTypes(databases);
@@ -172,10 +183,6 @@ export class CohortApp {
           {source: d.source, rootCohort: null, chtOverviewElements: null}; // select
         this.handleDatasetClick(newDataset);
       });
-
-    select('nav a.navbar-brand.caleydo_app').on('click', async () => { // click on logo
-      this.handleDatasetClick({source: null, rootCohort: null, chtOverviewElements: null});
-    });
 
     datasetGroup.append('button')
       .attr('type', 'button')
