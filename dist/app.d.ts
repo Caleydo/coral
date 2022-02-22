@@ -1,6 +1,4 @@
-import { CLUEGraphManager } from 'tdp_core';
-import { IObjectRef, ProvenanceGraph } from 'tdp_core';
-import { ATDPApplication } from 'tdp_core';
+import { ATDPApplication, CLUEGraphManager, IObjectRef, ProvenanceGraph } from 'tdp_core';
 import { Cohort } from './Cohort';
 import { IElementProvJSON, IElementProvJSONCohort } from './CohortInterfaces';
 import { CohortOverview } from './Overview';

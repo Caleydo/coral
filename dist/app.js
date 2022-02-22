@@ -1,8 +1,6 @@
 import { select } from 'd3-selection';
-import { AppContext, ObjectRefUtils } from 'tdp_core';
-import { AppMetaDataUtils } from 'tdp_core';
 import SplitGrid from 'split-grid';
-import { ATDPApplication, NotificationHandler, RestBaseUtils } from 'tdp_core';
+import { AppContext, ATDPApplication, NotificationHandler, ObjectRefUtils, RestBaseUtils } from 'tdp_core';
 import { cellline, tissue } from 'tdp_publicdb';
 import { createCohort, createCohortFromDB } from './Cohort';
 import { cohortOverview, createCohortOverview, destroyOld, loadViewDescription, taskview } from './cohortview';
@@ -12,7 +10,6 @@ import { setDatasetAction } from './Provenance/General';
 import { getDBCohortData } from './rest';
 import deleteModal from './templates/DeleteModal.html';
 import welcomeHtml from './templates/Welcome.html'; // webpack imports html to variable
-import * as aboutDisclaimer from './templates/_aboutDisclaimer.html';
 import { getAnimatedLoadingText, handleDataLoadError, log, removeFromArray } from './util';
 import { CohortSelectionEvent, COHORT_SELECTION_EVENT_TYPE, CONFIRM_TASK_EVENT_TYPE, PreviewConfirmEvent } from './utilCustomEvents';
 import { idCellline, idCovid19, idStudent, idTissue } from './utilIdTypes';
@@ -104,6 +101,15 @@ export class CohortApp {
         return Promise.resolve(this);
     }
     async builDataSelector(btnGrp) {
+        // first set back button, in case data retrieval fails
+        select('nav a.navbar-brand.caleydo_app')
+            .attr('href', '/')
+            .attr('title', 'Open Coral start page in a new tab')
+            .attr('target', '_blank')
+            .attr('rel', 'noopener noreferrer');
+        // .on('click', async () => { // click on logo
+        //   this.handleDatasetClick({source: null, rootCohort: null, chtOverviewElements: null});
+        // });
         const databases = await this.getDatabases();
         // find databases with idtypes (i.e. with data we can use in Coral)
         const dataSources = this.defineIdTypes(databases);
@@ -130,9 +136,6 @@ export class CohortApp {
                 { source: null, rootCohort: null, chtOverviewElements: null } : // deselect
                 { source: d.source, rootCohort: null, chtOverviewElements: null }; // select
             this.handleDatasetClick(newDataset);
-        });
-        select('nav a.navbar-brand.caleydo_app').on('click', async () => {
-            this.handleDatasetClick({ source: null, rootCohort: null, chtOverviewElements: null });
         });
         datasetGroup.append('button')
             .attr('type', 'button')
@@ -431,17 +434,16 @@ export class App extends ATDPApplication {
             name,
             loginForm: loginDialog,
             /**
-             * Link to help and show help in `Ordino at a Glance` page instead
+             * Link to help and show help in `Coral at a Glance` page instead
              */
             showHelpLink: `${(window.location.href).split('app/')[0] + '#/help'}`,
             showCookieDisclaimer,
             /**
-             * Show content in the `Ordino at a Glance` page instead
+             * Show content in the `Coral at a Glance` page instead
              */
-            // showAboutLink,
             showAboutLink: false,
             /**
-             * Show content in the `Ordino at a Glance` page instead
+             * Show content in the `Coral at a Glance` page instead
              */
             showReportBugLink: false,
         });
@@ -522,16 +524,5 @@ export class CohortSelectionListener {
             this.taskview.clearOutput(); // every selection change clears the output cohorts
         }
     }
-}
-function showAboutLink(title, content) {
-    title.innerHTML = 'Coral';
-    // insert disclaimer
-    const caleydoInfo = content.querySelector(`.caleydoInfo p`);
-    content.innerHTML = `<article class="about-disclaimer">${aboutDisclaimer}</article>`;
-    // move the information about caleydo to the source code section and remove the rest of the info
-    document.getElementById('about-source-code').insertAdjacentElement('beforeend', caleydoInfo);
-    AppMetaDataUtils.getMetaData().then((metaData) => {
-        document.getElementById('about-source-code').insertAdjacentHTML('beforeend', `<p class="version"><strong>Version</strong>: ${metaData.version}</p>`);
-    });
 }
 //# sourceMappingURL=app.js.map

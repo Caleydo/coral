@@ -1,9 +1,6 @@
 import {select, Selection} from 'd3-selection';
-import {CLUEGraphManager} from 'tdp_core';
-import {AppContext, IObjectRef, ObjectRefUtils, ProvenanceGraph} from 'tdp_core';
-import {AppMetaDataUtils} from 'tdp_core';
 import SplitGrid from 'split-grid';
-import {ATDPApplication, IDatabaseViewDesc, IServerColumn, NotificationHandler, RestBaseUtils} from 'tdp_core';
+import {AppContext, ATDPApplication, CLUEGraphManager, IDatabaseViewDesc, IObjectRef, IServerColumn, NotificationHandler, ObjectRefUtils, ProvenanceGraph, RestBaseUtils} from 'tdp_core';
 import {cellline, tissue} from 'tdp_publicdb';
 import {Instance as TippyInstance} from 'tippy.js';
 import {Cohort, createCohort, createCohortFromDB} from './Cohort';
@@ -18,7 +15,6 @@ import {Task} from './Tasks';
 import Taskview, {InputCohort} from './Taskview/Taskview';
 import deleteModal from './templates/DeleteModal.html';
 import welcomeHtml from './templates/Welcome.html'; // webpack imports html to variable
-import * as aboutDisclaimer from './templates/_aboutDisclaimer.html';
 import {getAnimatedLoadingText, handleDataLoadError, log, removeFromArray} from './util';
 import {CohortSelectionEvent, COHORT_SELECTION_EVENT_TYPE, ConfirmTaskEvent, CONFIRM_TASK_EVENT_TYPE, PreviewConfirmEvent} from './utilCustomEvents';
 import {idCellline, idCovid19, idStudent, idTissue, IEntitySourceConfig} from './utilIdTypes';
@@ -205,7 +201,7 @@ export class CohortApp {
       .selectAll('li.data-panel')
       .data((d) => d.panels)
       .enter()
-      .append('li') .classed('data-panel', true).classed('dropdown-item', true)
+      .append('li').classed('data-panel', true).classed('dropdown-item', true)
       .append('a').text((d) => d.id).attr('title', (d) => d.description)
       .on('click', async function (d) { // click subset
         // don't toggle data by checkging what is selected in dropdown
@@ -523,17 +519,16 @@ export class App extends ATDPApplication<CohortApp> {
       name,
       loginForm: loginDialog,
       /**
-       * Link to help and show help in `Ordino at a Glance` page instead
+       * Link to help and show help in `Coral at a Glance` page instead
        */
-      showHelpLink: `${(window.location.href).split('app/')[0]+'#/help'}`,
+      showHelpLink: `${(window.location.href).split('app/')[0] + '#/help'}`,
       showCookieDisclaimer,
       /**
-       * Show content in the `Ordino at a Glance` page instead
+       * Show content in the `Coral at a Glance` page instead
        */
-      // showAboutLink,
       showAboutLink: false,
       /**
-       * Show content in the `Ordino at a Glance` page instead
+       * Show content in the `Coral at a Glance` page instead
        */
       showReportBugLink: false,
     });
@@ -645,19 +640,4 @@ export interface IDatasetDesc {
   panel?: IPanelDesc;
   rootCohort: IElementProvJSONCohort;
   chtOverviewElements: IElementProvJSON[];
-}
-
-function showAboutLink(title: HTMLElement, content: HTMLElement) {
-  title.innerHTML = 'Coral';
-
-  // insert disclaimer
-  const caleydoInfo = content.querySelector(`.caleydoInfo p`);
-  content.innerHTML = `<article class="about-disclaimer">${aboutDisclaimer}</article>`;
-
-  // move the information about caleydo to the source code section and remove the rest of the info
-  document.getElementById('about-source-code').insertAdjacentElement('beforeend', caleydoInfo);
-
-  AppMetaDataUtils.getMetaData().then((metaData) => {
-    document.getElementById('about-source-code').insertAdjacentHTML('beforeend', `<p class="version"><strong>Version</strong>: ${metaData.version}</p>`);
-  });
 }
