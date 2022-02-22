@@ -38,6 +38,7 @@ export class Details extends ATask {
       select(columnHeader).selectAll('.export').remove();
 
       const data = await this.getData(attributes, cohorts as Cohort[]);
+      if (eventId !== this.eventID) {return;}
       select(columnHeader).append('button') // add button after the data is available
         .text('Export Data')
         .attr('type', 'button')
@@ -46,7 +47,6 @@ export class Details extends ATask {
         .style('width', '18rem').style('margin-left', '1rem').style('margin-right', '1rem')
         .on('click', async () => this.download());
       columnHeader.insertAdjacentHTML('beforeend', `<a href="#" id="downloadHelper" class="export" target="_blank" rel="noopener"></a>`);
-      if (eventId !== this.eventID) {return;}
       this.createLineup(data, attributes, cohorts);
     }
   }
