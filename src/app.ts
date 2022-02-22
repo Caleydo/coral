@@ -105,7 +105,7 @@ export class CohortApp {
   private async build() {
     log.debug('Build app html structure');
     this.$node.selectAll('*').remove();
-    
+
     // reconfigure app link to open the homepage in a new tab
     // do this first, in case data retrieval fails
     const appLink = document.querySelector('*[data-header="appLink"]') as HTMLAnchorElement;
