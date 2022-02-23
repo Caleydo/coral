@@ -1,9 +1,6 @@
 import {select, Selection} from 'd3-selection';
-import {CLUEGraphManager} from 'tdp_core';
-import {AppContext, IObjectRef, ObjectRefUtils, ProvenanceGraph} from 'tdp_core';
-import {AppMetaDataUtils} from 'tdp_core';
 import SplitGrid from 'split-grid';
-import {ATDPApplication, IDatabaseViewDesc, IServerColumn, NotificationHandler, RestBaseUtils} from 'tdp_core';
+import {AppContext, ATDPApplication, CLUEGraphManager, IDatabaseViewDesc, IObjectRef, IServerColumn, NotificationHandler, ObjectRefUtils, ProvenanceGraph, RestBaseUtils} from 'tdp_core';
 import {cellline, tissue} from 'tdp_publicdb';
 import {Instance as TippyInstance} from 'tippy.js';
 import {Cohort, createCohort, createCohortFromDB} from './Cohort';
@@ -18,7 +15,6 @@ import {Task} from './Tasks';
 import Taskview, {InputCohort} from './Taskview/Taskview';
 import deleteModal from './templates/DeleteModal.html';
 import welcomeHtml from './templates/Welcome.html'; // webpack imports html to variable
-import * as aboutDisclaimer from './templates/_aboutDisclaimer.html';
 import {getAnimatedLoadingText, handleDataLoadError, log, removeFromArray} from './util';
 import {CohortSelectionEvent, COHORT_SELECTION_EVENT_TYPE, ConfirmTaskEvent, CONFIRM_TASK_EVENT_TYPE, PreviewConfirmEvent} from './utilCustomEvents';
 import {idCellline, idCovid19, idStudent, idTissue, IEntitySourceConfig} from './utilIdTypes';
@@ -35,6 +31,7 @@ export class CohortApp {
   private readonly $node: Selection<HTMLDivElement, any, null, undefined>;
   private $overview: HTMLDivElement;
   private $detail: HTMLDivElement;
+  private restartSession: Selection<HTMLButtonElement, any, null, undefined>;
   public readonly name: string;
   private dataset: IDatasetDesc = null;
   private _cohortOverview: CohortOverview = null;
@@ -109,6 +106,15 @@ export class CohortApp {
     log.debug('Build app html structure');
     this.$node.selectAll('*').remove();
 
+    // reconfigure app link to open the homepage in a new tab
+    // do this first, in case data retrieval fails
+    const appLink = document.querySelector('*[data-header="appLink"]') as HTMLAnchorElement;
+    appLink.title = 'Open Coral start page in a new tab';
+    appLink.href = '/'; // domain root
+    appLink.target = '_blank';
+    appLink.rel = 'noopener noreferrer';
+    appLink.onclick = null; // remove default click listener from `ATDPApplication.createHeader()`
+
     const controlBar = this.$node.append('div').attr('class', 'control-bar');
     controlBar.append('span').classed('control-bar-label', true).text('Datasets:');
     const btnGrp = controlBar.append('div').attr('id', 'db_btnGrp').attr('style', 'display: flex;gap: 0.5em;');
@@ -173,10 +179,6 @@ export class CohortApp {
         this.handleDatasetClick(newDataset);
       });
 
-    select('nav a.navbar-brand.caleydo_app').on('click', async () => { // click on logo
-      this.handleDatasetClick({source: null, rootCohort: null, chtOverviewElements: null});
-    });
-
     datasetGroup.append('button')
       .attr('type', 'button')
       .attr('class', 'db_btn btn btn-coral dropdown-toggle')
@@ -198,13 +200,23 @@ export class CohortApp {
       .selectAll('li.data-panel')
       .data((d) => d.panels)
       .enter()
-      .append('li') .classed('data-panel', true).classed('dropdown-item', true)
+      .append('li').classed('data-panel', true).classed('dropdown-item', true)
       .append('a').text((d) => d.id).attr('title', (d) => d.description)
       .on('click', async function (d) { // click subset
         // don't toggle data by checkging what is selected in dropdown
         const dataSourcesAndPanels = select(this.parentNode.parentNode).datum() as {source: IEntitySourceConfig; panels: IPanelDesc[];}; // a -> parent = li -> parent = dropdown = ul
         const newDataset = {source: dataSourcesAndPanels.source, panel: d, rootCohort: null, chtOverviewElements: null};
         that.handleDatasetClick.bind(that)(newDataset);
+      });
+
+    this.restartSession = btnGrp.append('button')
+      .attr('type', 'button')
+      .attr('class', 'btn btn-coral')
+      .html(`<i class="fas fa-redo fa-flip-horizontal"></i> New Session`)
+      .attr('style', 'margin-left: 2.5rem;')
+      .attr('hidden', true)
+      .on('click', async () => { // click on logo
+          this.graphManager.newGraph();
       });
   }
 
@@ -347,6 +359,7 @@ export class CohortApp {
           }
 
           this._showChangeLayoutOptions(true);
+          this.restartSession.attr('hidden', null); // remove with null (not false)
           select('#db_btnGrp').select(`button[data-db="${source.dbConnectorName}"][data-dbview="${source.viewName}"]`).classed('selected', true); //add selected class to current button
           const views = await createCohortOverview(this.graph, this.ref, this.$overview, this.$detail, this.dataset.source, rootCohort);
 
@@ -510,23 +523,22 @@ export class CohortApp {
  */
 export class App extends ATDPApplication<CohortApp> {
 
-  constructor(name: string, loginDialog: string) {
+  constructor(name: string, loginDialog: string, showCookieDisclaimer: boolean = true) {
     super({
       prefix: 'coral',
       name,
       loginForm: loginDialog,
       /**
-       * Link to help and show help in `Ordino at a Glance` page instead
+       * Link to help and show help in `Coral at a Glance` page instead
        */
-      showHelpLink: `${(window.location.href).split('app/')[0]+'#/help'}`,
-      showCookieDisclaimer: true,
+      showHelpLink: `${(window.location.href).split('app/')[0] + '#/help'}`,
+      showCookieDisclaimer,
       /**
-       * Show content in the `Ordino at a Glance` page instead
+       * Show content in the `Coral at a Glance` page instead
        */
-      // showAboutLink,
       showAboutLink: false,
       /**
-       * Show content in the `Ordino at a Glance` page instead
+       * Show content in the `Coral at a Glance` page instead
        */
       showReportBugLink: false,
     });
@@ -638,19 +650,4 @@ export interface IDatasetDesc {
   panel?: IPanelDesc;
   rootCohort: IElementProvJSONCohort;
   chtOverviewElements: IElementProvJSON[];
-}
-
-function showAboutLink(title: HTMLElement, content: HTMLElement) {
-  title.innerHTML = 'Coral';
-
-  // insert disclaimer
-  const caleydoInfo = content.querySelector(`.caleydoInfo p`);
-  content.innerHTML = `<article class="about-disclaimer">${aboutDisclaimer}</article>`;
-
-  // move the information about caleydo to the source code section and remove the rest of the info
-  document.getElementById('about-source-code').insertAdjacentElement('beforeend', caleydoInfo);
-
-  AppMetaDataUtils.getMetaData().then((metaData) => {
-    document.getElementById('about-source-code').insertAdjacentHTML('beforeend', `<p class="version"><strong>Version</strong>: ${metaData.version}</p>`);
-  });
 }

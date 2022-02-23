@@ -1,8 +1,6 @@
 import { select } from 'd3-selection';
-import { AppContext, ObjectRefUtils } from 'tdp_core';
-import { AppMetaDataUtils } from 'tdp_core';
 import SplitGrid from 'split-grid';
-import { ATDPApplication, NotificationHandler, RestBaseUtils } from 'tdp_core';
+import { AppContext, ATDPApplication, NotificationHandler, ObjectRefUtils, RestBaseUtils } from 'tdp_core';
 import { cellline, tissue } from 'tdp_publicdb';
 import { createCohort, createCohortFromDB } from './Cohort';
 import { cohortOverview, createCohortOverview, destroyOld, loadViewDescription, taskview } from './cohortview';
@@ -12,7 +10,6 @@ import { setDatasetAction } from './Provenance/General';
 import { getDBCohortData } from './rest';
 import deleteModal from './templates/DeleteModal.html';
 import welcomeHtml from './templates/Welcome.html'; // webpack imports html to variable
-import * as aboutDisclaimer from './templates/_aboutDisclaimer.html';
 import { getAnimatedLoadingText, handleDataLoadError, log, removeFromArray } from './util';
 import { CohortSelectionEvent, COHORT_SELECTION_EVENT_TYPE, CONFIRM_TASK_EVENT_TYPE, PreviewConfirmEvent } from './utilCustomEvents';
 import { idCellline, idCovid19, idStudent, idTissue } from './utilIdTypes';
@@ -75,6 +72,14 @@ export class CohortApp {
     async build() {
         log.debug('Build app html structure');
         this.$node.selectAll('*').remove();
+        // reconfigure app link to open the homepage in a new tab
+        // do this first, in case data retrieval fails
+        const appLink = document.querySelector('*[data-header="appLink"]');
+        appLink.title = 'Open Coral start page in a new tab';
+        appLink.href = '/'; // domain root
+        appLink.target = '_blank';
+        appLink.rel = 'noopener noreferrer';
+        appLink.onclick = null; // remove default click listener from `ATDPApplication.createHeader()`
         const controlBar = this.$node.append('div').attr('class', 'control-bar');
         controlBar.append('span').classed('control-bar-label', true).text('Datasets:');
         const btnGrp = controlBar.append('div').attr('id', 'db_btnGrp').attr('style', 'display: flex;gap: 0.5em;');
@@ -131,9 +136,6 @@ export class CohortApp {
                 { source: d.source, rootCohort: null, chtOverviewElements: null }; // select
             this.handleDatasetClick(newDataset);
         });
-        select('nav a.navbar-brand.caleydo_app').on('click', async () => {
-            this.handleDatasetClick({ source: null, rootCohort: null, chtOverviewElements: null });
-        });
         datasetGroup.append('button')
             .attr('type', 'button')
             .attr('class', 'db_btn btn btn-coral dropdown-toggle')
@@ -159,6 +161,15 @@ export class CohortApp {
             const dataSourcesAndPanels = select(this.parentNode.parentNode).datum(); // a -> parent = li -> parent = dropdown = ul
             const newDataset = { source: dataSourcesAndPanels.source, panel: d, rootCohort: null, chtOverviewElements: null };
             that.handleDatasetClick.bind(that)(newDataset);
+        });
+        this.restartSession = btnGrp.append('button')
+            .attr('type', 'button')
+            .attr('class', 'btn btn-coral')
+            .html(`<i class="fas fa-redo fa-flip-horizontal"></i> New Session`)
+            .attr('style', 'margin-left: 2.5rem;')
+            .attr('hidden', true)
+            .on('click', async () => {
+            this.graphManager.newGraph();
         });
     }
     async handleDatasetClick(newDataset) {
@@ -279,6 +290,7 @@ export class CohortApp {
                         this.rootCohort = rootCohort;
                     }
                     this._showChangeLayoutOptions(true);
+                    this.restartSession.attr('hidden', null); // remove with null (not false)
                     select('#db_btnGrp').select(`button[data-db="${source.dbConnectorName}"][data-dbview="${source.viewName}"]`).classed('selected', true); //add selected class to current button
                     const views = await createCohortOverview(this.graph, this.ref, this.$overview, this.$detail, this.dataset.source, rootCohort);
                     // get loading animation
@@ -425,23 +437,22 @@ export class CohortApp {
  * The app for this website, embeds our Cohort App
  */
 export class App extends ATDPApplication {
-    constructor(name, loginDialog) {
+    constructor(name, loginDialog, showCookieDisclaimer = true) {
         super({
             prefix: 'coral',
             name,
             loginForm: loginDialog,
             /**
-             * Link to help and show help in `Ordino at a Glance` page instead
+             * Link to help and show help in `Coral at a Glance` page instead
              */
             showHelpLink: `${(window.location.href).split('app/')[0] + '#/help'}`,
-            showCookieDisclaimer: true,
+            showCookieDisclaimer,
             /**
-             * Show content in the `Ordino at a Glance` page instead
+             * Show content in the `Coral at a Glance` page instead
              */
-            // showAboutLink,
             showAboutLink: false,
             /**
-             * Show content in the `Ordino at a Glance` page instead
+             * Show content in the `Coral at a Glance` page instead
              */
             showReportBugLink: false,
         });
@@ -522,16 +533,5 @@ export class CohortSelectionListener {
             this.taskview.clearOutput(); // every selection change clears the output cohorts
         }
     }
-}
-function showAboutLink(title, content) {
-    title.innerHTML = 'Coral';
-    // insert disclaimer
-    const caleydoInfo = content.querySelector(`.caleydoInfo p`);
-    content.innerHTML = `<article class="about-disclaimer">${aboutDisclaimer}</article>`;
-    // move the information about caleydo to the source code section and remove the rest of the info
-    document.getElementById('about-source-code').insertAdjacentElement('beforeend', caleydoInfo);
-    AppMetaDataUtils.getMetaData().then((metaData) => {
-        document.getElementById('about-source-code').insertAdjacentHTML('beforeend', `<p class="version"><strong>Version</strong>: ${metaData.version}</p>`);
-    });
 }
 //# sourceMappingURL=app.js.map

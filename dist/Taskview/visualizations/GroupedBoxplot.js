@@ -419,7 +419,7 @@ export class GroupedBoxplot extends MultiAttributeVisualization {
                         style: `guide-title`,
                         align: `right`,
                         anchor: `end`,
-                        font: `Yantramanav`,
+                        font: `Roboto`,
                         fontSize: 16,
                         fontWeight: 500,
                         offset: 10
@@ -441,7 +441,7 @@ export class GroupedBoxplot extends MultiAttributeVisualization {
                         baseline: `middle`,
                         align: `left`,
                         angle: 0,
-                        font: `Yantramanav`,
+                        font: `Roboto`,
                         fontSize: 12,
                         limit: 150,
                         offset: 10
@@ -1125,10 +1125,10 @@ export class GroupedBoxplot extends MultiAttributeVisualization {
                 axis: {
                     titleFontSize: 16,
                     titleFontWeight: 500,
-                    titleFont: `Yantramanav`,
+                    titleFont: `Roboto`,
                     labelFontSize: 12,
                     labelLimit: 150,
-                    labelFont: `Yantramanav`,
+                    labelFont: `Roboto`,
                     labelOverlap: `parity`,
                     labelSeparation: 5,
                     labelBound: true
@@ -1136,10 +1136,10 @@ export class GroupedBoxplot extends MultiAttributeVisualization {
                 legend: {
                     titleFontSize: 16,
                     titleFontWeight: 500,
-                    titleFont: `Yantramanav`,
+                    titleFont: `Roboto`,
                     labelFontSize: 12,
                     labelLimit: 150,
-                    labelFont: `Yantramanav`,
+                    labelFont: `Roboto`,
                     labelOverlap: `parity`
                 },
                 style: { cell: { cursor: `text` } }

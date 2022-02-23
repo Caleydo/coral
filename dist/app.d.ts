@@ -1,6 +1,4 @@
-import { CLUEGraphManager } from 'tdp_core';
-import { IObjectRef, ProvenanceGraph } from 'tdp_core';
-import { ATDPApplication } from 'tdp_core';
+import { ATDPApplication, CLUEGraphManager, IObjectRef, ProvenanceGraph } from 'tdp_core';
 import { Cohort } from './Cohort';
 import { IElementProvJSON, IElementProvJSONCohort } from './CohortInterfaces';
 import { CohortOverview } from './Overview';
@@ -16,6 +14,7 @@ export declare class CohortApp {
     private readonly $node;
     private $overview;
     private $detail;
+    private restartSession;
     readonly name: string;
     private dataset;
     private _cohortOverview;
@@ -64,7 +63,7 @@ export declare class CohortApp {
  * The app for this website, embeds our Cohort App
  */
 export declare class App extends ATDPApplication<CohortApp> {
-    constructor(name: string, loginDialog: string);
+    constructor(name: string, loginDialog: string, showCookieDisclaimer?: boolean);
     protected createApp(graph: ProvenanceGraph, manager: CLUEGraphManager, main: HTMLElement): CohortApp | PromiseLike<CohortApp>;
     private replaceHelpIcon;
     protected initSessionImpl(app: CohortApp): void;

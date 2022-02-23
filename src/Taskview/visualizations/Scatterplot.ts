@@ -32,7 +32,7 @@ export class Scatterplot extends MultiAttributeVisualization {
       $schema: `https://vega.github.io/schema/vega/v5.json`,
       autosize: {type: `fit`, contains: `padding`},
       background: `white`,
-      padding: {left: 5, top: 5, right: 5, bottom: 0}, // top and right padding are necessary for split rulers
+      padding: {left: 5, top: 5, right: 5, bottom: 5}, // top and right padding are necessary for split rulers
       height: 300,
       style: `cell`,
       encode: {update: {cursor: {value: `crosshair`}}},
@@ -798,10 +798,10 @@ export class Scatterplot extends MultiAttributeVisualization {
         axis: {
           titleFontSize: 16,
           titleFontWeight: 500,
-          titleFont: `Yantramanav`,
+          titleFont: `Roboto`,
           labelFontSize: 12,
           labelLimit: 150,
-          labelFont: `Yantramanav`,
+          labelFont: `Roboto`,
           labelOverlap: `parity`,
           labelSeparation: 5,
           labelBound: true
@@ -809,10 +809,10 @@ export class Scatterplot extends MultiAttributeVisualization {
         legend: {
           titleFontSize: 16,
           titleFontWeight: 500,
-          titleFont: `Yantramanav`,
+          titleFont: `Roboto`,
           labelFontSize: 12,
           labelLimit: 150,
-          labelFont: `Yantramanav`,
+          labelFont: `Roboto`,
           labelOverlap: `parity`
         }
       }

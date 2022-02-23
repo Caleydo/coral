@@ -57,7 +57,7 @@ export class KaplanMeierPlot extends SingleAttributeVisualization {
             '$schema': 'https://vega.github.io/schema/vega/v5.json',
             autosize: { type: 'fit-x', contains: 'padding' },
             background: 'white',
-            padding: { left: 5, top: 0, right: 5, bottom: 0 },
+            padding: { left: 5, top: 0, right: 5, bottom: 5 },
             height: 300,
             style: 'cell',
             encode: { update: { cursor: { value: 'text' } } },
@@ -764,10 +764,10 @@ export class KaplanMeierPlot extends SingleAttributeVisualization {
                 axis: {
                     titleFontSize: 16,
                     titleFontWeight: 500,
-                    titleFont: 'Yantramanav',
+                    titleFont: 'Roboto',
                     labelFontSize: 12,
                     labelLimit: 150,
-                    labelFont: 'Yantramanav',
+                    labelFont: 'Roboto',
                     labelOverlap: 'parity',
                     labelSeparation: 5,
                     labelBound: true
@@ -775,10 +775,10 @@ export class KaplanMeierPlot extends SingleAttributeVisualization {
                 legend: {
                     titleFontSize: 16,
                     titleFontWeight: 500,
-                    titleFont: 'Yantramanav',
+                    titleFont: 'Roboto',
                     labelFontSize: 12,
                     labelLimit: 150,
-                    labelFont: 'Yantramanav',
+                    labelFont: 'Roboto',
                     labelOverlap: 'parity'
                 }
             }

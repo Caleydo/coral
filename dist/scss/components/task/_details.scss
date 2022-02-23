@@ -3,7 +3,7 @@
 
   .lu-side-panel {
     // 20em is the value from the LineUpJs scss
-    width: 20em; // otherwise tdp_core/../_view_lineup.scss sets it to 100% 
+    width: 20rem; // otherwise tdp_core/../_view_lineup.scss sets it to 100% 
     &.lu-collapsed{
       width: 0;
     }

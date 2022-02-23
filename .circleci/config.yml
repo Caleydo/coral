@@ -65,30 +65,6 @@ jobs:
       - persist_to_workspace:
           root: ~/.
           paths: phovea-python
-  python-publish:
-    executor: python-executor
-    steps:
-      - attach_workspace:
-          at: ~/.
-      - run: ls -a    
-      - run:
-          name: Install twine
-          command: |
-            virtualenv ~/venv
-            . ~/venv/bin/activate
-            pip install twine
-      - run:
-          name: Authentication
-          command:  |
-            echo -e "[pypi]" >> ~/.pypirc
-            echo -e "repository = $PYPI_REPOSITORY" >> ~/.pypirc
-            echo -e "username = $PYPI_USERNAME" >> ~/.pypirc
-            echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
-      - run:
-          name: Publish package
-          command: |
-            . ~/venv/bin/activate
-            twine upload dist/*
   web-build:
     executor: node-executor
     steps:
@@ -125,19 +101,6 @@ jobs:
       - persist_to_workspace:
           root: ~/.
           paths: phovea-web
-  web-publish:
-    executor: node-executor
-    steps:
-      - attach_workspace:
-          at: ~/.
-      - run: ls -a    
-      - run:
-          name: Authentication
-          command:  |
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-      - run:
-          name: Publish package
-          command: npm publish
 workflows:
   version: 2.1
 #  build-nightly:
@@ -161,7 +124,7 @@ workflows:
         filters:
           tags:
             ignore: /.*/
-  build-publish-tag:
+  build-tag:
     jobs:
       - python-build:
           filters:
@@ -175,25 +138,3 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v.*/
-      - python-publish:
-          context:
-              - org-public
-          requires:
-              - python-build
-              - web-build
-          filters:
-              branches:
-                ignore: /.*/
-              tags:
-                only: /^v.*/
-      - web-publish:
-          context:
-              - org-public
-          requires:
-              - python-build
-              - web-build
-          filters:
-              branches:
-                ignore: /.*/
-              tags:
-                only: /^v.*/

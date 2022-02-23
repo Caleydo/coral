@@ -1,4 +1,5 @@
 import * as aq from 'arquero';
+import {select} from 'd3-selection';
 import * as LineUpJS from 'lineupjs';
 import {Cohort} from '../../Cohort';
 import {ICohort} from '../../CohortInterfaces';
@@ -17,6 +18,7 @@ export class Details extends ATask {
   private eventID = 0;
   private _entityName: string = null;
   private $lineUpContainer: HTMLDivElement;
+  private lineup: LineUpJS.LineUp;
 
   supports(attributes: IAttribute[], cohorts: ICohort[]) {
     return cohorts.length > 0;
@@ -33,9 +35,18 @@ export class Details extends ATask {
     if (cohorts.length > 0) {
       this.$lineUpContainer = this.body.append('div').classed('lineup-container', true).node();
       this.$lineUpContainer.insertAdjacentElement('beforeend', getAnimatedLoadingText('data'));
+      select(columnHeader).selectAll('.export').remove();
 
       const data = await this.getData(attributes, cohorts as Cohort[]);
       if (eventId !== this.eventID) {return;}
+      select(columnHeader).append('button') // add button after the data is available
+        .text('Export Data')
+        .attr('type', 'button')
+        .attr('title', 'Export to CSV')
+        .classed('btn btn-coral-prime export', true)
+        .style('width', '18rem').style('margin-left', '1rem').style('margin-right', '1rem')
+        .on('click', async () => this.download());
+      columnHeader.insertAdjacentHTML('beforeend', `<a href="#" id="downloadHelper" class="export" target="_blank" rel="noopener"></a>`);
       this.createLineup(data, attributes, cohorts);
     }
   }
@@ -114,14 +125,29 @@ export class Details extends ATask {
     builder.rowHeight(21);
     builder.singleSelection(); // only single selection possible
     this.$lineUpContainer.firstChild.remove();
-    const lineup = builder.build(this.$lineUpContainer);
+    this.lineup = builder.build(this.$lineUpContainer);
   }
 
 
   getCategoryColorsForColumn(mergedDataArray: any[], attr: IAttribute): {name: string, color: string}[] {
     const uniqueCat = Array.from(new Set(mergedDataArray.map((elem) => elem[attr.dataKey])));
     const categoryColors = uniqueCat.map((cat, i) => {return {name: cat, color: CohortColorSchema.get(i)};});
-    // log.debug('unique categories for "',attr.dataKey,'" : ', categoryColors);
     return categoryColors;
   }
+
+  close() {
+    super.close();
+    select(this.$columnHeader).selectAll('.export').remove();
+  }
+
+  async download() {
+    const data = await this.lineup.data.exportTable(this.lineup!.data.getRankings()[0], {separator: ';'});
+    const b = new Blob([data], {type: 'text/csv'});
+
+    const downloadHelper = this.$columnHeader.querySelector('a#downloadHelper') as HTMLAnchorElement;
+    downloadHelper.href = URL.createObjectURL(b);
+    downloadHelper.download = 'coral-cohorts.csv';
+    downloadHelper.click();
+  }
+
 }
