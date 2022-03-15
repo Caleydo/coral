@@ -30,8 +30,7 @@ for table in tables:
 
   # assign_ids ... the tdp server should automatically manage and assign unique integer ids based on the 'id' column
   # call(inject_where) ... utility to inject a where clause that is used for dynamic filtering
-  views[table] = db_builder.assign_ids() \
-                           .call(inject_where) \
+  views[table] = db_builder.call(inject_where) \
                            .build()
 
   add_common_queries(views, schema_table, id_type, 'id', columns[table])
