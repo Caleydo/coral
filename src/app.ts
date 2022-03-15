@@ -42,6 +42,8 @@ export class CohortApp {
 
   private datasetTip: TippyInstance;
 
+  private chtCounter = 1;
+
   /**
    * IObjectRef to this CohortApp instance
    * @type {IObjectRef<CohortApp>}
@@ -86,6 +88,10 @@ export class CohortApp {
     let replace = true;
     for (const task of tasks) {
       for (const cht of task.children) {
+        (cht as Cohort).setLabels(
+          `#${this.chtCounter++} `+(cht as Cohort).labelOne,
+          (cht as Cohort).labelTwo
+        );
         this.$node.node().dispatchEvent(new CohortSelectionEvent(cht as Cohort, replace));
         replace = false; //replace old selection with first cohort, then add the others
 
@@ -215,7 +221,7 @@ export class CohortApp {
       .html(`<i class="fas fa-redo fa-flip-horizontal"></i> New Session`)
       .attr('style', 'margin-left: 2.5rem;')
       .attr('hidden', true)
-      .on('click', async () => { // click on logo
+      .on('click', async () => {
           this.graphManager.newGraph();
       });
   }

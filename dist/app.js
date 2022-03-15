@@ -24,6 +24,7 @@ export class CohortApp {
         this._taskview = null;
         this.rootCohort = null;
         this.datasetEventID = 0;
+        this.chtCounter = 1;
         this.firstOutput = true;
         this.graph = graph;
         this.graphManager = manager;
@@ -56,6 +57,7 @@ export class CohortApp {
         let replace = true;
         for (const task of tasks) {
             for (const cht of task.children) {
+                cht.setLabels(`#${this.chtCounter++} ` + cht.labelOne, cht.labelTwo);
                 this.$node.node().dispatchEvent(new CohortSelectionEvent(cht, replace));
                 replace = false; //replace old selection with first cohort, then add the others
                 if (this.firstOutput) {
