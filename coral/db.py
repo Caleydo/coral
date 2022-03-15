@@ -28,7 +28,6 @@ for table in tables:
   for col in columns[table]:
       db_builder.column(col[0], type=col[1])
 
-  # assign_ids ... the tdp server should automatically manage and assign unique integer ids based on the 'id' column
   # call(inject_where) ... utility to inject a where clause that is used for dynamic filtering
   views[table] = db_builder.call(inject_where) \
                            .build()
@@ -40,7 +39,6 @@ for table in tables:
 # by convention the 'id' column contains the identifier column of a row --> we have an id column in the db
 # derive_columns ... try to automatically derive column and column types
 # column(column, attrs) ... would explicitly set a column type
-# assign_ids ... the tdp server should automatically manage and assign unique integer ids based on the 'id' column
 # filter (get the filter with key 'month' / year and add a where clause like giessdatum_monat='1')
 # .call(inject_where) ... utility to inject a where clause that is used for dynamic filtering ---> otherwise the filter callc above do not work and all the data is retrieved
 
