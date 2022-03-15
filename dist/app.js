@@ -164,7 +164,7 @@ export class CohortApp {
         });
         this.restartSession = btnGrp.append('button')
             .attr('type', 'button')
-            .attr('class', 'btn btn-coral')
+            .attr('class', 'btn btn-coral btn-sm')
             .html(`<i class="fas fa-redo fa-flip-horizontal"></i> New Session`)
             .attr('style', 'margin-left: 2.5rem;')
             .attr('hidden', true)
