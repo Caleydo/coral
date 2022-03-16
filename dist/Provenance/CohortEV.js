@@ -22,8 +22,14 @@ export async function addOverviewCohortImpl(inputs, parameter) {
     if (ovApp) {
         await ovApp.generateOverviewProv(parameter.newDataset);
         ovApp.updateJSONElements();
-        const chts = parameter.newDataset.filter((e) => e.type === 'Cohort').length;
-        log.debug('set counter to ', chts, 'was', app.chtCounter);
+        const numbers = parameter.newDataset
+            .filter((e) => e.type === 'Cohort')
+            .map((e) => parseInt(e.label.split(' ')[0] // extraxt #XY part 
+            .split('#')[1] // remove hash
+        ))
+            .filter(Number.isFinite); // remove cohorts without number (i.e., root)
+        const chts = Math.max(...numbers, 0) + 1; // continue with next number
+        log.debug('set counter to ', chts, '; was', app.chtCounter);
         app.chtCounter = chts;
     }
     return {
