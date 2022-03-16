@@ -13,7 +13,7 @@ import {log} from '../util';
 // ----------------------------
 export function addOverviewCohortAction(provider: IObjectRef<CohortOverview>, providerApp: IObjectRef<CohortApp>, newDataset: IElementProvJSON[], oldDataset: IElementProvJSON[]) {
   log.debug('Add Cohort Action');
-  return ActionUtils.action(ActionMetaData.actionMeta('Add Cohort(s)', ObjectRefUtils.category.data, ObjectRefUtils.operation.create), 'addCohorts', addOverviewCohortImpl, [provider, providerApp], {
+return ActionUtils.action(ActionMetaData.actionMeta('Add Cohort(s)', ObjectRefUtils.category.data, ObjectRefUtils.operation.create), 'addCohorts', addOverviewCohortImpl, [provider, providerApp], {
     newDataset,
     oldDataset
   });
@@ -28,6 +28,9 @@ export async function addOverviewCohortImpl(inputs: IObjectRef<any>[], parameter
   if (ovApp) {
     await ovApp.generateOverviewProv(parameter.newDataset);
     ovApp.updateJSONElements();
+    let chts = parameter.newDataset.filter(e => e.type === 'Cohort').length;
+    console.log('set counter to ', chts, 'was', app.chtCounter);
+    app.chtCounter = chts;
   }
 
   return {

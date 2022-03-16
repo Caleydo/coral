@@ -42,7 +42,7 @@ export class CohortApp {
 
   private datasetTip: TippyInstance;
 
-  private chtCounter = 1;
+  public chtCounter = 1;
 
   /**
    * IObjectRef to this CohortApp instance
@@ -89,7 +89,7 @@ export class CohortApp {
     for (const task of tasks) {
       for (const cht of task.children) {
         (cht as Cohort).setLabels(
-          `#${this.chtCounter++} `+(cht as Cohort).labelOne,
+          `<span style="font-weight: 700;"><span style="font-size: 0.8em; font-weight: 700;">#</span><span style="font-size: 0.9em; font-weight: 700;">${this.chtCounter++}</span></span> ` + (cht as Cohort).labelOne,
           (cht as Cohort).labelTwo
         );
         this.$node.node().dispatchEvent(new CohortSelectionEvent(cht as Cohort, replace));
@@ -222,7 +222,7 @@ export class CohortApp {
       .attr('style', 'margin-left: 2.5rem;')
       .attr('hidden', true)
       .on('click', async () => {
-          this.graphManager.newGraph();
+        this.graphManager.newGraph();
       });
   }
 
