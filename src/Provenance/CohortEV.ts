@@ -28,11 +28,11 @@ export async function addOverviewCohortImpl(inputs: IObjectRef<any>[], parameter
   if (ovApp) {
     await ovApp.generateOverviewProv(parameter.newDataset);
     ovApp.updateJSONElements();
-    
+
     const numbers = parameter.newDataset
       .filter((e) => e.type === 'Cohort')
       .map((e) => parseInt(
-        e.label.split(' ')[0] // extraxt #XY part 
+        e.label.split(' ')[0] // extraxt #XY part
         .split('#')[1]  // remove hash
         )
       )
