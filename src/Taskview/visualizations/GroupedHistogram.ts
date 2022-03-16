@@ -172,7 +172,7 @@ export class VegaGroupedHistogram extends VegaHistogram {
       log.debug('filteredVegaData', filteredVegaData);
 
       filters = filteredVegaData.map((dataItem) => ({
-        cohort: this.cohorts.find((cht, index) => getCohortLabel(index, cht) === dataItem[DATA_LABEL]),
+        cohort: this.cohorts.find((cht) => getCohortLabel(cht) === dataItem[DATA_LABEL]),
         from: dataItem[this.field],
         to: dataItem[this.field]
       }));

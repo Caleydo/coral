@@ -31,12 +31,12 @@ export class KaplanMeierPlot extends SingleAttributeVisualization {
             this.attribute = missingAttr;
         }
         const dataPromises = this.cohorts
-            .map((cht, chtIndex) => {
+            .map((cht) => {
             const promise = new Promise(async (resolve, reject) => {
                 const chtDataPromises = attributes.map((attr) => attr.getData(cht.dbId));
                 try {
                     const chtData = await Promise.all(chtDataPromises); // array with one entry per attribute, which contains an array with one value for every item in the cohort
-                    const mergedChtData = chtData[0].map((_, itemIndex) => chtData.reduce((mergedItem, attribute, i) => Object.assign(mergedItem, attribute[itemIndex]), { [DATA_LABEL]: getCohortLabel(chtIndex, cht) }));
+                    const mergedChtData = chtData[0].map((_, itemIndex) => chtData.reduce((mergedItem, attribute, i) => Object.assign(mergedItem, attribute[itemIndex]), { [DATA_LABEL]: getCohortLabel(cht) }));
                     resolve(mergedChtData);
                 }
                 catch (e) {
