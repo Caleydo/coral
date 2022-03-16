@@ -34,7 +34,7 @@ export async function addOverviewCohortImpl(inputs: IObjectRef<any>[], parameter
       .map((e) => parseInt(
         e.label.split(' ')[0] // extraxt #XY part
         .split('#')[1]  // remove hash
-        )
+        , 10)
       )
       .filter(Number.isFinite); // remove cohorts without number (i.e., root)
     const chts = Math.max(...numbers, 0) + 1; // continue with next number
