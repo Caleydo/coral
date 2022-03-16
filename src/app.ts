@@ -542,6 +542,9 @@ export class App extends ATDPApplication<CohortApp> {
        */
       showReportBugLink: false,
     });
+
+    console.log('clientConfig', this.options.clientConfig);
+    console.log('clientConfig contact', this.options.clientConfig?.contact);
   }
 
   protected createApp(graph: ProvenanceGraph, manager: CLUEGraphManager, main: HTMLElement): CohortApp | PromiseLike<CohortApp> {

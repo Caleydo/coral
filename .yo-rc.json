@@ -53,6 +53,7 @@
           "selection": "some"
         }
       }
-    ]
+    ],
+    "copyFiles": ["dist/clientConfig.json"]
   }
 }

@@ -438,6 +438,7 @@ export class CohortApp {
  */
 export class App extends ATDPApplication {
     constructor(name, loginDialog, showCookieDisclaimer = true) {
+        var _a;
         super({
             prefix: 'coral',
             name,
@@ -456,6 +457,8 @@ export class App extends ATDPApplication {
              */
             showReportBugLink: false,
         });
+        console.log('clientConfig', this.options.clientConfig);
+        console.log('clientConfig contact', (_a = this.options.clientConfig) === null || _a === void 0 ? void 0 : _a.contact);
     }
     createApp(graph, manager, main) {
         log.debug('Create App');
