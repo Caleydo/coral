@@ -57,7 +57,7 @@ export class CohortApp {
         let replace = true;
         for (const task of tasks) {
             for (const cht of task.children) {
-                cht.setLabels(`<span style="font-weight: 700;"><span style="font-size: 0.8em; font-weight: 700;">#</span><span style="font-size: 0.9em; font-weight: 700;">${this.chtCounter++}</span></span> ` + cht.labelOne, cht.labelTwo);
+                cht.setLabels(`#${this.chtCounter++} ` + cht.labelOne, cht.labelTwo);
                 this.$node.node().dispatchEvent(new CohortSelectionEvent(cht, replace));
                 replace = false; //replace old selection with first cohort, then add the others
                 if (this.firstOutput) {

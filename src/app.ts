@@ -89,7 +89,7 @@ export class CohortApp {
     for (const task of tasks) {
       for (const cht of task.children) {
         (cht as Cohort).setLabels(
-          `<span style="font-weight: 700;"><span style="font-size: 0.8em; font-weight: 700;">#</span><span style="font-size: 0.9em; font-weight: 700;">${this.chtCounter++}</span></span> ` + (cht as Cohort).labelOne,
+          `#${this.chtCounter++} ` + (cht as Cohort).labelOne,
           (cht as Cohort).labelTwo
         );
         this.$node.node().dispatchEvent(new CohortSelectionEvent(cht as Cohort, replace));
