@@ -28,7 +28,7 @@ export async function addOverviewCohortImpl(inputs: IObjectRef<any>[], parameter
   if (ovApp) {
     await ovApp.generateOverviewProv(parameter.newDataset);
     ovApp.updateJSONElements();
-    let chts = parameter.newDataset.filter(e => e.type === 'Cohort').length;
+    const chts = parameter.newDataset.filter((e) => e.type === 'Cohort').length;
     log.debug('set counter to ', chts, 'was', app.chtCounter);
     app.chtCounter = chts;
   }
