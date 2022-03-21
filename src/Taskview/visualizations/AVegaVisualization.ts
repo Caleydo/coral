@@ -209,7 +209,7 @@ export abstract class AVegaVisualization implements IVegaVisualization {
   }
 
   abstract getSelectedData(): {from: string | number; to: string | number; cohort: ICohort}[];
-  abstract async show(container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]);
+  abstract show(container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]);
   abstract filter(): void;
   abstract split(): void;
   abstract showImpl(chart: HTMLDivElement, data: Array<IdValuePair>); //probably the method impl from SingleAttributeVisualization can be moved here

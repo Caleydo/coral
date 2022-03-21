@@ -241,14 +241,14 @@ export class Compare extends ATask {
         if (score.pValue > 0.1) {
             color = {
                 background: '#ffffff',
-                foreground: '#ffffff',
+                foreground: '#ffffff', //white
             };
         }
         if (score.pValue === -1) {
             cellLabel = '-';
             color = {
                 background: '#ffffff',
-                foreground: '#ffffff',
+                foreground: '#ffffff', //white
             };
         }
         return {
