@@ -98,13 +98,13 @@ export class Compare extends ATask {
       // Set colheads in thead
       colHeadsChtSpan.html((d) => `${d.label}`);
       colHeadsChtSpan.each(function (d: Cohort) {
-        const parent = select(this).node().parentNode; //parent span-element
+        const parent = select(this).node().parentNode as HTMLElement; //parent span-element
         select(parent).style('background-color', (d) => (d as Cohort).colorTaskView);
         let color = '#333333';
         if (d && d.colorTaskView && 'transparent' !== d.colorTaskView && d3.hsl(d.colorTaskView).l < 0.5) { //transparent has lightness of zero
           color = 'white';
         }
-        select(parent.parentNode).style('color', color)
+        select(parent.parentNode as HTMLElement).style('color', color)
           .attr('title', (d: Cohort) => `${d.label}`);
       });
       // set data in tbody
