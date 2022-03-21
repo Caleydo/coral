@@ -18,17 +18,18 @@ import { niceName } from './utilLabels';
  * The Cohort app that does the acutal stuff.
  */
 export class CohortApp {
-    constructor(graph, manager, parent, name = 'Cohort') {
+    constructor(graph, graphManager, parent, options) {
+        this.graph = graph;
+        this.graphManager = graphManager;
+        this.options = options;
         this.dataset = null;
         this._cohortOverview = null;
         this._taskview = null;
         this.rootCohort = null;
         this.datasetEventID = 0;
         this.firstOutput = true;
-        this.graph = graph;
-        this.graphManager = manager;
+        this.name = options.name;
         this.$node = select(parent).append('div').classed('cohort_app', true);
-        this.name = name;
         this.ref = graph.findOrAddObject(this, this.name, ObjectRefUtils.category.visual); // cat.visual = it is a visual operation
     }
     /**
@@ -103,7 +104,7 @@ export class CohortApp {
             NotificationHandler.pushNotification('error', 'Loading datasets failed');
             loading.html(`
       <i class="fas fa-exclamation-circle"></i>
-      Loading datasets failed. Please try to reload or <a href="https://github.com/Caleydo/coral/issues/new">report the issue</a>.
+      Loading datasets failed. Please try to reload or <a href="${this.options.clientConfig.contact.href}">${this.options.clientConfig.contact.label}</a>.
       `);
         }
         return Promise.resolve(this);
@@ -456,6 +457,12 @@ export class App extends ATDPApplication {
              * Show content in the `Coral at a Glance` page instead
              */
             showReportBugLink: false,
+            clientConfig: {
+                contact: {
+                    href: 'https://github.com/Caleydo/Coral/issues/',
+                    label: 'report an issue'
+                }
+            }
         });
         console.log('clientConfig', this.options.clientConfig);
         console.log('clientConfig contact', (_a = this.options.clientConfig) === null || _a === void 0 ? void 0 : _a.contact);
@@ -463,7 +470,7 @@ export class App extends ATDPApplication {
     createApp(graph, manager, main) {
         log.debug('Create App');
         this.replaceHelpIcon();
-        return new CohortApp(graph, manager, main, this.options.name).init();
+        return new CohortApp(graph, manager, main, this.options).init();
     }
     replaceHelpIcon() {
         const helpButton = select(this.header.rightMenu).select('li[data-header="helpLink"]');
