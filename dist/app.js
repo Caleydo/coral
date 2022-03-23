@@ -50,6 +50,7 @@ export class CohortApp {
         const taskAttributes = ev.detail.attributes;
         for (const task of taskParams) {
             for (const cht of task.outputCohorts) {
+                log.debug('app sets counter to', 1 + this.chtCounter);
                 cht.setLabels(`#${this.chtCounter++} ` + cht.labelOne, cht.labelTwo);
             }
         }

@@ -81,6 +81,7 @@ export class CohortApp {
 
     for(const task of taskParams) {
       for (const cht of task.outputCohorts) {
+        log.debug('app sets counter to', 1+this.chtCounter);
         (cht as Cohort).setLabels(
           `#${this.chtCounter++} ` + (cht as Cohort).labelOne,
           (cht as Cohort).labelTwo
