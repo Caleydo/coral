@@ -43,7 +43,6 @@
 
       .option-text-ensemble {
         margin-left: 5px;
-        font-size: 12px;
         font-weight: normal;
         color: $color-text-light;
       }
@@ -121,7 +120,6 @@
     .detail-info {
       &.detail-dbc,
       &.detail-panel {
-        font-size: 13px;
         overflow-x: hidden;
         p {
           word-wrap: break-word;
@@ -141,7 +139,6 @@
           padding: 5px 2px 5px 10px;
           background-color: $color-search-bar-option-detail-header-bg;
           font-weight: bolder;
-          font-size: 14px;
         }
 
         .detail-info-text {
@@ -155,7 +152,6 @@
           border-top: 1px solid $color-search-bar-option-detail-top-border;
           border-bottom: 1px solid $color-search-bar-option-detail-bottom-border;
           font-weight: bolder;
-          font-size: 12px;
         }
 
         .detail-info-option {
@@ -163,7 +159,6 @@
           cursor: pointer;
           background-color: $color-background;
           border-bottom: 1px solid $color-border-light;
-          font-size: 12px;
 
           &:last-child {
             border-bottom: unset;
@@ -238,11 +233,9 @@
           padding: 5px 2px 5px 10px;
           background-color: $color-search-bar-option-detail-header-bg;
           font-weight: bolder;
-          font-size: 14px;
 
           .detail-info-gene-ensemble {
             margin-left: 5px;
-            font-size: 12px;
             font-weight: normal;
             color: $color-text-light;
           }
@@ -252,7 +245,6 @@
           border-top: 1px solid $color-search-bar-option-detail-top-border;
           border-bottom: 1px solid $color-search-bar-option-detail-bottom-border;
           font-weight: bolder;
-          font-size: 12px;
         }
 
         .detail-info-option {
@@ -260,7 +252,6 @@
           cursor: pointer;
           background-color: $color-background;
           border-bottom: 1px solid $color-border-light;
-          font-size: 12px;
 
           &:last-child {
             border-bottom: unset;

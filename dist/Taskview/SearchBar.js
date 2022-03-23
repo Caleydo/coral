@@ -749,9 +749,6 @@ export class SearchBar {
             if (data.optionData && data.optionData.spAttribute) {
                 detail = this._createSpecialDetail(data);
             }
-            else {
-                detail = this._createDBColumnDetail(data);
-            }
         }
         else if (data.optionType === 'gene') {
             detail = this._createGeneDetail(data);

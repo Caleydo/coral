@@ -845,8 +845,6 @@ export class SearchBar {
       log.debug(`create detail for ${data.optionId}`);
       if ((data as ISpecialOption).optionData && (data as ISpecialOption).optionData.spAttribute) {
         detail = this._createSpecialDetail(data as ISpecialOption);
-      } else {
-        detail = this._createDBColumnDetail(data as IServerColumnOption);
       }
     } else if (data.optionType === 'gene') {
       detail = this._createGeneDetail(data);
