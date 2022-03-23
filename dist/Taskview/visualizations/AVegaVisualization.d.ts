@@ -5,7 +5,6 @@ import { ICohort } from '../../CohortInterfaces';
 import { IAttribute, IdValuePair } from '../../data/Attribute';
 import { IEqualsList, INumRange, NumRangeOperators } from '../../rest';
 import { Option, VisConfig } from './config/VisConfig';
-import { DATA_LABEL } from './constants';
 import { IVisualization } from './IVisualization';
 export declare const MISSING_VALUES_LABEL = "Missing Values";
 export declare const FACETED_CHARTS_WIDTH = 520;

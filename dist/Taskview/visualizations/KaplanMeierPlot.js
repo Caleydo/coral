@@ -821,13 +821,13 @@ export class KaplanMeierPlot extends SingleAttributeVisualization {
             .groupby(DATA_LABEL).orderby(KaplanMeierPlot.TIME)
             .derive({
             [KaplanMeierPlot.SURVIVAL]: rolling((d) => op.product(1 - (d.deaths) / d.at_risk)),
-            error_sum: rolling((d) => op.sum(d.deaths / (d.at_risk * (d.at_risk - d.deaths)))),
+            error_sum: rolling((d) => op.sum(d.deaths / (d.at_risk * (d.at_risk - d.deaths)))), // number type is inferred by the math operations, but sum wants a string
         })
             //
             // calculate actual error, has to be done in a sepeate step because it relies on values just calculated
             // "Greenwoods" Error based on https://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_survival/bs704_survival4.html
             .derive({
-            [KaplanMeierPlot.ERROR]: (d) => 1.96 * d.survival * op.sqrt(d.error_sum),
+            [KaplanMeierPlot.ERROR]: (d) => 1.96 * d.survival * op.sqrt(d.error_sum), //1.96 = 95% interval
         });
         // not necessary for plotting:
         // .derive({
