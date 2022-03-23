@@ -25,7 +25,7 @@
     .search-bar-placeholder {
       position: absolute;
       height: 32px;
-      font-size: 16px;
+      font-size: 1.1em;
       line-height: 32px;
       left: 0.25em;
       top: 0;
@@ -40,7 +40,7 @@
     line-height: 25px;
     padding: 0 0.25em;
     border: none;
-    font-size: 16px;
+    font-size: 1.1em;
 
     &:focus {
       outline: none !important; //should remove the highlighting 
@@ -60,7 +60,7 @@
     margin-right: 5px;
     vertical-align: middle;
     font-weight: bold;
-    font-size: 16px;
+    font-size: 1.1em;
     cursor: pointer;
   }
   
@@ -78,7 +78,7 @@
     .label {
       max-width: 150px;
       padding: 0 0.25em;
-      font-size: 16px;
+      font-size: 1.1em;
       font-weight: normal !important;
       line-height: 24px;
       vertical-align: middle;
@@ -93,7 +93,7 @@
       width: 20px;
       text-align: center;
       line-height: 25px;
-      font-size: 25px;
+      font-size: 25px; // == height of the text
       vertical-align: middle;
       background-color: $color-badge-interaction-bg;
       font-weight: bold;
