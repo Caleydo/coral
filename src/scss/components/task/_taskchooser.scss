@@ -12,7 +12,7 @@ $task-gap: 1em !default;
 
 
   .tasks-header, .task-list-header {
-    font-size: 1.56rem;
+    font-size: 1.75rem;
 
     &.task-list-header {
       margin: 0.5em 0;
@@ -22,6 +22,10 @@ $task-gap: 1em !default;
         font-size: 0.5em;
       }
     }
+  }
+
+  p {
+    font-size: 1rem;
   }
 
   .tasks {
@@ -93,7 +97,7 @@ $task-gap: 1em !default;
 
       &.task-label {
         padding-bottom: 0.25em;
-        font-size: 0.94rem;
+        font-size: 1rem;
       }
       &.task-icon {
         font-size: 2.5rem;
