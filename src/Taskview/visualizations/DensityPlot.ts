@@ -35,7 +35,7 @@ export class DensityPlot extends SingleAttributeVisualization {
       $schema: 'https://vega.github.io/schema/vega/v5.json',
       autosize: {type: 'fit-x', contains: 'padding'},
       background: 'white',
-      padding: {left: 5, top: 0, right: 5, bottom: 5},
+      padding: {left: 5, top: 0, right: 0, bottom: 5},
       height: 300,
       style: 'cell',
       encode: {update: {cursor: {value: 'text'}}},
