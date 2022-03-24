@@ -314,17 +314,24 @@ export class RectCohortRep implements IRectCohortRep {
   }
 
   public setLabel(labelOne: string, labelTwo: string = '') {
+    let labelOneHTML = labelOne;
+    const [labelOneCounter] = labelOne.split(' ', 1);
+    if (labelOneCounter.startsWith('#')) {
+      const labelOneText = labelOne.substring(labelOneCounter.length + 1);
+      labelOneHTML = `<span style="font-weight: 700;"><span style="font-size: 0.8em; font-weight: 700;">#</span><span style="font-size: 0.9em; font-weight: 700;">${labelOneCounter.substring(1)}</span></span> ` + labelOneText;
+    }
+
     // 1st row
     // original
     const divLabel: HTMLDivElement = this._representation.querySelector('div.rectCohort-label-first');
     if (divLabel) {
-      divLabel.innerHTML = labelOne;
+      divLabel.innerHTML = labelOneHTML;
     }
 
     // clone
     const divLabelClone: HTMLDivElement = this._repClone.querySelector('div.rectCohort-label-first');
     if (divLabelClone) {
-      divLabelClone.innerHTML = labelOne;
+      divLabelClone.innerHTML = labelOneHTML;
     }
 
     // 2nd row

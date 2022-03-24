@@ -22,6 +22,7 @@ export declare class CohortApp {
     private rootCohort;
     private datasetEventID;
     private datasetTip;
+    chtCounter: number;
     /**
      * IObjectRef to this CohortApp instance
      * @type {IObjectRef<CohortApp>}

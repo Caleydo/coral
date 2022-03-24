@@ -4,7 +4,7 @@ import {AppContext, ATDPApplication, CLUEGraphManager, IDatabaseViewDesc, IObjec
 import {cellline, tissue} from 'tdp_publicdb';
 import {Instance as TippyInstance} from 'tippy.js';
 import {Cohort, createCohort, createCohortFromDB} from './Cohort';
-import {IElementProvJSON, IElementProvJSONCohort} from './CohortInterfaces';
+import {IElementProvJSON, IElementProvJSONCohort, ITaskParams} from './CohortInterfaces';
 import {cohortOverview, createCohortOverview, destroyOld, loadViewDescription, taskview} from './cohortview';
 import {PanelScoreAttribute} from './data/Attribute';
 import {OnboardingManager} from './OnboardingManager';
@@ -42,6 +42,8 @@ export class CohortApp {
 
   private datasetTip: TippyInstance;
 
+  public chtCounter = 1;
+
   /**
    * IObjectRef to this CohortApp instance
    * @type {IObjectRef<CohortApp>}
@@ -74,8 +76,19 @@ export class CohortApp {
   firstOutput = true;
 
   async handleConfirmTask(ev: ConfirmTaskEvent): Promise<void> {
-    const taskParams = ev.detail.params; // task parameters (e.g. column/category to filter)
+    const taskParams: ITaskParams[] = ev.detail.params; // task parameters (e.g. column/category to filter)
     const taskAttributes = ev.detail.attributes;
+
+    for(const task of taskParams) {
+      for (const cht of task.outputCohorts) {
+        log.debug('app sets counter to', 1+this.chtCounter);
+        (cht as Cohort).setLabels(
+          `#${this.chtCounter++} ` + (cht as Cohort).labelOne,
+          (cht as Cohort).labelTwo
+        );
+      }
+    }
+
     // confirm the current preview as the result of the task
     this.$node.node().dispatchEvent(new PreviewConfirmEvent(taskParams, taskAttributes));
     // get the new added task (the ones confirmed from the preview)
@@ -215,8 +228,8 @@ export class CohortApp {
       .html(`<i class="fas fa-redo fa-flip-horizontal"></i> New Session`)
       .attr('style', 'margin-left: 2.5rem;')
       .attr('hidden', true)
-      .on('click', async () => { // click on logo
-          this.graphManager.newGraph();
+      .on('click', async () => {
+        this.graphManager.newGraph();
       });
   }
 

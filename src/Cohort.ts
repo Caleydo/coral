@@ -679,11 +679,10 @@ export function getLoaderCohort(parent: Cohort) {
 }
 
 
-export function getCohortLabel(arrIndex: number, cht: Cohort) {
-  //format always to digits: 1 to 01, but 10 stays 10,
-  return `${format('0>2')(arrIndex + 1)}. ${cht.label}`;
+export function getCohortLabel(cht: Cohort) {
+  return cht.label;
 }
 
 export function getCohortLabels(cohorts: Cohort[]) {
-  return cohorts.map((cht, index) => getCohortLabel(index, cht));
+  return cohorts.map((cht) => getCohortLabel(cht));
 }

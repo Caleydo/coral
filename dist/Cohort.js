@@ -1,4 +1,3 @@
-import { format } from 'd3-format';
 import { IDTypeManager, UniqueIdManager } from 'tdp_core';
 import { ElementProvType } from './CohortInterfaces';
 import { createDBCohort, createDBCohortWithDepletionScoreFilter, createDBCohortWithEqualsFilter, createDBCohortWithGeneEqualsFilter, createDBCohortWithGeneNumFilter, createDBCohortWithNumFilter, createDBCohortWithPanelAnnotationFilter, createDBCohortWithTreatmentFilter, dataDBCohortDepletionScoreFilter, dataDBCohortGeneWithEqualsFilter, dataDBCohortGeneWithNumFilter, dataDBCohortPanelAnnotationFilter, dataDBCohortWithEqualsFilter, dataDBCohortWithNumFilter, getCohortData, getCohortSize, sizeDBCohortDepletionScoreFilter, sizeDBCohortGeneWithEqualsFilter, sizeDBCohortGeneWithNumFilter, sizeDBCohortPanelAnnotationFilter, sizeDBCohortWithEqualsFilter, sizeDBCohortWithNumFilter, updateCohortName, valueListDelimiter } from './rest';
@@ -541,11 +540,10 @@ export function getLoaderCohort(parent) {
     cht.setCohortParents([parent]);
     return cht;
 }
-export function getCohortLabel(arrIndex, cht) {
-    //format always to digits: 1 to 01, but 10 stays 10,
-    return `${format('0>2')(arrIndex + 1)}. ${cht.label}`;
+export function getCohortLabel(cht) {
+    return cht.label;
 }
 export function getCohortLabels(cohorts) {
-    return cohorts.map((cht, index) => getCohortLabel(index, cht));
+    return cohorts.map((cht) => getCohortLabel(cht));
 }
 //# sourceMappingURL=Cohort.js.map
