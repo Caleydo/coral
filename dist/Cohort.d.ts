@@ -127,5 +127,5 @@ export declare const EMPTY_COHORT_ID = "--EMPTY--";
 export declare function getEmptyCohort(parent: Cohort): Cohort;
 export declare const LOADER_COHORT_ID = "--LOADING--";
 export declare function getLoaderCohort(parent: Cohort): Cohort;
-export declare function getCohortLabel(arrIndex: number, cht: Cohort): string;
+export declare function getCohortLabel(cht: Cohort): string;
 export declare function getCohortLabels(cohorts: Cohort[]): string[];
