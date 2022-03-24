@@ -1,6 +1,6 @@
 import {select, Selection} from 'd3-selection';
 import SplitGrid from 'split-grid';
-import {AppContext, ATDPApplication, CLUEGraphManager, IDatabaseViewDesc, IObjectRef, IServerColumn, NotificationHandler, ObjectRefUtils, ProvenanceGraph, RestBaseUtils} from 'tdp_core';
+import {AppContext, ATDPApplication, CLUEGraphManager, IDatabaseViewDesc, IObjectRef, IServerColumn, ITDPOptions, NotificationHandler, ObjectRefUtils, ProvenanceGraph, RestBaseUtils} from 'tdp_core';
 import {cellline, tissue} from 'tdp_publicdb';
 import {Instance as TippyInstance} from 'tippy.js';
 import {Cohort, createCohort, createCohortFromDB} from './Cohort';
@@ -26,8 +26,6 @@ import {niceName} from './utilLabels';
  */
 export class CohortApp {
 
-  public readonly graph: ProvenanceGraph;
-  public readonly graphManager: CLUEGraphManager;
   private readonly $node: Selection<HTMLDivElement, any, null, undefined>;
   private $overview: HTMLDivElement;
   private $detail: HTMLDivElement;
@@ -50,11 +48,14 @@ export class CohortApp {
    */
   readonly ref: IObjectRef<CohortApp>;
 
-  constructor(graph: ProvenanceGraph, manager: CLUEGraphManager, parent: HTMLElement, name: string = 'Cohort') {
-    this.graph = graph;
-    this.graphManager = manager;
+  constructor(
+    public readonly graph: ProvenanceGraph,
+    public readonly graphManager: CLUEGraphManager,
+    parent: HTMLElement,
+    public readonly options: ITDPOptions
+  ) {
+    this.name = options.name;
     this.$node = select(parent).append('div').classed('cohort_app', true);
-    this.name = name;
 
     this.ref = graph.findOrAddObject(this, this.name, ObjectRefUtils.category.visual); // cat.visual = it is a visual operation
   }
@@ -155,7 +156,7 @@ export class CohortApp {
       NotificationHandler.pushNotification('error', 'Loading datasets failed');
       loading.html(`
       <i class="fas fa-exclamation-circle"></i>
-      Loading datasets failed. Please try to reload or <a href="https://github.com/Caleydo/coral/issues/new">report the issue</a>.
+      Loading datasets failed. Please try to reload or <a href="${this.options.clientConfig.contact.href}">${this.options.clientConfig.contact.label}</a>.
       `);
     }
 
@@ -554,13 +555,22 @@ export class App extends ATDPApplication<CohortApp> {
        * Show content in the `Coral at a Glance` page instead
        */
       showReportBugLink: false,
+      clientConfig: {
+        contact: {
+          href: 'https://github.com/Caleydo/Coral/issues/',
+          label: 'report an issue'
+        }
+      }
     });
+
+    console.log('clientConfig', this.options.clientConfig);
+    console.log('clientConfig contact', this.options.clientConfig?.contact);
   }
 
   protected createApp(graph: ProvenanceGraph, manager: CLUEGraphManager, main: HTMLElement): CohortApp | PromiseLike<CohortApp> {
     log.debug('Create App');
     this.replaceHelpIcon();
-    return new CohortApp(graph, manager, main, this.options.name).init();
+    return new CohortApp(graph, manager, main, this.options).init();
   }
 
   private replaceHelpIcon() {
