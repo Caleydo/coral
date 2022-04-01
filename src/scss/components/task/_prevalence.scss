@@ -1,17 +1,20 @@
 .prev-checkbox {
   position: relative;
   flex-shrink: 0;
-  width: 16px;
+  width: 1em;
+  height: 1em;
+  margin: 0 0.2em;
   background: $color-background;
-  border: 1px solid $color-text;
+  border: 1px solid $color-border-light;
+  border-radius: 3px;
   cursor: pointer;
 
   .checkbox-indicator {
     position: absolute;
-    left: 5px;
-    top: 2px;
-    width: 4px;
-    height: 8px;
+    left: 4px;
+    top: 0px;
+    width: 5px;
+    height: 10px;
     border: solid $color-background;
     // border right+bot and roation creates checkmark
     border-width: 0 2px 2px 0;
@@ -52,12 +55,13 @@
 // container for the checkbox for the exclusion of missing values
 .exclude-container {
   display: flex;
-  height: 16px;
+  height: 1.5em;
+  align-items: center;
 
   // label for the checkbox
   .label-excl-container {
     align-self: center;
-    height: 16px;
+    height: 100%;
     margin-left: 3px;
     cursor: default;
   }
@@ -71,6 +75,7 @@
   // active checkbox
   .prev-checkbox.active {
     background: $color-bar;
+    border-color: $color-bar;
 
     .checkbox-indicator {
       border-color: $color-background;
@@ -98,46 +103,49 @@ $error-bar-line-width: 1px !default;
     flex-direction: row;
   }
 
-  // define the labels for each row (tasks, bars, result text)
-  .prev-label {
-    width: 148px;
-    flex-grow: 0;
-    flex-shrink: 0;
+  .legend-task-row {
+    margin-bottom: 0.2em;
+    height: 1.6em;
+  }
+
+  // // define the labels for each row (tasks, bars, result text)
+  // .prev-label {
+  //   width: 148px;
+  //   flex-grow: 0;
+  //   flex-shrink: 0;
+  // }
+
+  // labels for each bar legend 
+  .prev-lable-cntr {
+    width: 200px;
   }
 
   // set spaces between the bar row and the others
-  .prev-result {
-    margin: 3px 0 0 0;
-  }
+  // .prev-result {
+  //   margin: 3px 0 0 0;
+  // }
 
   // row with label and task options
-  .prev-ref-creation {
-    align-items: flex-start;
+  // .prev-ref-creation {
+  //   align-items: flex-start;
 
-    // task options
-    .prev-ref-label {
-      line-height: 16px;
-      margin-right: 1em;
-      min-width: max-content;
-    }
-  }
+  //   // task options
+  //   .prev-ref-label {
+  //     line-height: 16px;
+  //     margin-right: 1em;
+  //     min-width: max-content;
+  //   }
+  // }
 
   // **** task options *****
-  // container that holds all task options
-  .ref-task-container {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    flex-wrap: wrap;
-  }
 
-  // task options
-  .ref-task-option {
+  .task-option {
     max-width: 350px;
-    height: 16px;
+    height: 100%;
     display: flex;
-    margin-right: 15px;
-    cursor: pointer;
+    margin-right: 0.5em;
+    align-items: center;
+    border-radius: 3px;
 
     .task-label {
       padding: 0 0.25em;
@@ -146,9 +154,30 @@ $error-bar-line-width: 1px !default;
       overflow: hidden; // require for text-overflow to work
       text-align: center;
       align-self: center;
-      height: 16px;
-      line-height: 16px;
+      height: 100%;
+    }
+  }
+
+
+  .ref-task-container, .cht-task-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  // ---- reference tasks
+   // task options
+  .ref-task-option{
+    border: 1px solid $color-border-light;
+    cursor: pointer;
+
+    .task-label {
       background: $color-background;
+    }
+
+    .prev-checkbox {
+      border-color: $color-border-light;
     }
   }
 
@@ -156,14 +185,16 @@ $error-bar-line-width: 1px !default;
   .ref-task-option.color-loading {
     .prev-checkbox{
       background: $color-background !important;
+      border-color: $color-hover;
       color: $color-text !important;
     }
   }
 
   // active task options
-  .ref-task-option.active {
+  .ref-task-option.active{
     .prev-checkbox {
-      background: $color-bar;
+      background: $color-hover;
+      border-color: $color-hover;
     }
 
     .checkbox-indicator {
@@ -171,12 +202,46 @@ $error-bar-line-width: 1px !default;
     }
   }
 
+  // ---- input cohort tasks
+  // task options
+  .cht-task-option {
+    border: 1px solid $color-border-light;
+    cursor: default;
+
+    .task-label {
+      background: $color-background;
+      color: $color-text-light;
+    }
+
+    .prev-checkbox {
+      cursor: default !important;
+      background: $color-text-light;
+      border-color: $color-text-light;
+    }
+
+    .checkbox-indicator {
+      border-color: $color-background;
+    }
+  }
+
+  // // active task options
+  // .cht-task-option.active {
+  //   .prev-checkbox {
+  //     background: $color-bar;
+  //     border-color: $color-bar;
+  //   }
+
+  //   .checkbox-indicator {
+  //     border-color: $color-background;
+  //   }
+  // }
+
   // **** legend *****
   .prev-legend-item {
     display: flex;
     flex-direction: row;
-    height: 16px;
-    line-height: 16px;
+    height: 100%;
+    align-items: center;
     cursor: default;
   }
 
@@ -190,7 +255,7 @@ $error-bar-line-width: 1px !default;
 
   // mark for all legend items
   .prev-legend-mark {
-    height: 16px;
+    height: 100%;
     width: 8px;
     min-width: 8px;
     margin-right: 3px;
@@ -201,6 +266,7 @@ $error-bar-line-width: 1px !default;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+    height: 100%;
   }
 
   // mark for the reference item
@@ -212,7 +278,7 @@ $error-bar-line-width: 1px !default;
 
   // mark for the filtered out item
   .prev-legend-all {
-    margin-bottom: 3px;
+    // margin-bottom: 3px;
     .prev-legend-mark{
       background: $color-background-darker;
     }
@@ -229,7 +295,7 @@ $error-bar-line-width: 1px !default;
     .prev-max-scale-label {
       height: 15px;
       font-size: 0.9em;
-      margin-bottom: -10px;
+      margin-bottom: -0.45em;
       margin-top: auto;
       width: 100%;
       flex-grow: 0;

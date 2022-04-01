@@ -25,6 +25,7 @@ export declare class Prevalence extends ATask {
     private addPackElements;
     private createLegendItem;
     private createBarStructure;
+    private createNonClickableTasks;
     private createClickableTasks;
     private addMouseEventListernersToElements;
     handleOptionSelectionChange(chtIndex: number, clickedTask: HTMLDivElement): Promise<void>;

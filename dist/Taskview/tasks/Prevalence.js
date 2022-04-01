@@ -183,52 +183,23 @@ export class Prevalence extends ATask {
     }
     // add all the elements that are needed for an input cohort
     addPackElements(ctrPrevPack, chtIndex, chtConfig, tasks) {
-        // 1. row: label + clickable tasks
-        const divRefCreation = document.createElement('div');
-        divRefCreation.classList.add('prev-ref-creation', 'prev-row');
-        ctrPrevPack.appendChild(divRefCreation);
-        // label
-        const divRefLabel = document.createElement('div');
-        divRefLabel.classList.add('prev-ref-label');
-        // legend reference
-        const divLegendRef = this.createLegendItem(['prev-legend-ref'], 'Reference, defined by');
-        divRefLabel.appendChild(divLegendRef);
-        divRefCreation.appendChild(divRefLabel);
-        // clickable taks
-        // task container (containes all tasks)
-        const divTaskContainer = document.createElement('div');
-        divTaskContainer.classList.add('ref-task-container');
-        divRefCreation.appendChild(divTaskContainer);
-        //add different task options (tasks with their attributes)
-        const taskAndAttribute = tasks.map((elem) => {
-            const values = chtConfig.attributeValue.filter((conf) => conf.taskId === elem.id)[0].values;
-            return {
-                task: elem,
-                values
-            };
-        });
-        // tasks
-        const dataCells = select(divTaskContainer).selectAll('div.ref-task-option').data(taskAndAttribute, (d) => d.task.id);
-        // create buttons for the tasks
-        const enterSelection = dataCells.enter();
-        enterSelection
-            .append('div')
-            .classed('ref-task-option', true)
-            .each((d, index, nodes) => {
-            this.createClickableTasks(d, chtIndex, index, nodes);
-        });
-        // -------
-        // 2. row: label (legend) + bars  + label space
-        const divResult = document.createElement('div');
-        divResult.classList.add('prev-result', 'prev-row');
-        ctrPrevPack.appendChild(divResult);
-        // label (legend)
-        const divResultLabel = document.createElement('div');
-        divResultLabel.classList.add('prev-result-label', 'prev-label');
-        divResult.appendChild(divResultLabel);
+        // split into 3 areas: 1. legend + clickable tasks, 2. bar, 3. scale with the values
+        // 1. Area _______________________________________________
+        const divLegend = document.createElement('div');
+        divLegend.classList.add('prev-legends-tasks');
+        ctrPrevPack.appendChild(divLegend);
+        // ### 1. row: dataset / base cohort
+        // row container
+        const divAllCreation = document.createElement('div');
+        divAllCreation.classList.add('prev-all-creation', 'prev-row', 'legend-task-row');
+        // legend container
+        const divAllLabel = document.createElement('div');
+        divAllLabel.classList.add('prev-all-label', 'prev-lable-cntr');
+        divAllCreation.appendChild(divAllLabel);
         // legend all (base cohort)
         const divLegendAll = this.createLegendItem(['prev-legend-all'], this.baseCohort.label);
         divLegendAll.title = `${this.baseCohort.label}`;
+        divAllLabel.appendChild(divLegendAll);
         // enter mouse hover
         divLegendAll.addEventListener('mouseenter', (event) => {
             event.stopImmediatePropagation();
@@ -239,10 +210,55 @@ export class Prevalence extends ATask {
             event.stopImmediatePropagation();
             this.baseCohort.representation.getRepresentation().dispatchEvent(new Event('mouseleave'));
         });
+        // ### 2. row: reference cohort
+        // row container
+        const divRefCreation = document.createElement('div');
+        divRefCreation.classList.add('prev-ref-creation', 'prev-row', 'legend-task-row');
+        // legend container
+        const divRefLabel = document.createElement('div');
+        divRefLabel.classList.add('prev-ref-label', 'prev-lable-cntr');
+        divRefCreation.appendChild(divRefLabel);
+        // legend reference
+        const divLegendRef = this.createLegendItem(['prev-legend-ref'], 'Reference, defined by');
+        divRefLabel.appendChild(divLegendRef);
+        // tasks container
+        // clickable taks
+        // task container (containes all tasks)
+        const divRefTaskContainer = document.createElement('div');
+        divRefTaskContainer.classList.add('ref-task-container');
+        divRefCreation.appendChild(divRefTaskContainer);
+        //add different task options (tasks with their attributes)
+        const taskAndAttribute = tasks.map((elem) => {
+            const values = chtConfig.attributeValue.filter((conf) => conf.taskId === elem.id)[0].values;
+            return {
+                task: elem,
+                values
+            };
+        });
+        // tasks
+        const dataCellsRef = select(divRefTaskContainer).selectAll('div.ref-task-option').data(taskAndAttribute, (d) => d.task.id);
+        // create buttons for the tasks
+        const enterSelectionRef = dataCellsRef.enter();
+        enterSelectionRef
+            .append('div')
+            .classed('ref-task-option', true)
+            .classed('task-option', true)
+            .each((d, index, nodes) => {
+            this.createClickableTasks(d, chtIndex, index, nodes);
+        });
+        // ### 3. row: cohort
+        // row container
+        const divChtCreation = document.createElement('div');
+        divChtCreation.classList.add('prev-cht-creation', 'prev-row', 'legend-task-row');
+        // legend container
+        const divChtlabel = document.createElement('div');
+        divChtlabel.classList.add('prev-cht-label', 'prev-lable-cntr');
+        divChtCreation.appendChild(divChtlabel);
         // legend cohort (input cohort)
         const currCht = chtConfig.cht;
         const divLegendCht = this.createLegendItem(['prev-legend-cht'], currCht.label, currCht.colorTaskView);
         divLegendCht.title = `${currCht.label} (All filters are used to create this cohort.)`;
+        divChtlabel.appendChild(divLegendCht);
         // enter mouse hover
         divLegendCht.addEventListener('mouseenter', (event) => {
             event.stopImmediatePropagation();
@@ -253,16 +269,115 @@ export class Prevalence extends ATask {
             event.stopImmediatePropagation();
             currCht.representation.getRepresentation().dispatchEvent(new Event('mouseleave'));
         });
-        // add legend items
-        divResultLabel.appendChild(divLegendAll);
-        // divResultLabel.appendChild(divLegendRef);
-        divResultLabel.appendChild(divLegendCht);
+        // tasks container
+        // clickable taks
+        // task container (containes all tasks)
+        const divChtTaskContainer = document.createElement('div');
+        divChtTaskContainer.classList.add('cht-task-container');
+        divChtCreation.appendChild(divChtTaskContainer);
+        //add different task options (tasks with their attributes)
+        // const taskAndAttribute: {task: Task, values: Array<INumRange[] | IEqualsList>}[] = tasks.map((elem) => {
+        //   const values = chtConfig.attributeValue.filter((conf) => conf.taskId === elem.id)[0].values;
+        //   return {
+        //     task: elem,
+        //     values
+        //   };
+        // });
+        // tasks
+        const dataCellsCht = select(divChtTaskContainer).selectAll('div.cht-task-option').data(taskAndAttribute, (d) => d.task.id);
+        // create buttons for the tasks
+        const enterSelectionCht = dataCellsCht.enter();
+        enterSelectionCht
+            .append('div')
+            .classed('cht-task-option', true)
+            .classed('task-option', true)
+            // .classed('active', true)
+            .each((d, index, nodes) => {
+            this.createNonClickableTasks(d, chtIndex, index, nodes);
+        });
+        // add all row containers
+        divLegend.appendChild(divAllCreation);
+        divLegend.appendChild(divRefCreation);
+        divLegend.appendChild(divChtCreation);
+        // // 1. row: label + clickable tasks
+        // const divRefCreation = document.createElement('div');
+        // divRefCreation.classList.add('prev-ref-creation', 'prev-row');
+        // ctrPrevPack.appendChild(divRefCreation);
+        // // label
+        // const divRefLabel = document.createElement('div');
+        // divRefLabel.classList.add('prev-ref-label');
+        // // legend reference
+        // const divLegendRef = this.createLegendItem(['prev-legend-ref'], 'Reference, defined by');
+        // divRefLabel.appendChild(divLegendRef);
+        // divRefCreation.appendChild(divRefLabel);
+        // // task container (containes all tasks)
+        // const divTaskContainer = document.createElement('div');
+        // divTaskContainer.classList.add('ref-task-container');
+        // divRefCreation.appendChild(divTaskContainer);
+        // //add different task options (tasks with their attributes)
+        // const taskAndAttribute: {task: Task, values: Array<INumRange[] | IEqualsList>}[] = tasks.map((elem) => {
+        //   const values = chtConfig.attributeValue.filter((conf) => conf.taskId === elem.id)[0].values;
+        //   return {
+        //     task: elem,
+        //     values
+        //   };
+        // });
+        // // tasks
+        // const dataCells = select(divTaskContainer).selectAll<HTMLDivElement, {task: Task, value: Array<INumRange[] | IEqualsList>}>('div.ref-task-option').data(taskAndAttribute, (d) => d.task.id);
+        // // create buttons for the tasks
+        // const enterSelection = dataCells.enter();
+        // enterSelection
+        //   .append('div')
+        //   .classed('ref-task-option', true)
+        //   .each((d, index, nodes) => {
+        //     this.createClickableTasks(d, chtIndex, index, nodes);
+        //   });
+        // 2. Area _______________________________________________
+        // bars container
+        const divResult = document.createElement('div');
+        divResult.classList.add('prev-result', 'prev-row');
+        ctrPrevPack.appendChild(divResult);
+        // // label (legend)
+        // const divResultLabel = document.createElement('div');
+        // divResultLabel.classList.add('prev-result-label', 'prev-label');
+        // divResult.appendChild(divResultLabel);
+        // // legend all (base cohort)
+        // const divLegendAll = this.createLegendItem(['prev-legend-all'], this.baseCohort.label);
+        // divLegendAll.title = `${this.baseCohort.label}`;
+        // // enter mouse hover
+        // divLegendAll.addEventListener('mouseenter', (event) => {
+        //   event.stopImmediatePropagation();
+        //   this.baseCohort.representation.getRepresentation().dispatchEvent(new Event('mouseenter'));
+        // });
+        // // leave mouse hover
+        // divLegendAll.addEventListener('mouseleave', (event) => {
+        //   event.stopImmediatePropagation();
+        //   this.baseCohort.representation.getRepresentation().dispatchEvent(new Event('mouseleave'));
+        // });
+        // // legend cohort (input cohort)
+        // const currCht = chtConfig.cht;
+        // const divLegendCht = this.createLegendItem(['prev-legend-cht'], currCht.label, currCht.colorTaskView);
+        // divLegendCht.title = `${currCht.label} (All filters are used to create this cohort.)`;
+        // // enter mouse hover
+        // divLegendCht.addEventListener('mouseenter', (event) => {
+        //   event.stopImmediatePropagation();
+        //   currCht.representation.getRepresentation().dispatchEvent(new Event('mouseenter'));
+        // });
+        // // leave mouse hover
+        // divLegendCht.addEventListener('mouseleave', (event) => {
+        //   event.stopImmediatePropagation();
+        //   currCht.representation.getRepresentation().dispatchEvent(new Event('mouseleave'));
+        // });
+        // // add legend items
+        // divResultLabel.appendChild(divLegendAll);
+        // // divResultLabel.appendChild(divLegendRef);
+        // divResultLabel.appendChild(divLegendCht);
         // bars
         const divResultBar = document.createElement('div');
         divResultBar.classList.add('prev-result-bar');
         divResult.appendChild(divResultBar);
         this.createBarStructure(divResultBar, chtConfig.cht.colorTaskView);
-        // scale label space
+        // scale label space at the end
         const divBarSpace = document.createElement('div');
         divBarSpace.classList.add('prev-label-space');
         divResult.appendChild(divBarSpace);
@@ -270,15 +385,15 @@ export class Prevalence extends ATask {
         const maxScaleLable = createHTMLElementWithClasses('div', ['prev-max-scale-label']);
         maxScaleLable.innerHTML = `${this.baseCohortSize}`;
         divBarSpace.appendChild(maxScaleLable);
-        // -------
-        // 3. row: label (= space for size label) + scale (+ size indicators) + label space
+        // 2. Area _______________________________________________
+        // label (= space for size label) + scale (+ size indicators) + label space
         const divScale = document.createElement('div');
         divScale.classList.add('prev-result-scale', 'prev-row');
         ctrPrevPack.appendChild(divScale);
         // label
-        const divScaleLabel = document.createElement('div');
-        divScaleLabel.classList.add('prev-scale-label', 'prev-label');
-        divScale.appendChild(divScaleLabel);
+        // const divScaleLabel = document.createElement('div');
+        // divScaleLabel.classList.add('prev-scale-label', 'prev-label');
+        // divScale.appendChild(divScaleLabel);
         // scale
         const divScaleSizes = document.createElement('div');
         divScaleSizes.classList.add('prev-scale-sizes');
@@ -352,6 +467,207 @@ export class Prevalence extends ATask {
         divScaleSpace.classList.add('prev-label-space');
         divScale.appendChild(divScaleSpace);
     }
+    /*
+    // add all the elements that are needed for an input cohort
+    private addPackElements(ctrPrevPack: HTMLDivElement, chtIndex: number, chtConfig: ICohortAndTasksConfig, tasks: Task[]) {
+      // 1. row: label + clickable tasks
+      const divRefCreation = document.createElement('div');
+      divRefCreation.classList.add('prev-ref-creation', 'prev-row');
+      ctrPrevPack.appendChild(divRefCreation);
+  
+      // label
+      const divRefLabel = document.createElement('div');
+      divRefLabel.classList.add('prev-ref-label');
+      // legend reference
+      const divLegendRef = this.createLegendItem(['prev-legend-ref'], 'Reference, defined by');
+      divRefLabel.appendChild(divLegendRef);
+      divRefCreation.appendChild(divRefLabel);
+  
+      // clickable taks
+      // task container (containes all tasks)
+      const divTaskContainer = document.createElement('div');
+      divTaskContainer.classList.add('ref-task-container');
+      divRefCreation.appendChild(divTaskContainer);
+  
+      //add different task options (tasks with their attributes)
+      const taskAndAttribute: {task: Task, values: Array<INumRange[] | IEqualsList>}[] = tasks.map((elem) => {
+        const values = chtConfig.attributeValue.filter((conf) => conf.taskId === elem.id)[0].values;
+        return {
+          task: elem,
+          values
+        };
+      });
+  
+      // tasks
+      const dataCells = select(divTaskContainer).selectAll<HTMLDivElement, {task: Task, value: Array<INumRange[] | IEqualsList>}>('div.ref-task-option').data(taskAndAttribute, (d) => d.task.id);
+  
+      // create buttons for the tasks
+      const enterSelection = dataCells.enter();
+      enterSelection
+        .append('div')
+        .classed('ref-task-option', true)
+        .each((d, index, nodes) => {
+          this.createClickableTasks(d, chtIndex, index, nodes);
+        });
+  
+      // -------
+      // 2. row: label (legend) + bars  + label space
+      const divResult = document.createElement('div');
+      divResult.classList.add('prev-result', 'prev-row');
+      ctrPrevPack.appendChild(divResult);
+  
+      // label (legend)
+      const divResultLabel = document.createElement('div');
+      divResultLabel.classList.add('prev-result-label', 'prev-label');
+      divResult.appendChild(divResultLabel);
+  
+      // legend all (base cohort)
+      const divLegendAll = this.createLegendItem(['prev-legend-all'], this.baseCohort.label);
+      divLegendAll.title = `${this.baseCohort.label}`;
+      // enter mouse hover
+      divLegendAll.addEventListener('mouseenter', (event) => {
+        event.stopImmediatePropagation();
+        this.baseCohort.representation.getRepresentation().dispatchEvent(new Event('mouseenter'));
+      });
+      // leave mouse hover
+      divLegendAll.addEventListener('mouseleave', (event) => {
+        event.stopImmediatePropagation();
+        this.baseCohort.representation.getRepresentation().dispatchEvent(new Event('mouseleave'));
+      });
+  
+      // legend cohort (input cohort)
+      const currCht = chtConfig.cht;
+      const divLegendCht = this.createLegendItem(['prev-legend-cht'], currCht.label, currCht.colorTaskView);
+      divLegendCht.title = `${currCht.label} (All filters are used to create this cohort.)`;
+      // enter mouse hover
+      divLegendCht.addEventListener('mouseenter', (event) => {
+        event.stopImmediatePropagation();
+        currCht.representation.getRepresentation().dispatchEvent(new Event('mouseenter'));
+      });
+      // leave mouse hover
+      divLegendCht.addEventListener('mouseleave', (event) => {
+        event.stopImmediatePropagation();
+        currCht.representation.getRepresentation().dispatchEvent(new Event('mouseleave'));
+      });
+  
+      // add legend items
+      divResultLabel.appendChild(divLegendAll);
+      // divResultLabel.appendChild(divLegendRef);
+      divResultLabel.appendChild(divLegendCht);
+  
+      // bars
+      const divResultBar = document.createElement('div');
+      divResultBar.classList.add('prev-result-bar');
+      divResult.appendChild(divResultBar);
+      this.createBarStructure(divResultBar, chtConfig.cht.colorTaskView);
+  
+      // scale label space
+      const divBarSpace = document.createElement('div');
+      divBarSpace.classList.add('prev-label-space');
+      divResult.appendChild(divBarSpace);
+      // add max label for the scale
+      const maxScaleLable = createHTMLElementWithClasses('div', ['prev-max-scale-label']);
+      maxScaleLable.innerHTML = `${this.baseCohortSize}`;
+      divBarSpace.appendChild(maxScaleLable);
+  
+      // -------
+      // 3. row: label (= space for size label) + scale (+ size indicators) + label space
+      const divScale = document.createElement('div');
+      divScale.classList.add('prev-result-scale', 'prev-row');
+      ctrPrevPack.appendChild(divScale);
+  
+      // label
+      const divScaleLabel = document.createElement('div');
+      divScaleLabel.classList.add('prev-scale-label', 'prev-label');
+      divScale.appendChild(divScaleLabel);
+  
+      // scale
+      const divScaleSizes = document.createElement('div');
+      divScaleSizes.classList.add('prev-scale-sizes');
+      divScale.appendChild(divScaleSizes);
+  
+      // container for the lower scale elements
+      const lowerScales = createHTMLElementWithClasses('div', ['prev-lower-scales']);
+      divScaleSizes.appendChild(lowerScales);
+  
+  
+      // dataset scale
+      const divScaleDataset = document.createElement('div');
+      divScaleDataset.classList.add('prev-scale-dataset', 'prev-scale-elem');
+      // divScaleSizes.appendChild(divScaleDataset);
+      lowerScales.appendChild(divScaleDataset);
+      // -> fist tick
+      const divScaleFistTick = document.createElement('div');
+      divScaleFistTick.classList.add('prev-scale-first-tick');
+      divScaleDataset.appendChild(divScaleFistTick);
+  
+  
+      // reference scale
+      const divScaleRef = document.createElement('div');
+      divScaleRef.classList.add('prev-scale-reference', 'prev-scale-elem', 'prev-value-reference');
+      // divScaleSizes.appendChild(divScaleRef);
+      lowerScales.appendChild(divScaleRef);
+  
+      const divScaleRefTick = document.createElement('div');
+      divScaleRefTick.classList.add('scale-reference-tick');
+      divScaleRef.appendChild(divScaleRefTick);
+      // -> label container
+      const divScaleRefLabelContainer = document.createElement('div');
+      divScaleRefLabelContainer.classList.add('scale-reference-container');
+      divScaleRef.appendChild(divScaleRefLabelContainer);
+      // -> label size
+      const ctrRefSize = createHTMLElementWithClasses('div', ['scale-ctr-ref-size']);
+      divScaleRefLabelContainer.appendChild(ctrRefSize);
+      const divScaleRefSize = document.createElement('div');
+      divScaleRefSize.classList.add('scale-ref-size');
+      ctrRefSize.appendChild(divScaleRefSize);
+      // add info icon for exluded missing values
+      const infoLable = createHTMLElementWithClasses('div', ['prev-info-bar-label']);
+      infoLable.toggleAttribute('hidden', true); // hide at the beginning
+      ctrRefSize.appendChild(infoLable);
+      const infoIcon = createHTMLElementWithClasses('i', ['fas', 'fa-info-circle']);
+      tippy(infoIcon, {
+        content: `Reference doesn't equal dataset,</br>
+          because samples with missing values are filtered out.`
+      });
+      infoLable.appendChild(infoIcon);
+      // -> label prevalence (percentage)
+      const divScaleRefPercentage = document.createElement('div');
+      divScaleRefPercentage.classList.add('scale-ref-percentage');
+      divScaleRefPercentage.innerHTML = '100%';
+      divScaleRefLabelContainer.appendChild(divScaleRefPercentage);
+  
+  
+      // cohort scale
+      const divScaleCohort = document.createElement('div');
+      divScaleCohort.classList.add('prev-scale-cohort', 'prev-scale-elem', 'prev-value-cohort');
+      // divScaleSizes.appendChild(divScaleCohort);
+      lowerScales.appendChild(divScaleCohort);
+  
+      // -> label size container
+      const divScaleCohortContainer = document.createElement('div');
+      divScaleCohortContainer.classList.add('scale-cohort-container');
+      divScaleCohort.appendChild(divScaleCohortContainer);
+  
+      // -> label size
+      const divScaleCohortSize = document.createElement('div');
+      divScaleCohortSize.classList.add('scale-cohort-size');
+      divScaleCohortContainer.appendChild(divScaleCohortSize);
+      // -> label prevalence (percentage)
+      const divScaleCohortPercentage = document.createElement('div');
+      divScaleCohortPercentage.classList.add('scale-cohort-percentage');
+      const cohortColor = chtConfig.cht.colorTaskView === null ? 'white' : chtConfig.cht.colorTaskView;
+      divScaleCohortPercentage.style.background = `linear-gradient(to right, white 0%, white 25%, ${cohortColor} 100%)`;
+      divScaleCohortContainer.appendChild(divScaleCohortPercentage);
+  
+  
+      // scale label space at the end
+      const divScaleSpace = document.createElement('div');
+      divScaleSpace.classList.add('prev-label-space');
+      divScale.appendChild(divScaleSpace);
+  
+    }
+    */
     createLegendItem(cssClasses, label, color = null) {
         // legend item
         const divLegend = document.createElement('div');
@@ -401,6 +717,70 @@ export class Prevalence extends ATask {
         barError.appendChild(barErrorRight);
     }
     // create all task options for an input cohort
+    createNonClickableTasks(d, chtIndex, index, nodes) {
+        const currNode = nodes[index];
+        const currTask = d.task;
+        const taskRep = currTask.representation.getRepresentation();
+        // add the task id as class
+        currNode.classList.add(currTask.id);
+        // checkbox
+        const checkbox = document.createElement('div');
+        // checkbox.classList.add('task-checkbox');
+        checkbox.classList.add('prev-checkbox');
+        // checkbox indicator
+        const cbIndicator = document.createElement('div');
+        // cbIndicator.classList.add('task-checkbox-indicator');
+        cbIndicator.classList.add('checkbox-indicator');
+        checkbox.appendChild(cbIndicator);
+        // // add loading effect icon container
+        // const cbCtrLoading = createHTMLElementWithClasses('div', ['icon-container', 'loading-effect']);
+        // cbCtrLoading.toggleAttribute('hidden', true);
+        // checkbox.appendChild(cbCtrLoading);
+        // // add loading effect icon
+        // const cbLoading = createHTMLElementWithClasses('i', ['fas', 'fa-circle-notch', 'icon-extra']);
+        // cbCtrLoading.appendChild(cbLoading);
+        // label
+        const label = document.createElement('div');
+        label.classList.add('task-label');
+        // add checkbox and label
+        currNode.appendChild(checkbox);
+        currNode.appendChild(label);
+        // get attribute label
+        const attrLabel = currTask.label;
+        // get all values for the task
+        const values = d.values;
+        // get all attribtues for the task
+        const attributes = d.task.attributes;
+        // get all value labels for all attributes
+        const valueLabel = attributes.map((attr, i) => {
+            let attributeRangeLabel;
+            if (Array.isArray(values[i])) {
+                // TODO labels
+                // attributeRangeLabel = (values[i] as INumRange[]).map((val) => labelFromFilter(val, attr)).join('/');
+                attributeRangeLabel = values[i].map((val) => easyLabelFromFilter(val, attr.label)).join('/');
+            }
+            else {
+                // TODO labels
+                // attributeRangeLabel = labelFromFilter((values[i] as IEqualsList), attr);
+                attributeRangeLabel = easyLabelFromFilter(values[i], attr.label);
+            }
+            return attributeRangeLabel;
+        }).join(', ');
+        // set text for the task html element
+        label.innerHTML = `${attrLabel}: ${valueLabel}`;
+        // set tootip
+        tippy(label, {
+            content: `${attrLabel}: ${valueLabel}`
+        });
+        // add mouse enter and leave events (highlighting for the task in overview)
+        // this.addMouseEventListernersToElements(currNode, taskRep);
+        // // add click event (toggle task)
+        // currNode.addEventListener('click', async (event) => {
+        //   event.stopPropagation();
+        //   await this.handleOptionSelectionChange(chtIndex, currNode);
+        // });
+    }
+    // create all task options for an referce cohort
     createClickableTasks(d, chtIndex, index, nodes) {
         const currNode = nodes[index];
         const currTask = d.task;
