@@ -27,6 +27,7 @@ export class CohortApp {
         this._taskview = null;
         this.rootCohort = null;
         this.datasetEventID = 0;
+        this.chtCounter = 1;
         this.firstOutput = true;
         this.name = options.name;
         this.$node = select(parent).append('div').classed('cohort_app', true);
@@ -48,6 +49,12 @@ export class CohortApp {
     async handleConfirmTask(ev) {
         const taskParams = ev.detail.params; // task parameters (e.g. column/category to filter)
         const taskAttributes = ev.detail.attributes;
+        for (const task of taskParams) {
+            for (const cht of task.outputCohorts) {
+                log.debug('app sets counter to', 1 + this.chtCounter);
+                cht.setLabels(`#${this.chtCounter++} ` + cht.labelOne, cht.labelTwo);
+            }
+        }
         // confirm the current preview as the result of the task
         this.$node.node().dispatchEvent(new PreviewConfirmEvent(taskParams, taskAttributes));
         // get the new added task (the ones confirmed from the preview)
