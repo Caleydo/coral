@@ -1,5 +1,6 @@
 import { format } from 'd3-format';
 import { select } from 'd3-selection';
+import { transition } from 'd3-transition';
 import tippy from 'tippy.js';
 import { getRootCohort } from '../../cohortview';
 import { multiFilter } from '../../data/Attribute';
@@ -88,12 +89,9 @@ export class Prevalence extends ATask {
         checkbox.appendChild(cbIndicator);
         divExclContainer.appendChild(checkbox);
         // add loading effect icon container
-        const cbCtrLoading = createHTMLElementWithClasses('div', ['icon-container', 'loading-effect']);
+        const cbCtrLoading = createHTMLElementWithClasses('div', ['icon-container']);
         cbCtrLoading.toggleAttribute('hidden');
         checkbox.appendChild(cbCtrLoading);
-        // add loading effect icon
-        const cbLoading = createHTMLElementWithClasses('i', ['fas', 'fa-circle-notch', 'icon-extra']);
-        cbCtrLoading.appendChild(cbLoading);
         checkbox.addEventListener('click', async (event) => {
             this.excludeMissingValues = !this.excludeMissingValues;
             // toggle active state
@@ -123,6 +121,18 @@ export class Prevalence extends ATask {
         `
         });
         divLabelContainer.appendChild(labelMissingVal);
+    }
+    async updateBarStructures() {
+        const updatePromises = [];
+        // update data based on exclusion state
+        for (const currPack of this.prevalencePacks) {
+            if (currPack.parentTaskId !== null) {
+                // update prevalence calculations
+                updatePromises.push(this.updatePrevalencePack(currPack));
+            }
+        }
+        // wait until all prevalence are updated
+        await Promise.all(updatePromises);
     }
     async changeMissingValueInclusion(exclState) {
         const updatePromises = [];
@@ -199,9 +209,30 @@ export class Prevalence extends ATask {
         // legend all (base cohort)
         const divLegendAll = this.createLegendItem(['prev-legend-all'], this.baseCohort.label);
         divLegendAll.title = `${this.baseCohort.label}`;
+        // add eye icon for the dataset bar
+        const iconEye = document.createElement('i');
+        iconEye.classList.add('fas', 'fa-eye', 'prev-show-dataset-eye');
+        iconEye.dataset.showDatasetBar = '1';
+        iconEye.addEventListener('click', async (event) => {
+            const showDatasetBar = Boolean(Number(iconEye.dataset.showDatasetBar));
+            const toggled = !showDatasetBar;
+            iconEye.dataset.showDatasetBar = toggled ? '1' : '0';
+            const updatePromises = [];
+            // update data based on exclusion state
+            for (const currPack of this.prevalencePacks) {
+                if (currPack.parentTaskId !== null) {
+                    // update prevalence calculations
+                    updatePromises.push(this.updatePrevalencePack(currPack));
+                }
+            }
+            // wait until all prevalence are updated
+            await Promise.all(updatePromises);
+        });
+        divLegendAll.appendChild(iconEye);
         divAllLabel.appendChild(divLegendAll);
         // enter mouse hover
         divLegendAll.addEventListener('mouseenter', (event) => {
+            console.log('hover: tager: ', event.currentTarget);
             event.stopImmediatePropagation();
             this.baseCohort.representation.getRepresentation().dispatchEvent(new Event('mouseenter'));
         });
@@ -385,7 +416,7 @@ export class Prevalence extends ATask {
         const maxScaleLable = createHTMLElementWithClasses('div', ['prev-max-scale-label']);
         maxScaleLable.innerHTML = `${this.baseCohortSize}`;
         divBarSpace.appendChild(maxScaleLable);
-        // 2. Area _______________________________________________
+        // 3. Area _______________________________________________
         // label (= space for size label) + scale (+ size indicators) + label space
         const divScale = document.createElement('div');
         divScale.classList.add('prev-result-scale', 'prev-row');
@@ -415,6 +446,7 @@ export class Prevalence extends ATask {
         divScaleRef.classList.add('prev-scale-reference', 'prev-scale-elem', 'prev-value-reference');
         // divScaleSizes.appendChild(divScaleRef);
         lowerScales.appendChild(divScaleRef);
+        // -> tick
         const divScaleRefTick = document.createElement('div');
         divScaleRefTick.classList.add('scale-reference-tick');
         divScaleRef.appendChild(divScaleRefTick);
@@ -422,6 +454,11 @@ export class Prevalence extends ATask {
         const divScaleRefLabelContainer = document.createElement('div');
         divScaleRefLabelContainer.classList.add('scale-reference-container');
         divScaleRef.appendChild(divScaleRefLabelContainer);
+        // -> label prevalence (percentage)
+        const divScaleRefPercentage = document.createElement('div');
+        divScaleRefPercentage.classList.add('scale-ref-percentage');
+        divScaleRefPercentage.innerHTML = '100%';
+        divScaleRefLabelContainer.appendChild(divScaleRefPercentage);
         // -> label size
         const ctrRefSize = createHTMLElementWithClasses('div', ['scale-ctr-ref-size']);
         divScaleRefLabelContainer.appendChild(ctrRefSize);
@@ -438,30 +475,30 @@ export class Prevalence extends ATask {
         because samples with missing values are filtered out.`
         });
         infoLable.appendChild(infoIcon);
-        // -> label prevalence (percentage)
-        const divScaleRefPercentage = document.createElement('div');
-        divScaleRefPercentage.classList.add('scale-ref-percentage');
-        divScaleRefPercentage.innerHTML = '100%';
-        divScaleRefLabelContainer.appendChild(divScaleRefPercentage);
         // cohort scale
         const divScaleCohort = document.createElement('div');
         divScaleCohort.classList.add('prev-scale-cohort', 'prev-scale-elem', 'prev-value-cohort');
         // divScaleSizes.appendChild(divScaleCohort);
         lowerScales.appendChild(divScaleCohort);
+        // -> tick
+        const divScaleChtTick = document.createElement('div');
+        divScaleChtTick.classList.add('scale-cohort-tick');
+        divScaleCohort.appendChild(divScaleChtTick);
         // -> label size container
         const divScaleCohortContainer = document.createElement('div');
         divScaleCohortContainer.classList.add('scale-cohort-container');
         divScaleCohort.appendChild(divScaleCohortContainer);
-        // -> label size
-        const divScaleCohortSize = document.createElement('div');
-        divScaleCohortSize.classList.add('scale-cohort-size');
-        divScaleCohortContainer.appendChild(divScaleCohortSize);
         // -> label prevalence (percentage)
         const divScaleCohortPercentage = document.createElement('div');
         divScaleCohortPercentage.classList.add('scale-cohort-percentage');
         const cohortColor = chtConfig.cht.colorTaskView === null ? 'white' : chtConfig.cht.colorTaskView;
-        divScaleCohortPercentage.style.background = `linear-gradient(to right, white 0%, white 25%, ${cohortColor} 100%)`;
+        divScaleCohortPercentage.style.background = `linear-gradient(to right, ${cohortColor} 0%, white 100%)`;
+        // divScaleCohortPercentage.style.background = `linear-gradient(to right, ${cohortColor} 0%, white 25%, white 100%)`;
         divScaleCohortContainer.appendChild(divScaleCohortPercentage);
+        // -> label size
+        const divScaleCohortSize = document.createElement('div');
+        divScaleCohortSize.classList.add('scale-cohort-size');
+        divScaleCohortContainer.appendChild(divScaleCohortSize);
         // scale label space at the end
         const divScaleSpace = document.createElement('div');
         divScaleSpace.classList.add('prev-label-space');
@@ -692,7 +729,7 @@ export class Prevalence extends ATask {
         const divDataset = document.createElement('div');
         divDataset.classList.add('bar-dataset');
         ctrBars.appendChild(divDataset);
-        // zero line bar
+        // zero line bar -> needed so that the scale is aligned correctly
         const divZero = createHTMLElementWithClasses('div', ['bar', 'prev-value-zero']);
         divDataset.appendChild(divZero);
         // reference bar
@@ -736,9 +773,6 @@ export class Prevalence extends ATask {
         // const cbCtrLoading = createHTMLElementWithClasses('div', ['icon-container', 'loading-effect']);
         // cbCtrLoading.toggleAttribute('hidden', true);
         // checkbox.appendChild(cbCtrLoading);
-        // // add loading effect icon
-        // const cbLoading = createHTMLElementWithClasses('i', ['fas', 'fa-circle-notch', 'icon-extra']);
-        // cbCtrLoading.appendChild(cbLoading);
         // label
         const label = document.createElement('div');
         label.classList.add('task-label');
@@ -797,12 +831,9 @@ export class Prevalence extends ATask {
         cbIndicator.classList.add('checkbox-indicator');
         checkbox.appendChild(cbIndicator);
         // add loading effect icon container
-        const cbCtrLoading = createHTMLElementWithClasses('div', ['icon-container', 'loading-effect']);
+        const cbCtrLoading = createHTMLElementWithClasses('div', ['icon-container']);
         cbCtrLoading.toggleAttribute('hidden', true);
         checkbox.appendChild(cbCtrLoading);
-        // add loading effect icon
-        const cbLoading = createHTMLElementWithClasses('i', ['fas', 'fa-circle-notch', 'icon-extra']);
-        cbCtrLoading.appendChild(cbLoading);
         // label
         const label = document.createElement('div');
         label.classList.add('task-label');
@@ -937,15 +968,6 @@ export class Prevalence extends ATask {
         cc.refSize = cohortRefSize;
         // change reference bar size and the prevalence value
         this.updateBars(currPack, datasetSize, currPack.chtConfig.size, cohortRefSize);
-        // add info label for no filter active and excluding missing values
-        // and if reference size != dataset size
-        const infoLabel = currPack.container.querySelector('.prev-info-bar-label');
-        if (exclState && activeTasks.length === 0 && datasetSize !== cohortRefSize) {
-            infoLabel.removeAttribute('hidden');
-        }
-        else {
-            infoLabel.toggleAttribute('hidden', true);
-        }
     }
     startBarLoadingAnimation(prevPack) {
         // add loading animation for the reference bar
@@ -1009,11 +1031,40 @@ export class Prevalence extends ATask {
         // log.debug('CI values: ', {sizeCht, sizeRef, prevValue, ciValue});
         this.stopBarLoadingAnimation(prevPack);
         this.stopTaskLoadingAnimation(prevPack);
+        // define transition
+        const tBar = transition().duration(1000);
+        // check if the dataset bar should be shown
+        const iconEye = prevPack.container.querySelector('.prev-show-dataset-eye');
+        const showDatasetBar = Boolean(Number(iconEye.dataset.showDatasetBar));
+        const maxSizeRef = showDatasetBar ? sizeDataset : sizeRef;
+        const datasetBar = prevPack.container.querySelector('.bar-dataset');
+        datasetBar.classList.toggle('hide-dataset', !showDatasetBar);
+        const datasetBarMaxLabel = prevPack.container.querySelector('.prev-max-scale-label');
+        datasetBarMaxLabel.classList.toggle('hide-label', !showDatasetBar);
+        // reference size
+        const percentageRef = (sizeRef / maxSizeRef) * 100;
+        const refElems = prevPack.container.querySelectorAll('.prev-value-reference');
+        refElems.forEach((elem) => {
+            select(elem).transition(tBar).style('width', `${percentageRef}%`);
+            // elem.style.width = `${percentageRef}%`;
+        });
+        const scaleRefS = prevPack.container.querySelector('.scale-ref-size');
+        scaleRefS.innerHTML = `${sizeRef}`;
+        // error bar for confidence intervall
+        // set error bar length
+        const refBar = prevPack.container.querySelector('.prev-value-reference.bar');
+        const refBarWidth = refBar.getBoundingClientRect().width;
+        const errorBar = prevPack.container.querySelector('.prev-ci-bar-error');
+        const ciHalfBarWidth = ciValue * refBarWidth;
+        const ciBarWidth = 2 * ciHalfBarWidth;
+        errorBar.style.width = `${ciBarWidth}px`;
+        errorBar.style.marginRight = `-${ciHalfBarWidth}px`;
         // cohort size
-        const percentageCht = (sizeCht / sizeDataset) * 100;
+        const percentageCht = (sizeCht / maxSizeRef) * 100;
         const chtElems = prevPack.container.querySelectorAll('.prev-value-cohort');
         chtElems.forEach((elem) => {
-            elem.style.width = `${percentageCht}%`;
+            select(elem).transition(tBar).style('width', `${percentageCht}%`);
+            // elem.style.width = `${percentageCht}%`;
         });
         const scaleChtS = prevPack.container.querySelector('.scale-cohort-size');
         scaleChtS.innerHTML = `${sizeCht}`;
@@ -1032,30 +1083,29 @@ export class Prevalence extends ATask {
                 content: prevTooltip
             });
         }
-        // reference size
-        const percentageRef = (sizeRef / sizeDataset) * 100;
-        const refElems = prevPack.container.querySelectorAll('.prev-value-reference');
-        refElems.forEach((elem) => {
-            elem.style.width = `${percentageRef}%`;
-        });
-        const scaleRefS = prevPack.container.querySelector('.scale-ref-size');
-        scaleRefS.innerHTML = `${sizeRef}`;
-        // error bar for confidence intervall
-        // set error bar length
-        const refBar = prevPack.container.querySelector('.prev-value-reference.bar');
-        const refBarWidth = refBar.getBoundingClientRect().width;
-        const errorBar = prevPack.container.querySelector('.prev-ci-bar-error');
-        const ciHalfBarWidth = ciValue * refBarWidth;
-        const ciBarWidth = 2 * ciHalfBarWidth;
-        errorBar.style.width = `${ciBarWidth}px`;
-        errorBar.style.marginRight = `-${ciHalfBarWidth}px`;
+        // add info label for no filter active and excluding missing values
+        // and if reference size != dataset size
+        const exclState = this.excludeMissingValues;
+        const activeTasks = select(prevPack.container).selectAll('.ref-task-option.active').data().map((elem) => elem.task);
+        const infoLabel = prevPack.container.querySelector('.prev-info-bar-label');
+        if (!showDatasetBar) {
+            if (exclState && activeTasks.length === 0 && sizeDataset !== sizeRef) {
+                infoLabel.removeAttribute('hidden');
+            }
+            else {
+                infoLabel.toggleAttribute('hidden', true);
+            }
+        }
+        else {
+            infoLabel.toggleAttribute('hidden', true);
+        }
         // add tooltip to bar
         const barContainer = prevPack.container.querySelector('.prev-result-bar');
         // update toottip text
         const tooltip = `
+    ${this.baseCohort.label} (${sizeDataset} items)</br>
     Reference: defined with checkboxes (${sizeRef} items)</br>
     Cohort: ${prevPack.chtConfig.cht.label} (${sizeCht} items)</br>
-    Dataset: ${this.baseCohort.label} (${sizeDataset} items)</br>
     <span style="font-weight: bold;">Prevalence:</span> ${prevValueMore}%</br>
     <span style="font-weight: bold;">Confidence Interval:</span> &pm; ${ciValueMore}%</br>`;
         // get tippy instance, to overwrite existing tippy tooltip

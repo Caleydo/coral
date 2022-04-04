@@ -1,8 +1,8 @@
 .prev-checkbox {
   position: relative;
   flex-shrink: 0;
-  width: 1em;
-  height: 1em;
+  width: 1.2em;
+  height: 1.2em;
   margin: 0 0.2em;
   background: $color-background;
   border: 1px solid $color-border-light;
@@ -11,10 +11,10 @@
 
   .checkbox-indicator {
     position: absolute;
-    left: 4px;
+    left: 5px;
     top: 0px;
     width: 5px;
-    height: 10px;
+    height: 11px;
     border: solid $color-background;
     // border right+bot and roation creates checkmark
     border-width: 0 2px 2px 0;
@@ -27,28 +27,29 @@
     width: 100%;
   }
 
-  .icon-extra {
+
+  .icon-container::after{
+    animation: spinAround infinite .75s linear;
     position: absolute;
-    top: calc(50% - 6px);
-    left: calc(50% - 7px);
-    font-weight: bold;
-    transform: scale(0.95);
-  }
+    top: calc(50% - (0.45em));
+    left: calc(50% - (0.45em));
+    border: 2px black solid;
+    border-radius: 9999px;
+    border-color: transparent transparent $color-background $color-background;
+    content: '';
+    display: block;
+    height: 0.9em;
+    width: 0.9em;
 
-  .loading-effect {
-      animation-name: spin;
-      animation-duration: 2000ms;
-      animation-iteration-count: infinite;
-      animation-timing-function: linear;
-
-    @keyframes spin {
-        from {
-            transform:rotate(0deg);
-        }
-        to {
-            transform:rotate(360deg);
-        }
+    @keyframes spinAround {
+      0% {
+          transform:rotate(0deg);
+      }
+      100% {
+          transform:rotate(359deg);
+      }
     }
+
   }
 }
 
@@ -67,9 +68,48 @@
   }
 
   // loading checkbox
-  .prev-checkbox.color-loading {
+  .prev-checkbox.color-loading, .prev-checkbox.active.color-loading {
     background: $color-background !important;
-    color: $color-text !important;
+
+    .icon-container::after{
+      background: $color-background !important;
+      border-color: transparent transparent $color-text $color-text !important;
+    }
+  }
+
+  // active checkbox
+  .prev-checkbox.active {
+    background: $color-bar;
+    border-color: $color-bar;
+
+    .checkbox-indicator {
+      border-color: $color-background;
+    }
+  }
+}
+
+// container for the checkbox for showing the dataset bar
+.show-dataset-container {
+  display: flex;
+  height: 1.5em;
+  align-items: center;
+
+  // label for the checkbox
+  .label-show-dataset-container {
+    align-self: center;
+    height: 100%;
+    margin-left: 3px;
+    cursor: default;
+  }
+
+  // loading checkbox
+  .prev-checkbox.color-loading, .prev-checkbox.active.color-loading {
+    background: $color-background !important;
+
+    .icon-container::after{
+      background: $color-background !important;
+      border-color: transparent transparent $color-text $color-text !important;
+    }
   }
 
   // active checkbox
@@ -172,23 +212,31 @@ $error-bar-line-width: 1px !default;
     border: 1px solid $color-border-light;
     cursor: pointer;
 
+
     .task-label {
       background: $color-background;
     }
 
     .prev-checkbox {
-      border-color: $color-border-light;
+      border-color: $color-hover;
     }
+
   }
 
   // loading task options
-  .ref-task-option.color-loading {
+  .ref-task-option.color-loading, .ref-task-option.active.color-loading {
     .prev-checkbox{
       background: $color-background !important;
-      border-color: $color-hover;
-      color: $color-text !important;
     }
+
+    .icon-container::after{
+      background: $color-background !important;
+      border-color: transparent transparent $color-hover $color-hover!important;
+    }
+
   }
+
+
 
   // active task options
   .ref-task-option.active{
@@ -279,14 +327,28 @@ $error-bar-line-width: 1px !default;
   // mark for the filtered out item
   .prev-legend-all {
     // margin-bottom: 3px;
-    .prev-legend-mark{
+    .prev-legend-mark {
       background: $color-background-darker;
+    }
+
+   .prev-show-dataset-eye {
+      padding: 0 0.5em;
+      margin-left: auto;
+      cursor: pointer;
+
+      &[data-show-dataset-bar='0'] {
+        color: $color-border-light;
+      }
+
+      &[data-show-dataset-bar='1'] {
+        color: $color-text;
+      }
     }
   }
 
   // space after bar and scale
   .prev-label-space {
-    width: 70px;
+    width: 150px;
     flex-grow: 0;
     flex-shrink: 0;
     display: flex;
@@ -306,6 +368,10 @@ $error-bar-line-width: 1px !default;
       white-space: nowrap;
       overflow: hidden;
       cursor: default;
+
+      &.hide-label {
+        display: none !important;
+      }
     }
 
   }
@@ -328,6 +394,10 @@ $error-bar-line-width: 1px !default;
       height: 100%;
       width: 100%;
       background: $color-background-darker;
+
+      &.hide-dataset {
+        background: transparent;
+      }
     }
 
     .prev-value-zero {
@@ -469,7 +539,7 @@ $error-bar-line-width: 1px !default;
 
         // add border to the right = tick
         .scale-reference-tick {
-          height: 36px;
+          height: 19px;
           width: 100%;
           flex-grow: 0;
           flex-shrink: 0;
@@ -478,9 +548,11 @@ $error-bar-line-width: 1px !default;
 
         // container with the labels = centered by tick
         .scale-reference-container {
-          height: 36px;
-          width: 70px;
-          padding-top: 5px;
+          display: flex;
+          align-items: baseline;
+          height: 18px;
+          width: 150px;
+          padding-top: 2px;
           flex-grow: 0;
           flex-shrink: 0;
           text-align: center;
@@ -511,36 +583,56 @@ $error-bar-line-width: 1px !default;
 
           .scale-ref-percentage {
             height: 16px;
-            padding-left: 0.25em;
+            padding: 0 0.25em;
             text-align: left;
           }
         }
       }
+
+
+
 
       // cohort scale
       .prev-scale-cohort {
         height: 36px;
         width: 0%; // inital value
         display: flex;
-        flex-direction: row-reverse;
+        // flex-direction: row-reverse;
+
+        // remove the border on the right -> use tick
+        &.prev-scale-elem {
+          border-right: none;
+        }
+
+        // add border to the right = tick
+        .scale-cohort-tick {
+          height: 36px;
+          width: 100%;
+          flex-grow: 0;
+          flex-shrink: 0;
+          border-right: $scale-line-width solid $color-text;
+        } 
 
         // container with the labels = right aligned by tick
         .scale-cohort-container {
-          min-width: 100px;
+          display: flex;
+          align-items: flex-end;
+          min-width: 150px;
           padding-top: 5px;
           cursor: default;
 
           .scale-cohort-size {
             height: 15px;
             font-size: 0.9em;
-            padding-right: 0.25em;
-            text-align: right;
+            padding-left: 0.25em;
+            // text-align: right;
           }
 
           .scale-cohort-percentage {
             height: 16px;
-            padding-right: 0.25em;
-            text-align: right;
+            padding: 0 0.25em;
+            // text-align: right;
+            line-height: 17px;
           }
 
           .scale-cohort-percentage {
