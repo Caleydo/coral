@@ -961,7 +961,8 @@ export class Prevalence extends ATask {
     // add tooltip for the prevalence and its CI
     const prevTooltip = `
     <span style="font-weight: bold;">Prevalence:</span> ${prevValueMore}%</br>
-    <span style="font-weight: bold;">Confidence Interval:</span> &pm; ${ciValueMore}%</br>`;
+    <span style="font-weight: bold;">Confidence Interval (95% Confidence):</span> &pm; ${ciValueMore}%</br>
+    `;
     const prevInstance = (scaleChtP as any)._tippy;
     if (prevInstance) {
       prevInstance.setContent(prevTooltip);
@@ -992,9 +993,9 @@ export class Prevalence extends ATask {
     const tooltip = `
     ${this.baseCohort.label} (${sizeDataset} items)</br>
     Reference: defined with checkboxes (${sizeRef} items)</br>
-    Cohort: ${prevPack.chtConfig.cht.label} (${sizeCht} items)</br>
+    ${prevPack.chtConfig.cht.getHTMLLabel()} (${sizeCht} items)</br>
     <span style="font-weight: bold;">Prevalence:</span> ${prevValueMore}%</br>
-    <span style="font-weight: bold;">Confidence Interval:</span> &pm; ${ciValueMore}%</br>`;
+    <span style="font-weight: bold;">Confidence Interval (95% Confidence):</span> &pm; ${ciValueMore}%</br>`;
     // get tippy instance, to overwrite existing tippy tooltip
     const instance = (barContainer as any)._tippy;
     if (instance) {
