@@ -137,7 +137,7 @@ export class CohortApp {
             .attr('data-db', (d) => d.source.dbConnectorName)
             .attr('data-dbview', (d) => d.source.viewName)
             .html((d) => { return d.source.idType.toUpperCase(); })
-            .on('click', async (d) => {
+            .on('click', async (event, d) => {
             var _a, _b;
             const newDataset = ((_b = (_a = this.dataset) === null || _a === void 0 ? void 0 : _a.source) === null || _b === void 0 ? void 0 : _b.idType) === d.source.idType ? //same as current?
                 { source: null, rootCohort: null, chtOverviewElements: null } : // deselect
@@ -151,7 +151,7 @@ export class CohortApp {
             .append('span').classed('caret', true);
         const dropdown = datasetGroup.append('ul').classed('dropdown-menu', true);
         dropdown.append('li').classed('dropdown-item', true).append('a').text('All')
-            .on('click', async (d) => {
+            .on('click', async (event, d) => {
             const newDataset = { source: d.source, rootCohort: null, chtOverviewElements: null };
             this.handleDatasetClick(newDataset);
         });
@@ -164,7 +164,7 @@ export class CohortApp {
             .enter()
             .append('li').classed('data-panel', true).classed('dropdown-item', true)
             .append('a').text((d) => d.id).attr('title', (d) => d.description)
-            .on('click', async function (d) {
+            .on('click', async function (event, d) {
             // don't toggle data by checkging what is selected in dropdown
             const dataSourcesAndPanels = select(this.parentNode.parentNode).datum(); // a -> parent = li -> parent = dropdown = ul
             const newDataset = { source: dataSourcesAndPanels.source, panel: d, rootCohort: null, chtOverviewElements: null };

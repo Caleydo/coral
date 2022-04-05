@@ -80,9 +80,9 @@ export class CohortApp {
     const taskParams: ITaskParams[] = ev.detail.params; // task parameters (e.g. column/category to filter)
     const taskAttributes = ev.detail.attributes;
 
-    for(const task of taskParams) {
+    for (const task of taskParams) {
       for (const cht of task.outputCohorts) {
-        log.debug('app sets counter to', 1+this.chtCounter);
+        log.debug('app sets counter to', 1 + this.chtCounter);
         (cht as Cohort).setLabels(
           `#${this.chtCounter++} ` + (cht as Cohort).labelOne,
           (cht as Cohort).labelTwo
@@ -186,7 +186,7 @@ export class CohortApp {
       .attr('data-db', (d) => d.source.dbConnectorName)
       .attr('data-dbview', (d) => d.source.viewName)
       .html((d) => {return d.source.idType.toUpperCase();})
-      .on('click', async (d) => { // click on button
+      .on('click', async (event, d) => { // click on button
         const newDataset = this.dataset?.source?.idType === d.source.idType ? //same as current?
           {source: null, rootCohort: null, chtOverviewElements: null} : // deselect
           {source: d.source, rootCohort: null, chtOverviewElements: null}; // select
@@ -201,7 +201,7 @@ export class CohortApp {
 
     const dropdown = datasetGroup.append('ul').classed('dropdown-menu', true);
     dropdown.append('li').classed('dropdown-item', true).append('a').text('All')
-      .on('click', async (d) => { //click all
+      .on('click', async (event, d) => { //click all
         const newDataset = {source: d.source, rootCohort: null, chtOverviewElements: null};
         this.handleDatasetClick(newDataset);
       });
@@ -216,7 +216,7 @@ export class CohortApp {
       .enter()
       .append('li').classed('data-panel', true).classed('dropdown-item', true)
       .append('a').text((d) => d.id).attr('title', (d) => d.description)
-      .on('click', async function (d) { // click subset
+      .on('click', async function (event, d) { // click subset
         // don't toggle data by checkging what is selected in dropdown
         const dataSourcesAndPanels = select(this.parentNode.parentNode).datum() as {source: IEntitySourceConfig; panels: IPanelDesc[];}; // a -> parent = li -> parent = dropdown = ul
         const newDataset = {source: dataSourcesAndPanels.source, panel: d, rootCohort: null, chtOverviewElements: null};

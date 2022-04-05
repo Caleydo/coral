@@ -10,7 +10,7 @@ import {DensityPlot} from '../visualizations/DensityPlot';
 import {GroupedBoxplot} from '../visualizations/GroupedBoxplot';
 import {VegaGroupedHistogram} from '../visualizations/GroupedHistogram';
 import {KaplanMeierPlot} from '../visualizations/KaplanMeierPlot';
-import {Scatterplot, TsneScatterplot} from '../visualizations/Scatterplot';
+import {Scatterplot} from '../visualizations/Scatterplot';
 import {ATask} from './ATask';
 
 export class Filter extends ATask {
@@ -152,7 +152,7 @@ export class Filter extends ATask {
         .append('li').classed('dropdown-item', true)
         .classed('selected', (vis) => (vis as any).NAME === (this.vis.constructor as any).NAME)
         .append('a').text((vis) => (vis as any).NAME) // cast to any to access static property
-        .on('click', (visClass) => {
+        .on('click', (event, visClass) => {
           if ((visClass as any).NAME !== (this.vis.constructor as any).NAME) { //check if vis has changed
             this.header.selectAll('.vis-selector .vis-type li').classed('selected', (vis) => (vis as any).NAME === (visClass as any).NAME);
             this.showWithVis(new visClass());
@@ -208,7 +208,7 @@ export class Filter extends ATask {
         configHeader.filter('.dropdown-item')
           .attr('data-group', (d: Option) => d.group.label)
           .classed('selected', (d) => (d as Option).selected)
-          .on('click', (d: Option) => {
+          .on('click', (evemt, d: Option) => {
             this.header
               .selectAll(`li.dropdown-item[data-group="${d.group.label}"]`)
               .classed('selected', (option) => d === option);
