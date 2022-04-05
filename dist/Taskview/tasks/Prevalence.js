@@ -731,13 +731,12 @@ export class Prevalence extends ATask {
         // log.debug('CI values: ', {sizeCht, sizeRef, prevValue, ciValue});
         this.stopBarLoadingAnimation(prevPack);
         this.stopTaskLoadingAnimation(prevPack);
-        // FIXME define transition
-        const tBar = transition().duration(1000);
+        const animationTime = 1000;
+        const tBar = transition().duration(animationTime);
         // check if the dataset bar should be shown
         const iconEye = prevPack.container.querySelector('.prev-show-dataset-eye');
         const showDatasetBar = Boolean(Number(iconEye.dataset.showDatasetBar));
         const maxSizeRef = showDatasetBar ? sizeDataset : sizeRef;
-        // [x] add animation
         const colorDatasetBar = showDatasetBar ? colors.lightBorder : 'transparent';
         const datasetBar = prevPack.container.querySelector('.bar-dataset');
         // datasetBar.classList.toggle('hide-dataset', !showDatasetBar);
@@ -767,7 +766,7 @@ export class Prevalence extends ATask {
             // select(errorBar).transition(tBar).style('width', `${ciBarWidth}px`).style('margin-right', `-${ciHalfBarWidth}px`);
             errorBar.style.width = `${ciBarWidth}px`;
             errorBar.style.marginRight = `-${ciHalfBarWidth}px`;
-        }, 1010);
+        }, animationTime + 10);
         // cohort size
         const percentageCht = (sizeCht / maxSizeRef) * 100;
         const chtElems = prevPack.container.querySelectorAll('.prev-value-cohort');

@@ -13,7 +13,6 @@ import {createHTMLElementWithClasses, getSessionStorageItem, setSessionStorageIt
 import {easyLabelFromFilter} from '../../utilLabels';
 import {ATask} from './ATask';
 
-
 interface ITaskAttributValue {
   taskId: string;
   attributes: IAttribute[];
@@ -899,8 +898,8 @@ export class Prevalence extends ATask {
     this.stopBarLoadingAnimation(prevPack);
     this.stopTaskLoadingAnimation(prevPack);
 
-    // FIXME define transition
-    const tBar = transition().duration(1000);
+    const animationTime = 1000;
+    const tBar = transition().duration(animationTime);
 
     // check if the dataset bar should be shown
     const iconEye = prevPack.container.querySelector('.prev-show-dataset-eye') as HTMLElement;
@@ -908,7 +907,6 @@ export class Prevalence extends ATask {
 
     const maxSizeRef = showDatasetBar ? sizeDataset : sizeRef;
 
-    // [x] add animation
     const colorDatasetBar = showDatasetBar ? colors.lightBorder : 'transparent';
     const datasetBar = prevPack.container.querySelector('.bar-dataset') as HTMLDivElement;
     // datasetBar.classList.toggle('hide-dataset', !showDatasetBar);
@@ -944,7 +942,7 @@ export class Prevalence extends ATask {
       // select(errorBar).transition(tBar).style('width', `${ciBarWidth}px`).style('margin-right', `-${ciHalfBarWidth}px`);
       errorBar.style.width = `${ciBarWidth}px`;
       errorBar.style.marginRight = `-${ciHalfBarWidth}px`;
-    }, 1010);
+    }, animationTime + 10);
 
     // cohort size
     const percentageCht = (sizeCht / maxSizeRef) * 100;
