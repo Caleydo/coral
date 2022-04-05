@@ -273,6 +273,20 @@ export class Cohort {
     get labelTwo() {
         return this._labelTwo;
     }
+    /**
+     * Creates the label as a string with HTML elements for the # and cht_number to be bold and smaller
+     * @returns HTML formatted cohort label
+     */
+    getHTMLLabel() {
+        const currLabel = this.label;
+        let labelOneHTML = currLabel;
+        const [labelOneCounter] = currLabel.split(' ', 1);
+        if (labelOneCounter.startsWith('#')) {
+            const labelOneText = currLabel.substring(labelOneCounter.length + 1);
+            labelOneHTML = `<span style="font-weight: 700;"><span style="font-size: 0.8em; font-weight: 700;">#</span><span style="font-size: 0.9em; font-weight: 700;">${labelOneCounter.substring(1)}</span></span> ` + labelOneText;
+        }
+        return labelOneHTML;
+    }
     set parents(parents) {
         this._parents = parents;
         this.updateBloodline();
