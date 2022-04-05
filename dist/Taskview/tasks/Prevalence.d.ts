@@ -19,7 +19,6 @@ export declare class Prevalence extends ATask {
     private currentState;
     show(columnHeader: HTMLDivElement, container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]): void;
     private addCheckboxForMissingValues;
-    private updateBarStructures;
     private changeMissingValueInclusion;
     private createPrevalenceCohortPack;
     private createCohortAndTasksConfig;

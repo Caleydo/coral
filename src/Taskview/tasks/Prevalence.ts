@@ -5,6 +5,7 @@ import tippy from 'tippy.js';
 import {Cohort, IBloodlineElement} from '../../Cohort';
 import {ICohort} from '../../CohortInterfaces';
 import {getRootCohort} from '../../cohortview';
+import {colors} from '../../colors';
 import {IAttribute, multiFilter} from '../../data/Attribute';
 import {IEqualsList, INumRange} from '../../rest';
 import {Task} from '../../Tasks';
@@ -176,19 +177,6 @@ export class Prevalence extends ATask {
     divLabelContainer.appendChild(labelMissingVal);
   }
 
-  private async updateBarStructures() {
-    const updatePromises = [];
-    // update data based on exclusion state
-    for (const currPack of this.prevalencePacks) {
-      if (currPack.parentTaskId !== null) {
-        // update prevalence calculations
-        updatePromises.push(this.updatePrevalencePack(currPack));
-      }
-    }
-    // wait until all prevalence are updated
-    await Promise.all(updatePromises);
-  }
-
   private async changeMissingValueInclusion(exclState: boolean) {
     const updatePromises = [];
     // update data based on exclusion state
@@ -284,6 +272,7 @@ export class Prevalence extends ATask {
     const iconEye = document.createElement('i');
     iconEye.classList.add('fas', 'fa-eye', 'prev-show-dataset-eye');
     iconEye.dataset.showDatasetBar = '1';
+    iconEye.title = 'Show/Hide base cohort bar';
     iconEye.addEventListener('click', async (event) => {
 
       const showDatasetBar = Boolean(Number(iconEye.dataset.showDatasetBar));
@@ -375,7 +364,9 @@ export class Prevalence extends ATask {
 
     // legend cohort (input cohort)
     const currCht = chtConfig.cht;
-    const divLegendCht = this.createLegendItem(['prev-legend-cht'], currCht.label, currCht.colorTaskView);
+    // get the styled cohort label
+    const currLabel = currCht.getHTMLLabel();
+    const divLegendCht = this.createLegendItem(['prev-legend-cht'], currLabel, currCht.colorTaskView);
     divLegendCht.title = `${currCht.label} (All filters are used to create this cohort.)`;
     divChtlabel.appendChild(divLegendCht);
     // enter mouse hover
@@ -389,22 +380,12 @@ export class Prevalence extends ATask {
       currCht.representation.getRepresentation().dispatchEvent(new Event('mouseleave'));
     });
 
-
     // tasks container
     // clickable taks
     // task container (containes all tasks)
     const divChtTaskContainer = document.createElement('div');
     divChtTaskContainer.classList.add('cht-task-container');
     divChtCreation.appendChild(divChtTaskContainer);
-
-    //add different task options (tasks with their attributes)
-    // const taskAndAttribute: {task: Task, values: Array<INumRange[] | IEqualsList>}[] = tasks.map((elem) => {
-    //   const values = chtConfig.attributeValue.filter((conf) => conf.taskId === elem.id)[0].values;
-    //   return {
-    //     task: elem,
-    //     values
-    //   };
-    // });
 
     // tasks
     const dataCellsCht = select(divChtTaskContainer).selectAll<HTMLDivElement, {task: Task, value: Array<INumRange[] | IEqualsList>}>('div.cht-task-option').data(taskAndAttribute, (d) => d.task.id);
@@ -426,91 +407,11 @@ export class Prevalence extends ATask {
     divLegend.appendChild(divChtCreation);
 
 
-
-
-    // // 1. row: label + clickable tasks
-    // const divRefCreation = document.createElement('div');
-    // divRefCreation.classList.add('prev-ref-creation', 'prev-row');
-    // ctrPrevPack.appendChild(divRefCreation);
-
-    // // label
-    // const divRefLabel = document.createElement('div');
-    // divRefLabel.classList.add('prev-ref-label');
-    // // legend reference
-    // const divLegendRef = this.createLegendItem(['prev-legend-ref'], 'Reference, defined by');
-    // divRefLabel.appendChild(divLegendRef);
-    // divRefCreation.appendChild(divRefLabel);
-
-    // // task container (containes all tasks)
-    // const divTaskContainer = document.createElement('div');
-    // divTaskContainer.classList.add('ref-task-container');
-    // divRefCreation.appendChild(divTaskContainer);
-
-    // //add different task options (tasks with their attributes)
-    // const taskAndAttribute: {task: Task, values: Array<INumRange[] | IEqualsList>}[] = tasks.map((elem) => {
-    //   const values = chtConfig.attributeValue.filter((conf) => conf.taskId === elem.id)[0].values;
-    //   return {
-    //     task: elem,
-    //     values
-    //   };
-    // });
-
-    // // tasks
-    // const dataCells = select(divTaskContainer).selectAll<HTMLDivElement, {task: Task, value: Array<INumRange[] | IEqualsList>}>('div.ref-task-option').data(taskAndAttribute, (d) => d.task.id);
-
-    // // create buttons for the tasks
-    // const enterSelection = dataCells.enter();
-    // enterSelection
-    //   .append('div')
-    //   .classed('ref-task-option', true)
-    //   .each((d, index, nodes) => {
-    //     this.createClickableTasks(d, chtIndex, index, nodes);
-    //   });
-
     // 2. Area _______________________________________________
     // bars container
     const divResult = document.createElement('div');
     divResult.classList.add('prev-result', 'prev-row');
     ctrPrevPack.appendChild(divResult);
-
-    // // label (legend)
-    // const divResultLabel = document.createElement('div');
-    // divResultLabel.classList.add('prev-result-label', 'prev-label');
-    // divResult.appendChild(divResultLabel);
-
-    // // legend all (base cohort)
-    // const divLegendAll = this.createLegendItem(['prev-legend-all'], this.baseCohort.label);
-    // divLegendAll.title = `${this.baseCohort.label}`;
-    // // enter mouse hover
-    // divLegendAll.addEventListener('mouseenter', (event) => {
-    //   event.stopImmediatePropagation();
-    //   this.baseCohort.representation.getRepresentation().dispatchEvent(new Event('mouseenter'));
-    // });
-    // // leave mouse hover
-    // divLegendAll.addEventListener('mouseleave', (event) => {
-    //   event.stopImmediatePropagation();
-    //   this.baseCohort.representation.getRepresentation().dispatchEvent(new Event('mouseleave'));
-    // });
-
-    // // legend cohort (input cohort)
-    // const currCht = chtConfig.cht;
-    // const divLegendCht = this.createLegendItem(['prev-legend-cht'], currCht.label, currCht.colorTaskView);
-    // divLegendCht.title = `${currCht.label} (All filters are used to create this cohort.)`;
-    // // enter mouse hover
-    // divLegendCht.addEventListener('mouseenter', (event) => {
-    //   event.stopImmediatePropagation();
-    //   currCht.representation.getRepresentation().dispatchEvent(new Event('mouseenter'));
-    // });
-    // // leave mouse hover
-    // divLegendCht.addEventListener('mouseleave', (event) => {
-    //   event.stopImmediatePropagation();
-    //   currCht.representation.getRepresentation().dispatchEvent(new Event('mouseleave'));
-    // });
-
-    // // add legend items
-    // divResultLabel.appendChild(divLegendAll);
-    // // divResultLabel.appendChild(divLegendRef);
-    // divResultLabel.appendChild(divLegendCht);
 
     // bars
     const divResultBar = document.createElement('div');
@@ -527,16 +428,12 @@ export class Prevalence extends ATask {
     maxScaleLable.innerHTML = `${this.baseCohortSize}`;
     divBarSpace.appendChild(maxScaleLable);
 
+
     // 3. Area _______________________________________________
     // label (= space for size label) + scale (+ size indicators) + label space
     const divScale = document.createElement('div');
     divScale.classList.add('prev-result-scale', 'prev-row');
     ctrPrevPack.appendChild(divScale);
-
-    // label
-    // const divScaleLabel = document.createElement('div');
-    // divScaleLabel.classList.add('prev-scale-label', 'prev-label');
-    // divScale.appendChild(divScaleLabel);
 
     // scale
     const divScaleSizes = document.createElement('div');
@@ -596,7 +493,6 @@ export class Prevalence extends ATask {
         because samples with missing values are filtered out.`
     });
     infoLable.appendChild(infoIcon);
-
 
 
     // cohort scale
@@ -634,208 +530,6 @@ export class Prevalence extends ATask {
     divScale.appendChild(divScaleSpace);
 
   }
-
-  /*
-  // add all the elements that are needed for an input cohort
-  private addPackElements(ctrPrevPack: HTMLDivElement, chtIndex: number, chtConfig: ICohortAndTasksConfig, tasks: Task[]) {
-    // 1. row: label + clickable tasks
-    const divRefCreation = document.createElement('div');
-    divRefCreation.classList.add('prev-ref-creation', 'prev-row');
-    ctrPrevPack.appendChild(divRefCreation);
-
-    // label
-    const divRefLabel = document.createElement('div');
-    divRefLabel.classList.add('prev-ref-label');
-    // legend reference
-    const divLegendRef = this.createLegendItem(['prev-legend-ref'], 'Reference, defined by');
-    divRefLabel.appendChild(divLegendRef);
-    divRefCreation.appendChild(divRefLabel);
-
-    // clickable taks
-    // task container (containes all tasks)
-    const divTaskContainer = document.createElement('div');
-    divTaskContainer.classList.add('ref-task-container');
-    divRefCreation.appendChild(divTaskContainer);
-
-    //add different task options (tasks with their attributes)
-    const taskAndAttribute: {task: Task, values: Array<INumRange[] | IEqualsList>}[] = tasks.map((elem) => {
-      const values = chtConfig.attributeValue.filter((conf) => conf.taskId === elem.id)[0].values;
-      return {
-        task: elem,
-        values
-      };
-    });
-
-    // tasks
-    const dataCells = select(divTaskContainer).selectAll<HTMLDivElement, {task: Task, value: Array<INumRange[] | IEqualsList>}>('div.ref-task-option').data(taskAndAttribute, (d) => d.task.id);
-
-    // create buttons for the tasks
-    const enterSelection = dataCells.enter();
-    enterSelection
-      .append('div')
-      .classed('ref-task-option', true)
-      .each((d, index, nodes) => {
-        this.createClickableTasks(d, chtIndex, index, nodes);
-      });
-
-    // -------
-    // 2. row: label (legend) + bars  + label space
-    const divResult = document.createElement('div');
-    divResult.classList.add('prev-result', 'prev-row');
-    ctrPrevPack.appendChild(divResult);
-
-    // label (legend)
-    const divResultLabel = document.createElement('div');
-    divResultLabel.classList.add('prev-result-label', 'prev-label');
-    divResult.appendChild(divResultLabel);
-
-    // legend all (base cohort)
-    const divLegendAll = this.createLegendItem(['prev-legend-all'], this.baseCohort.label);
-    divLegendAll.title = `${this.baseCohort.label}`;
-    // enter mouse hover
-    divLegendAll.addEventListener('mouseenter', (event) => {
-      event.stopImmediatePropagation();
-      this.baseCohort.representation.getRepresentation().dispatchEvent(new Event('mouseenter'));
-    });
-    // leave mouse hover
-    divLegendAll.addEventListener('mouseleave', (event) => {
-      event.stopImmediatePropagation();
-      this.baseCohort.representation.getRepresentation().dispatchEvent(new Event('mouseleave'));
-    });
-
-    // legend cohort (input cohort)
-    const currCht = chtConfig.cht;
-    const divLegendCht = this.createLegendItem(['prev-legend-cht'], currCht.label, currCht.colorTaskView);
-    divLegendCht.title = `${currCht.label} (All filters are used to create this cohort.)`;
-    // enter mouse hover
-    divLegendCht.addEventListener('mouseenter', (event) => {
-      event.stopImmediatePropagation();
-      currCht.representation.getRepresentation().dispatchEvent(new Event('mouseenter'));
-    });
-    // leave mouse hover
-    divLegendCht.addEventListener('mouseleave', (event) => {
-      event.stopImmediatePropagation();
-      currCht.representation.getRepresentation().dispatchEvent(new Event('mouseleave'));
-    });
-
-    // add legend items
-    divResultLabel.appendChild(divLegendAll);
-    // divResultLabel.appendChild(divLegendRef);
-    divResultLabel.appendChild(divLegendCht);
-
-    // bars
-    const divResultBar = document.createElement('div');
-    divResultBar.classList.add('prev-result-bar');
-    divResult.appendChild(divResultBar);
-    this.createBarStructure(divResultBar, chtConfig.cht.colorTaskView);
-
-    // scale label space
-    const divBarSpace = document.createElement('div');
-    divBarSpace.classList.add('prev-label-space');
-    divResult.appendChild(divBarSpace);
-    // add max label for the scale
-    const maxScaleLable = createHTMLElementWithClasses('div', ['prev-max-scale-label']);
-    maxScaleLable.innerHTML = `${this.baseCohortSize}`;
-    divBarSpace.appendChild(maxScaleLable);
-
-    // -------
-    // 3. row: label (= space for size label) + scale (+ size indicators) + label space
-    const divScale = document.createElement('div');
-    divScale.classList.add('prev-result-scale', 'prev-row');
-    ctrPrevPack.appendChild(divScale);
-
-    // label
-    const divScaleLabel = document.createElement('div');
-    divScaleLabel.classList.add('prev-scale-label', 'prev-label');
-    divScale.appendChild(divScaleLabel);
-
-    // scale
-    const divScaleSizes = document.createElement('div');
-    divScaleSizes.classList.add('prev-scale-sizes');
-    divScale.appendChild(divScaleSizes);
-
-    // container for the lower scale elements
-    const lowerScales = createHTMLElementWithClasses('div', ['prev-lower-scales']);
-    divScaleSizes.appendChild(lowerScales);
-
-
-    // dataset scale
-    const divScaleDataset = document.createElement('div');
-    divScaleDataset.classList.add('prev-scale-dataset', 'prev-scale-elem');
-    // divScaleSizes.appendChild(divScaleDataset);
-    lowerScales.appendChild(divScaleDataset);
-    // -> fist tick
-    const divScaleFistTick = document.createElement('div');
-    divScaleFistTick.classList.add('prev-scale-first-tick');
-    divScaleDataset.appendChild(divScaleFistTick);
-
-
-    // reference scale
-    const divScaleRef = document.createElement('div');
-    divScaleRef.classList.add('prev-scale-reference', 'prev-scale-elem', 'prev-value-reference');
-    // divScaleSizes.appendChild(divScaleRef);
-    lowerScales.appendChild(divScaleRef);
-
-    const divScaleRefTick = document.createElement('div');
-    divScaleRefTick.classList.add('scale-reference-tick');
-    divScaleRef.appendChild(divScaleRefTick);
-    // -> label container
-    const divScaleRefLabelContainer = document.createElement('div');
-    divScaleRefLabelContainer.classList.add('scale-reference-container');
-    divScaleRef.appendChild(divScaleRefLabelContainer);
-    // -> label size
-    const ctrRefSize = createHTMLElementWithClasses('div', ['scale-ctr-ref-size']);
-    divScaleRefLabelContainer.appendChild(ctrRefSize);
-    const divScaleRefSize = document.createElement('div');
-    divScaleRefSize.classList.add('scale-ref-size');
-    ctrRefSize.appendChild(divScaleRefSize);
-    // add info icon for exluded missing values
-    const infoLable = createHTMLElementWithClasses('div', ['prev-info-bar-label']);
-    infoLable.toggleAttribute('hidden', true); // hide at the beginning
-    ctrRefSize.appendChild(infoLable);
-    const infoIcon = createHTMLElementWithClasses('i', ['fas', 'fa-info-circle']);
-    tippy(infoIcon, {
-      content: `Reference doesn't equal dataset,</br>
-        because samples with missing values are filtered out.`
-    });
-    infoLable.appendChild(infoIcon);
-    // -> label prevalence (percentage)
-    const divScaleRefPercentage = document.createElement('div');
-    divScaleRefPercentage.classList.add('scale-ref-percentage');
-    divScaleRefPercentage.innerHTML = '100%';
-    divScaleRefLabelContainer.appendChild(divScaleRefPercentage);
-
-
-    // cohort scale
-    const divScaleCohort = document.createElement('div');
-    divScaleCohort.classList.add('prev-scale-cohort', 'prev-scale-elem', 'prev-value-cohort');
-    // divScaleSizes.appendChild(divScaleCohort);
-    lowerScales.appendChild(divScaleCohort);
-
-    // -> label size container
-    const divScaleCohortContainer = document.createElement('div');
-    divScaleCohortContainer.classList.add('scale-cohort-container');
-    divScaleCohort.appendChild(divScaleCohortContainer);
-
-    // -> label size
-    const divScaleCohortSize = document.createElement('div');
-    divScaleCohortSize.classList.add('scale-cohort-size');
-    divScaleCohortContainer.appendChild(divScaleCohortSize);
-    // -> label prevalence (percentage)
-    const divScaleCohortPercentage = document.createElement('div');
-    divScaleCohortPercentage.classList.add('scale-cohort-percentage');
-    const cohortColor = chtConfig.cht.colorTaskView === null ? 'white' : chtConfig.cht.colorTaskView;
-    divScaleCohortPercentage.style.background = `linear-gradient(to right, white 0%, white 25%, ${cohortColor} 100%)`;
-    divScaleCohortContainer.appendChild(divScaleCohortPercentage);
-
-
-    // scale label space at the end
-    const divScaleSpace = document.createElement('div');
-    divScaleSpace.classList.add('prev-label-space');
-    divScale.appendChild(divScaleSpace);
-
-  }
-  */
 
   private createLegendItem(cssClasses: string[], label: string, color: string = null): HTMLDivElement {
     // legend item
@@ -912,12 +606,6 @@ export class Prevalence extends ATask {
     // cbIndicator.classList.add('task-checkbox-indicator');
     cbIndicator.classList.add('checkbox-indicator');
     checkbox.appendChild(cbIndicator);
-    // // add loading effect icon container
-    // const cbCtrLoading = createHTMLElementWithClasses('div', ['icon-container', 'loading-effect']);
-    // cbCtrLoading.toggleAttribute('hidden', true);
-    // checkbox.appendChild(cbCtrLoading);
-
-
 
     // label
     const label = document.createElement('div');
@@ -956,15 +644,6 @@ export class Prevalence extends ATask {
       content: `${attrLabel}: ${valueLabel}`
     });
 
-
-    // add mouse enter and leave events (highlighting for the task in overview)
-    // this.addMouseEventListernersToElements(currNode, taskRep);
-
-    // // add click event (toggle task)
-    // currNode.addEventListener('click', async (event) => {
-    //   event.stopPropagation();
-    //   await this.handleOptionSelectionChange(chtIndex, currNode);
-    // });
   }
 
   // create all task options for an referce cohort
@@ -1220,7 +899,7 @@ export class Prevalence extends ATask {
     this.stopBarLoadingAnimation(prevPack);
     this.stopTaskLoadingAnimation(prevPack);
 
-    // define transition
+    // FIXME define transition
     const tBar = transition().duration(1000);
 
     // check if the dataset bar should be shown
@@ -1229,10 +908,16 @@ export class Prevalence extends ATask {
 
     const maxSizeRef = showDatasetBar ? sizeDataset : sizeRef;
 
+    // [x] add animation
+    const colorDatasetBar = showDatasetBar ? colors.lightBorder : 'transparent';
     const datasetBar = prevPack.container.querySelector('.bar-dataset') as HTMLDivElement;
-    datasetBar.classList.toggle('hide-dataset', !showDatasetBar);
+    // datasetBar.classList.toggle('hide-dataset', !showDatasetBar);
+    select(datasetBar).transition(tBar).style('background-color', `${colorDatasetBar}`);
+
+    const colorDatasetMaxLabel = showDatasetBar ? colors.textColor : 'transparent';
     const datasetBarMaxLabel = prevPack.container.querySelector('.prev-max-scale-label') as HTMLDivElement;
-    datasetBarMaxLabel.classList.toggle('hide-label', !showDatasetBar);
+    // datasetBarMaxLabel.classList.toggle('hide-label', !showDatasetBar);
+    select(datasetBarMaxLabel).transition(tBar).style('color', `${colorDatasetMaxLabel}`);
 
 
     // reference size
@@ -1246,16 +931,20 @@ export class Prevalence extends ATask {
     const scaleRefS = prevPack.container.querySelector('.scale-ref-size') as HTMLDivElement;
     scaleRefS.innerHTML = `${sizeRef}`;
 
-    // error bar for confidence intervall
-    // set error bar length
-    const refBar = prevPack.container.querySelector('.prev-value-reference.bar') as HTMLDivElement;
-    const refBarWidth = refBar.getBoundingClientRect().width;
+    setTimeout(() => {
+      // update ci interval after the animation for the dataset bar -> otherwise the bar size is not correct
+      // error bar for confidence intervall
+      // set error bar length
+      const refBar = prevPack.container.querySelector('.prev-value-reference.bar') as HTMLDivElement;
+      const refBarWidth = refBar.getBoundingClientRect().width;
 
-    const errorBar = prevPack.container.querySelector('.prev-ci-bar-error') as HTMLDivElement;
-    const ciHalfBarWidth = ciValue * refBarWidth;
-    const ciBarWidth = 2 * ciHalfBarWidth;
-    errorBar.style.width = `${ciBarWidth}px`;
-    errorBar.style.marginRight = `-${ciHalfBarWidth}px`;
+      const errorBar = prevPack.container.querySelector('.prev-ci-bar-error') as HTMLDivElement;
+      const ciHalfBarWidth = ciValue * refBarWidth;
+      const ciBarWidth = 2 * ciHalfBarWidth;
+      // select(errorBar).transition(tBar).style('width', `${ciBarWidth}px`).style('margin-right', `-${ciHalfBarWidth}px`);
+      errorBar.style.width = `${ciBarWidth}px`;
+      errorBar.style.marginRight = `-${ciHalfBarWidth}px`;
+    }, 1010);
 
     // cohort size
     const percentageCht = (sizeCht / maxSizeRef) * 100;
@@ -1287,7 +976,7 @@ export class Prevalence extends ATask {
     const exclState = this.excludeMissingValues;
     const activeTasks = select(prevPack.container).selectAll('.ref-task-option.active').data().map((elem: {task: Task, value: INumRange[] | IEqualsList}) => elem.task) as Task[];
     const infoLabel = prevPack.container.querySelector('.prev-info-bar-label') as HTMLDivElement;
-    if (!showDatasetBar) {
+    if (showDatasetBar) {
       if (exclState && activeTasks.length === 0 && sizeDataset !== sizeRef) {
         infoLabel.removeAttribute('hidden');
       } else {
