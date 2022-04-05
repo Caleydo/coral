@@ -146,6 +146,20 @@ $error-bar-line-width: 1px !default;
     flex-direction: row;
   }
 
+
+  .prev-show-dataset-eye {
+    cursor: pointer;
+    padding-top: 0.25em;
+
+    &[data-show-dataset-bar='0'] {
+      color: $color-border-light;
+    }
+
+    &[data-show-dataset-bar='1'] {
+      color: $color-text;
+    }
+  }
+
   .legend-task-row {
     margin-bottom: 0.2em;
     height: 1.6em;
@@ -269,7 +283,7 @@ $error-bar-line-width: 1px !default;
 
   // mark for all legend items
   .prev-legend-mark {
-    height: 50%;
+    height: 30%;
     width: 1em;
     min-width: 1em;
     margin-right: 3px;
@@ -297,20 +311,6 @@ $error-bar-line-width: 1px !default;
     // margin-bottom: 3px;
     .prev-legend-mark {
       background: $color-background-darker;
-    }
-
-    .prev-show-dataset-eye {
-      padding: 0 0.5em;
-      margin-left: auto;
-      cursor: pointer;
-
-      &[data-show-dataset-bar='0'] {
-        color: $color-border-light;
-      }
-
-      &[data-show-dataset-bar='1'] {
-        color: $color-text;
-      }
     }
   }
 

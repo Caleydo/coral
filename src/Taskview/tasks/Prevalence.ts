@@ -267,6 +267,20 @@ export class Prevalence extends ATask {
     // legend all (base cohort)
     const divLegendAll = this.createLegendItem(['prev-legend-all'], this.baseCohort.label);
     divLegendAll.title = `${this.baseCohort.label}`;
+    divAllLabel.appendChild(divLegendAll);
+
+    // enter mouse hover
+    divLegendAll.addEventListener('mouseenter', (event) => {
+      console.log('hover: tager: ', event.currentTarget);
+      event.stopImmediatePropagation();
+      this.baseCohort.representation.getRepresentation().dispatchEvent(new Event('mouseenter'));
+    });
+    // leave mouse hover
+    divLegendAll.addEventListener('mouseleave', (event) => {
+      event.stopImmediatePropagation();
+      this.baseCohort.representation.getRepresentation().dispatchEvent(new Event('mouseleave'));
+    });
+
     // add eye icon for the dataset bar
     const iconEye = document.createElement('i');
     iconEye.classList.add('fas', 'fa-eye', 'prev-show-dataset-eye');
@@ -291,20 +305,7 @@ export class Prevalence extends ATask {
       await Promise.all(updatePromises);
 
     });
-    divLegendAll.appendChild(iconEye);
-
-    divAllLabel.appendChild(divLegendAll);
-    // enter mouse hover
-    divLegendAll.addEventListener('mouseenter', (event) => {
-      console.log('hover: tager: ', event.currentTarget);
-      event.stopImmediatePropagation();
-      this.baseCohort.representation.getRepresentation().dispatchEvent(new Event('mouseenter'));
-    });
-    // leave mouse hover
-    divLegendAll.addEventListener('mouseleave', (event) => {
-      event.stopImmediatePropagation();
-      this.baseCohort.representation.getRepresentation().dispatchEvent(new Event('mouseleave'));
-    });
+    divAllCreation.appendChild(iconEye);
 
 
     // ### 2. row: reference cohort
