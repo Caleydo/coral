@@ -201,7 +201,6 @@ export class Prevalence extends ATask {
         divAllLabel.appendChild(divLegendAll);
         // enter mouse hover
         divLegendAll.addEventListener('mouseenter', (event) => {
-            console.log('hover: tager: ', event.currentTarget);
             event.stopImmediatePropagation();
             this.baseCohort.representation.getRepresentation().dispatchEvent(new Event('mouseenter'));
         });
