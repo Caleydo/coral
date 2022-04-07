@@ -1,6 +1,4 @@
-import {format} from 'd3-format';
-import {IDType, IDTypeLike, IDTypeManager, UniqueIdManager} from 'tdp_core';
-import {IAllFilters, IRow, IServerColumn} from 'tdp_core';
+import {IAllFilters, IDType, IDTypeLike, IDTypeManager, IRow, IServerColumn, UniqueIdManager} from 'tdp_core';
 import {ElementProvType, ICohort, ICohortRep, IElement, IElementProvJSONCohort, IProvAttrAndValuesCohort} from './CohortInterfaces';
 import {createDBCohort, createDBCohortWithDepletionScoreFilter, createDBCohortWithEqualsFilter, createDBCohortWithGeneEqualsFilter, createDBCohortWithGeneNumFilter, createDBCohortWithNumFilter, createDBCohortWithPanelAnnotationFilter, createDBCohortWithTreatmentFilter, dataDBCohortDepletionScoreFilter, dataDBCohortGeneWithEqualsFilter, dataDBCohortGeneWithNumFilter, dataDBCohortPanelAnnotationFilter, dataDBCohortWithEqualsFilter, dataDBCohortWithNumFilter, getCohortData, getCohortSize, ICohortDBDataParams, ICohortDBParams, ICohortDBSizeParams, ICohortDBWithDepletionScoreFilterParams, ICohortDBWithEqualsFilterParams, ICohortDBWithGeneEqualsFilterParams, ICohortDBWithGeneNumFilterParams, ICohortDBWithNumFilterParams, ICohortDBWithPanelAnnotationFilterParams, ICohortDBWithTreatmentFilterParams, ICohortDepletionScoreFilterParams, ICohortEqualsFilterParams, ICohortGeneEqualsFilterParams, ICohortGeneNumFilterParams, ICohortNumFilterParams, ICohortPanelAnnotationFilterParams, ICohortRow, IEqualsList, INumRange, sizeDBCohortDepletionScoreFilter, sizeDBCohortGeneWithEqualsFilter, sizeDBCohortGeneWithNumFilter, sizeDBCohortPanelAnnotationFilter, sizeDBCohortWithEqualsFilter, sizeDBCohortWithNumFilter, updateCohortName, valueListDelimiter} from './rest';
 import {mergeTwoAllFilters, Task} from './Tasks';
@@ -363,6 +361,22 @@ export class Cohort implements ICohort {
 
   public get labelTwo(): string {
     return this._labelTwo;
+  }
+
+  /**
+   * Creates the label as a string with HTML elements for the # and cht_number to be bold and smaller
+   * @returns HTML formatted cohort label
+   */
+  public getHTMLLabel(): string {
+    const currLabel = this.label;
+    let labelOneHTML = currLabel;
+    const [labelOneCounter] = currLabel.split(' ', 1);
+    if (labelOneCounter.startsWith('#')) {
+      const labelOneText = currLabel.substring(labelOneCounter.length + 1);
+      labelOneHTML = `<span style="font-weight: 700;"><span style="font-size: 0.8em; font-weight: 700;">#</span><span style="font-size: 0.9em; font-weight: 700;">${labelOneCounter.substring(1)}</span></span> ` + labelOneText;
+    }
+
+    return labelOneHTML;
   }
 
   public set parents(parents: Array<IElement>) {

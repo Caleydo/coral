@@ -1,17 +1,20 @@
 .prev-checkbox {
   position: relative;
   flex-shrink: 0;
-  width: 16px;
+  width: 1.2em;
+  height: 1.2em;
+  margin: 0 0.2em;
   background: $color-background;
-  border: 1px solid $color-text;
+  border: 1px solid $color-border-light;
+  border-radius: 3px;
   cursor: pointer;
 
   .checkbox-indicator {
     position: absolute;
     left: 5px;
-    top: 2px;
-    width: 4px;
-    height: 8px;
+    top: 0px;
+    width: 5px;
+    height: 11px;
     border: solid $color-background;
     // border right+bot and roation creates checkmark
     border-width: 0 2px 2px 0;
@@ -24,53 +27,98 @@
     width: 100%;
   }
 
-  .icon-extra {
+
+  .icon-container::after {
+    animation: spinAround infinite .75s linear;
     position: absolute;
-    top: calc(50% - 6px);
-    left: calc(50% - 7px);
-    font-weight: bold;
-    transform: scale(0.95);
-  }
+    top: calc(50% - (0.45em));
+    left: calc(50% - (0.45em));
+    border: 2px black solid;
+    border-radius: 9999px;
+    border-color: transparent transparent $color-background $color-background;
+    content: '';
+    display: block;
+    height: 0.9em;
+    width: 0.9em;
 
-  .loading-effect {
-      animation-name: spin;
-      animation-duration: 2000ms;
-      animation-iteration-count: infinite;
-      animation-timing-function: linear;
+    @keyframes spinAround {
+      0% {
+        transform: rotate(0deg);
+      }
 
-    @keyframes spin {
-        from {
-            transform:rotate(0deg);
-        }
-        to {
-            transform:rotate(360deg);
-        }
+      100% {
+        transform: rotate(359deg);
+      }
     }
+
   }
 }
 
 // container for the checkbox for the exclusion of missing values
 .exclude-container {
   display: flex;
-  height: 16px;
+  height: 1.5em;
+  align-items: center;
 
   // label for the checkbox
   .label-excl-container {
     align-self: center;
-    height: 16px;
+    height: 100%;
     margin-left: 3px;
     cursor: default;
   }
 
   // loading checkbox
-  .prev-checkbox.color-loading {
+  .prev-checkbox.color-loading,
+  .prev-checkbox.active.color-loading {
     background: $color-background !important;
-    color: $color-text !important;
+
+    .icon-container::after {
+      background: $color-background !important;
+      border-color: transparent transparent $color-text $color-text !important;
+    }
   }
 
   // active checkbox
   .prev-checkbox.active {
     background: $color-bar;
+    border-color: $color-bar;
+
+    .checkbox-indicator {
+      border-color: $color-background;
+    }
+  }
+}
+
+// container for the checkbox for showing the dataset bar
+.show-dataset-container {
+  display: flex;
+  height: 1.5em;
+  align-items: center;
+
+  // label for the checkbox
+  .label-show-dataset-container {
+    align-self: center;
+    height: 100%;
+    margin-left: 3px;
+    cursor: default;
+  }
+
+  // loading checkbox
+  .prev-checkbox.color-loading,
+  .prev-checkbox.active.color-loading {
+    background: $color-background !important;
+
+    .icon-container::after {
+      background: $color-background !important;
+      border-color: transparent transparent $color-text $color-text !important;
+    }
+  }
+
+  // active checkbox
+  .prev-checkbox.active {
+    background: $color-bar;
+    border-color: $color-bar;
 
     .checkbox-indicator {
       border-color: $color-background;
@@ -89,7 +137,7 @@ $error-bar-line-width: 1px !default;
 
   .prev-element-highlight {
     border-color: $color-hover !important;
-    box-shadow: inset 0 0px 2px $color-hover-opacity-75 , 0 0 8px $color-hover-opacity-75 !important;
+    box-shadow: inset 0 0px 2px $color-hover-opacity-75, 0 0 8px $color-hover-opacity-75 !important;
   }
 
   // reach row
@@ -98,46 +146,39 @@ $error-bar-line-width: 1px !default;
     flex-direction: row;
   }
 
-  // define the labels for each row (tasks, bars, result text)
-  .prev-label {
-    width: 148px;
-    flex-grow: 0;
-    flex-shrink: 0;
-  }
 
-  // set spaces between the bar row and the others
-  .prev-result {
-    margin: 3px 0 0 0;
-  }
+  .prev-show-dataset-eye {
+    cursor: pointer;
+    padding-top: 0.25em;
 
-  // row with label and task options
-  .prev-ref-creation {
-    align-items: flex-start;
+    &[data-show-dataset-bar='0'] {
+      color: $color-border-light;
+    }
 
-    // task options
-    .prev-ref-label {
-      line-height: 16px;
-      margin-right: 1em;
-      min-width: max-content;
+    &[data-show-dataset-bar='1'] {
+      color: $color-text;
     }
   }
 
-  // **** task options *****
-  // container that holds all task options
-  .ref-task-container {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    flex-wrap: wrap;
+  .legend-task-row {
+    margin-bottom: 0.2em;
+    height: 1.6em;
   }
 
-  // task options
-  .ref-task-option {
+  // labels for each bar legend 
+  .prev-lable-cntr {
+    width: 200px;
+  }
+
+  // **** task options *****
+
+  .task-option {
     max-width: 350px;
-    height: 16px;
+    height: 100%;
     display: flex;
-    margin-right: 15px;
-    cursor: pointer;
+    margin-right: 0.5em;
+    align-items: center;
+    border-radius: 3px;
 
     .task-label {
       padding: 0 0.25em;
@@ -146,24 +187,76 @@ $error-bar-line-width: 1px !default;
       overflow: hidden; // require for text-overflow to work
       text-align: center;
       align-self: center;
-      height: 16px;
-      line-height: 16px;
-      background: $color-background;
+      height: 100%;
     }
   }
 
-  // loading task options
-  .ref-task-option.color-loading {
-    .prev-checkbox{
-      background: $color-background !important;
-      color: $color-text !important;
+  .ref-task-container,
+  .cht-task-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  // ---- reference tasks
+  // task options
+  .ref-task-option {
+    border: 1px solid $color-border-light;
+    cursor: pointer;
+
+
+    .task-label {
+      background: $color-background;
     }
+
+    .prev-checkbox {
+      border-color: $color-hover;
+    }
+
+  }
+
+  // loading task options
+  .ref-task-option.color-loading,
+  .ref-task-option.active.color-loading {
+    .prev-checkbox {
+      background: $color-background !important;
+    }
+
+    .icon-container::after {
+      background: $color-background !important;
+      border-color: transparent transparent $color-hover $color-hover !important;
+    }
+
   }
 
   // active task options
   .ref-task-option.active {
     .prev-checkbox {
-      background: $color-bar;
+      background: $color-hover;
+      border-color: $color-hover;
+    }
+
+    .checkbox-indicator {
+      border-color: $color-background;
+    }
+  }
+
+  // ---- input cohort tasks
+  // task options
+  .cht-task-option {
+    border: 1px solid $color-border-light;
+    cursor: default;
+
+    .task-label {
+      background: $color-background;
+      color: $color-text-light;
+    }
+
+    .prev-checkbox {
+      cursor: default !important;
+      background: $color-text-light;
+      border-color: $color-text-light;
     }
 
     .checkbox-indicator {
@@ -175,8 +268,8 @@ $error-bar-line-width: 1px !default;
   .prev-legend-item {
     display: flex;
     flex-direction: row;
-    height: 16px;
-    line-height: 16px;
+    height: 100%;
+    align-items: center;
     cursor: default;
   }
 
@@ -190,10 +283,11 @@ $error-bar-line-width: 1px !default;
 
   // mark for all legend items
   .prev-legend-mark {
-    height: 16px;
-    width: 8px;
-    min-width: 8px;
+    height: 30%;
+    width: 1em;
+    min-width: 1em;
     margin-right: 3px;
+    margin-bottom: 0.25em;
   }
 
   // text for all legend items
@@ -201,26 +295,28 @@ $error-bar-line-width: 1px !default;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+    height: 100%;
   }
 
   // mark for the reference item
   .prev-legend-ref {
-    .prev-legend-mark{
+    .prev-legend-mark {
       background: $color-bar;
     }
   }
 
   // mark for the filtered out item
   .prev-legend-all {
-    margin-bottom: 3px;
-    .prev-legend-mark{
+
+    // margin-bottom: 3px;
+    .prev-legend-mark {
       background: $color-background-darker;
     }
   }
 
   // space after bar and scale
   .prev-label-space {
-    width: 70px;
+    width: 150px;
     flex-grow: 0;
     flex-shrink: 0;
     display: flex;
@@ -229,7 +325,7 @@ $error-bar-line-width: 1px !default;
     .prev-max-scale-label {
       height: 15px;
       font-size: 0.9em;
-      margin-bottom: -10px;
+      margin-bottom: -0.45em;
       margin-top: auto;
       width: 100%;
       flex-grow: 0;
@@ -240,6 +336,10 @@ $error-bar-line-width: 1px !default;
       white-space: nowrap;
       overflow: hidden;
       cursor: default;
+
+      &.hide-label {
+        display: none !important;
+      }
     }
 
   }
@@ -247,7 +347,7 @@ $error-bar-line-width: 1px !default;
   // **** bars *****
   // container with all the bars
   .prev-result-bar {
-    height: 35px;
+    height: 25px;
     width: 100%;
     margin-top: auto;
 
@@ -262,6 +362,10 @@ $error-bar-line-width: 1px !default;
       height: 100%;
       width: 100%;
       background: $color-background-darker;
+
+      &.hide-dataset {
+        background: transparent;
+      }
     }
 
     .prev-value-zero {
@@ -274,7 +378,7 @@ $error-bar-line-width: 1px !default;
     .bar-reference {
       top: 10%;
       height: 80%;
-      width: 100%; // inital value
+      width: 0%; // inital value
       background: $color-bar;
 
       &.loading-effect {
@@ -296,6 +400,7 @@ $error-bar-line-width: 1px !default;
           0% {
             background-position: 0px 0;
           }
+
           100% {
             background-position: 40px 0;
           }
@@ -323,7 +428,8 @@ $error-bar-line-width: 1px !default;
       .prev-ci-bar-offset {
         width: 0% // inital value
       }
-      .prev-ci-bar-error{
+
+      .prev-ci-bar-error {
         flex-grow: 0;
         flex-shrink: 0;
         height: 50%;
@@ -338,14 +444,15 @@ $error-bar-line-width: 1px !default;
           width: 100%;
 
 
-          &.side{
+          &.side {
             height: 100%;
             width: $error-bar-line-width;
             flex-grow: 0;
             flex-shrink: 0;
             background: $color-background;
           }
-          &.middle{
+
+          &.middle {
             height: $error-bar-line-width;
             flex-grow: 1;
             flex-shrink: 1;
@@ -369,6 +476,7 @@ $error-bar-line-width: 1px !default;
       left: 0;
       top: 0;
     }
+
     .prev-scale-sizes {
       width: 100%;
 
@@ -376,114 +484,129 @@ $error-bar-line-width: 1px !default;
         position: relative;
         width: 100%;
 
-      .prev-scale-dataset {
-        width: 100%;
-        // height: 20px;
-        border-top: $scale-line-width solid $color-text;
-
-        .prev-scale-first-tick {
-          height:4px;
-          border-top: none;
-          border-right: none;
-          border-left: $scale-line-width solid $color-text;
-        }
-      }
-
-      // reference scale
-      .prev-scale-reference {
-        height: 100%;
-        width: 100%; // inital value
-        display: flex;
-        flex-direction: row;
-
-        // remove the border on the right -> use tick
-        &.prev-scale-elem {
-          border-right: none;
-        }
-
-        // add border to the right = tick
-        .scale-reference-tick {
-          height: 36px;
+        .prev-scale-dataset {
           width: 100%;
-          flex-grow: 0;
-          flex-shrink: 0;
-          border-right: $scale-line-width solid $color-text;
+          // height: 20px;
+          border-top: $scale-line-width solid $color-text;
+
+          .prev-scale-first-tick {
+            height: 4px;
+            border-top: none;
+            border-right: none;
+            border-left: $scale-line-width solid $color-text;
+          }
         }
 
-        // container with the labels = centered by tick
-        .scale-reference-container {
-          height: 36px;
-          width: 70px;
-          padding-top: 5px;
-          flex-grow: 0;
-          flex-shrink: 0;
-          text-align: center;
-          cursor: default;
+        // reference scale
+        .prev-scale-reference {
+          height: 1.5em;
+          width: 0%; // inital value
+          display: flex;
+          flex-direction: row;
 
-          .scale-ctr-ref-size {
+          // remove the border on the right -> use tick
+          &.prev-scale-elem {
+            border-right: none;
+          }
+
+          // add border to the right = tick
+          .scale-reference-tick {
+            height: 100%;
+            width: 100%;
+            flex-grow: 0;
+            flex-shrink: 0;
+            border-right: $scale-line-width solid $color-text;
+          }
+
+          // container with the labels = centered by tick
+          .scale-reference-container {
             display: flex;
-            flex-direction: row;
-          }
-
-          .prev-info-bar-label {
-            margin-left: 5px;
-            color: $color-bar;
+            align-items: flex-end;
+            height: 100%;
+            width: 150px;
             flex-grow: 0;
             flex-shrink: 0;
-            font-size: 0.9em;
-            height: 15px;
-          }
+            text-align: center;
+            cursor: default;
 
-          .scale-ref-size {
-            height: 15px;
-            font-size: 0.9em;
-            padding-left: 0.25em;
-            text-align: left;
-            flex-grow: 0;
-            flex-shrink: 0;
-          }
+            .scale-ctr-ref-size {
+              display: flex;
+              flex-direction: row;
+            }
 
-          .scale-ref-percentage {
-            height: 16px;
-            padding-left: 0.25em;
-            text-align: left;
+            .prev-info-bar-label {
+              margin-left: 5px;
+              color: $color-bar;
+              flex-grow: 0;
+              flex-shrink: 0;
+              font-size: 0.9em;
+              height: 15px;
+            }
+
+            .scale-ref-size {
+              height: 15px;
+              font-size: 0.9em;
+              padding-left: 0.25em;
+              text-align: left;
+              flex-grow: 0;
+              flex-shrink: 0;
+            }
+
+            .scale-ref-percentage {
+              height: 16px;
+              padding: 0 0.25em;
+              text-align: left;
+            }
           }
         }
-      }
 
-      // cohort scale
-      .prev-scale-cohort {
-        height: 36px;
-        width: 0%; // inital value
-        display: flex;
-        flex-direction: row-reverse;
 
-        // container with the labels = right aligned by tick
-        .scale-cohort-container {
-          min-width: 100px;
-          padding-top: 5px;
-          cursor: default;
+        // cohort scale
+        .prev-scale-cohort {
+          height: 2.7em;
+          width: 0%; // inital value
+          display: flex;
 
-          .scale-cohort-size {
-            height: 15px;
-            font-size: 0.9em;
-            padding-right: 0.25em;
-            text-align: right;
+          // remove the border on the right -> use tick
+          &.prev-scale-elem {
+            border-right: none;
           }
 
-          .scale-cohort-percentage {
-            height: 16px;
-            padding-right: 0.25em;
-            text-align: right;
+          // add border to the right = tick
+          .scale-cohort-tick {
+            height: 100%;
+            width: 100%;
+            flex-grow: 0;
+            flex-shrink: 0;
+            border-right: $scale-line-width solid $color-text;
           }
 
-          .scale-cohort-percentage {
-            font-weight: bold;
+          // container with the labels = right aligned by tick
+          .scale-cohort-container {
+            display: flex;
+            height: 100%;
+            align-items: flex-end;
+            min-width: 150px;
+            cursor: default;
+
+            .scale-cohort-size {
+              height: 15px;
+              font-size: 0.9em;
+              padding-left: 0.25em;
+            }
+
+            .scale-cohort-percentage {
+              height: 16px;
+              padding: 0 0.25em;
+            }
+
+            .scale-cohort-percentage {
+              font-weight: bold;
+            }
           }
         }
       }
     }
-  }
 
 
 

@@ -208,32 +208,32 @@ export class SearchBar {
             }
             return text;
         })
-            .on('click', (d, i, nodes) => {
+            .on('click', (event, d) => {
             if (d.optionType !== 'gene') {
                 // TODO #427 remove click handler for special attribtue 'treatment', replace with special attribtue constant
                 if (d.optionId !== 'treatment') {
-                    this._clickHandler(d, d.optionType, event, nodes[i]);
+                    this._clickHandler(d, d.optionType, event, event.currentTarget);
                     // indicate an change in the options
                     this._container.dispatchEvent(new CustomEvent('optionchange'));
                 }
             }
         })
-            .on('mouseover', (d, i, nodes) => {
+            .on('mouseover', (event, d) => {
             if (d.optionType === 'gene') {
                 // set global optionId
                 this._geneHoverOptionId = d.optionId;
                 setTimeout(() => {
                     // update detail after timeout time global and current optionId is equal
                     if (d.optionId === this._geneHoverOptionId) {
-                        this._mouseOverHandler(d, nodes[i]);
+                        this._mouseOverHandler(d, event.currentTarget);
                     }
                 }, 200);
             }
             else {
-                this._mouseOverHandler(d, nodes[i]);
+                this._mouseOverHandler(d, event.currentTarget);
             }
         })
-            .on('mouseout', (d, i, nodes) => {
+            .on('mouseout', (event, d) => {
             if (d.optionType === 'gene') {
                 // clear global optionId
                 this._geneHoverOptionId = null;
@@ -797,11 +797,11 @@ export class SearchBar {
                 .attr('data-optid', (d) => { return this._composeGeneDataTypeOptId(optionId, d.id); })
                 .classed('option-selected', (d) => { return badgeIds.indexOf(this._composeGeneDataTypeOptId(optionId, d.id)) !== -1; })
                 .html((d) => d.name)
-                .on('click', (d, i, nodes) => {
+                .on('click', (event, d) => {
                 const badgeName = this._composeGeneDataTypeName(data.optionText, d.name);
                 const badgeData = deepCopy(data);
                 badgeData.optionData = { subType: d, type: d.dataTypeId };
-                this._clickHandlerDetail(data, badgeData, badgeName, event, nodes[i]);
+                this._clickHandlerDetail(data, badgeData, badgeName, event, event.currentTarget);
                 // indicate an change in the options
                 this._container.dispatchEvent(new CustomEvent('optionchange'));
             });
@@ -852,11 +852,11 @@ export class SearchBar {
             .attr('data-optid', (d) => d.id)
             .classed('option-selected', (d) => { return badgeIds.indexOf(d.id) !== -1; })
             .html((d) => d.name)
-            .on('click', (d, i, nodes) => {
+            .on('click', (event, d) => {
             const badgeName = `${option.optionText}:${d.name}`;
             const badgeData = deepCopy(option);
             badgeData.optionData = { sAttrId: option.optionId, attrOption: d.id, spAttribute: spAttr, serverColumn: option.optionData.serverColumn };
-            this._clickHandlerDetail(option, badgeData, badgeName, event, nodes[i]);
+            this._clickHandlerDetail(option, badgeData, badgeName, event, event.currentTarget);
             // this._clickHandlerDetail(data as IScoreOption, (d as any).dataTypeId, d, badgeName, event as MouseEvent, nodes[i] as HTMLElement);
             // indicate an change in the options
             log.debug('click spAttribute option: ', { oprtionId: option.optionId, badgeData });
