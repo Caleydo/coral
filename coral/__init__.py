@@ -27,7 +27,8 @@ def phovea(registry):
   registry.append('tdp-sql-database-migration', DB_KEY, '', {
     'scriptLocation': path.join(path.abspath(path.dirname(__file__)), 'migration'),
     'configKey': f'{PROJ_NAME}.migration',
-    'dbKey': DB_KEY
+    'dbKey': DB_KEY,
+    'versionTableSchema': 'public'
   })
 
   pass
