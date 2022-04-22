@@ -1,17 +1,15 @@
 import logging
 
-import phovea_server.config
-from flask import request
-from phovea_server.ns import Namespace, abort
-from phovea_server.security import login_required
-from phovea_server.util import jsonify
+from flask import request, Flask, abort, jsonify
+from .settings import get_settings
+from tdp_core.security import login_required
 
 from .sql_query_mapper import QueryElements
 
 _log = logging.getLogger(__name__)
 
-app = Namespace(__name__)
-config = phovea_server.config.view('coral')
+app = Flask(__name__)
+config = get_settings()
 
 
 @app.route('/create', methods=['GET', 'POST'])

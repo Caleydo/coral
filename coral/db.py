@@ -3,10 +3,9 @@ from .db_metadata import tables, columns
 
 from logging import getLogger
 import logging.config
-import phovea_server.config
+from .settings import get_settings
 
-config = phovea_server.config.view('coral')  # Read the config
-logging.config.dictConfig(config.logging)  # Configure logger based on settings in config file
+logging.config.dictConfig(get_settings().logging)  # Configure logger based on settings in config file
 _log = getLogger(__name__)  # Logger name is file name
 
 _log.info('Setting up the db view.')

@@ -2,8 +2,7 @@
   "generator-phovea": {
     "type": "app-slib",
     "modules": [
-      "tdp_core",
-      "phovea_server"
+      "tdp_core"
     ],
     "vendors": {
       "others": "phovea.*|tdp_.*|tdp-.*|datavisyn.*",

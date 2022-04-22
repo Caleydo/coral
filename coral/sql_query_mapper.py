@@ -1,9 +1,10 @@
 import logging
 import os
 import sys
+from .settings import get_settings
 
-import phovea_server.config
-from phovea_server.util import jsonify
+from tdp_core import manager
+from flask import jsonify
 from sqlalchemy import create_engine, exc, inspect, text
 from sqlalchemy.exc import NoInspectionAvailable
 from sqlalchemy.orm import sessionmaker
@@ -16,10 +17,10 @@ logging.getLogger('sqlalchemy').setLevel(logging.INFO)
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
-config = phovea_server.config.view('coral')
-config_ordino = phovea_server.config.view('tdp_publicdb')
-config_student = phovea_server.config.view('tdp_student')
-config_covid19 = phovea_server.config.view('tdp_covid19')
+config = get_settings()
+config_ordino = manager.settings.get_nested('tdp_publicdb', {})
+config_student = manager.settings.get_nested('tdp_student', {})
+config_covid19 = manager.settings.get_nested('tdp_covid19', {})
 
 COLUMN_LABEL_SCORE = 'score'
 COLUMN_LABEL_ID = 'id'
@@ -43,12 +44,12 @@ def create_engines(dburl):
 
 
 engine = create_engines(config.dburl)['primary']
-if config_ordino.dburl is not None:
-  engine_ordino = create_engines(config_ordino.dburl)
-if config_student.dburl is not None:
-  engine_student = create_engines(config_student.dburl)
-if config_covid19.dburl is not None:
-  engine_covid19 = create_engines(config_covid19.dburl)
+if config_ordino.get('dburl') is not None:
+  engine_ordino = create_engines(config_ordino.get('dburl'))
+if config_student.get('dburl') is not None:
+  engine_student = create_engines(config_student.get('dburl'))
+if config_covid19.get('dburl') is not None:
+  engine_covid19 = create_engines(config_covid19.get('dburl'))
 
 
 class QueryElements:

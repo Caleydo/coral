@@ -4,29 +4,24 @@
 # Licensed under the new BSD license, available at http://caleydo.org/license
 ###############################################################################
 
+from typing import Type
 
-def phovea(registry):
-  """
-  register extension points
-  :param registry:
-  """
-  # generator-phovea:begin
-  registry.append('tdp-sql-database-definition', 'cohortdb', 'coral.db', {
-     'configKey': 'coral'
-    })
+from pydantic import BaseModel
+from tdp_core.plugin.model import AVisynPlugin, RegHelper
 
-  registry.append('namespace', 'db_connector', 'coral.sql', {
-       'namespace': '/api/cohortdb/db'
-    })
-  # generator-phovea:end
-  pass
+from .settings import CoralSettings
 
 
-def phovea_config():
-  """
-  :return: file pointer to config file
-  """
-  from os import path
-  here = path.abspath(path.dirname(__file__))
-  config_file = path.join(here, 'config.json')
-  return config_file if path.exists(config_file) else None
+class VisynPlugin(AVisynPlugin):
+    def register(self, registry: RegHelper):
+        registry.append('tdp-sql-database-definition', 'cohortdb', 'coral.db', {
+          'configKey': 'coral'
+        })
+
+        registry.append('namespace', 'db_connector', 'coral.sql', {
+            'namespace': '/api/cohortdb/db'
+        })
+
+    @property
+    def setting_class(self) -> Type[BaseModel]:
+        return CoralSettings
