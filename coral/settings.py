@@ -1,4 +1,5 @@
 from typing import Dict
+
 from pydantic import BaseModel
 from tdp_core import manager
 
@@ -10,15 +11,7 @@ class CoralSettings(BaseModel):
     statement_timeout: str = "300000"
     supp_statement_timeout: str = "40000"
     statement_timeout_query: str = "set statement_timeout to {}"
-    logging: Dict = {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "loggers": {
-            "coral": {
-                "level": "DEBUG"
-            }
-        }
-    }
+    logging: Dict = {"version": 1, "disable_existing_loggers": False, "loggers": {"coral": {"level": "DEBUG"}}}
 
 
 def get_settings() -> CoralSettings:
