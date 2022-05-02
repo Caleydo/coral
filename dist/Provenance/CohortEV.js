@@ -22,10 +22,22 @@ export async function addOverviewCohortImpl(inputs, parameter) {
     if (ovApp) {
         await ovApp.generateOverviewProv(parameter.newDataset);
         ovApp.updateJSONElements();
+        setChtCounter(parameter, app);
     }
     return {
         inverse: addOverviewCohortAction(inputs[0], inputs[1], parameter.oldDataset, parameter.newDataset)
     };
+}
+function setChtCounter(parameter, app) {
+    const numbers = parameter.newDataset
+        .filter((e) => e.type === 'Cohort')
+        .map((e) => parseInt(e.label.split(' ')[0] // extraxt #XY part
+        .split('#')[1] // remove hash
+    , 10))
+        .filter(Number.isFinite); // remove cohorts without number (i.e., root)
+    const chts = Math.max(...numbers, 0) + 1; // continue with next number
+    log.debug('set counter to ', chts, '; was', app.chtCounter);
+    app.chtCounter = chts;
 }
 // ----------------------------
 // ---- Remove Cohort(s) ------
@@ -46,6 +58,7 @@ export async function removeOverviewCohortImpl(inputs, parameter) {
     if (ovApp) {
         await ovApp.generateOverviewProv(parameter.newDataset);
         ovApp.updateJSONElements();
+        setChtCounter(parameter, app);
     }
     return {
         inverse: removeOverviewCohortAction(inputs[0], inputs[1], parameter.oldDataset, parameter.newDataset)

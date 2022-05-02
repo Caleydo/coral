@@ -1,4 +1,4 @@
-import { ATDPApplication, CLUEGraphManager, IObjectRef, ProvenanceGraph } from 'tdp_core';
+import { ATDPApplication, CLUEGraphManager, IObjectRef, ITDPOptions, ProvenanceGraph } from 'tdp_core';
 import { Cohort } from './Cohort';
 import { IElementProvJSON, IElementProvJSONCohort } from './CohortInterfaces';
 import { CohortOverview } from './Overview';
@@ -11,6 +11,7 @@ import { IEntitySourceConfig } from './utilIdTypes';
 export declare class CohortApp {
     readonly graph: ProvenanceGraph;
     readonly graphManager: CLUEGraphManager;
+    readonly options: ITDPOptions;
     private readonly $node;
     private $overview;
     private $detail;
@@ -22,12 +23,13 @@ export declare class CohortApp {
     private rootCohort;
     private datasetEventID;
     private datasetTip;
+    chtCounter: number;
     /**
      * IObjectRef to this CohortApp instance
      * @type {IObjectRef<CohortApp>}
      */
     readonly ref: IObjectRef<CohortApp>;
-    constructor(graph: ProvenanceGraph, manager: CLUEGraphManager, parent: HTMLElement, name?: string);
+    constructor(graph: ProvenanceGraph, graphManager: CLUEGraphManager, parent: HTMLElement, options: ITDPOptions);
     /**
      * Initialize the view and return a promise
      * that is resolved as soon the view is completely initializqed.

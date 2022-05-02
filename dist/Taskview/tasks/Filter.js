@@ -129,7 +129,7 @@ export class Filter extends ATask {
                 .append('li').classed('dropdown-item', true)
                 .classed('selected', (vis) => vis.NAME === this.vis.constructor.NAME)
                 .append('a').text((vis) => vis.NAME) // cast to any to access static property
-                .on('click', (visClass) => {
+                .on('click', (event, visClass) => {
                 if (visClass.NAME !== this.vis.constructor.NAME) { //check if vis has changed
                     this.header.selectAll('.vis-selector .vis-type li').classed('selected', (vis) => vis.NAME === visClass.NAME);
                     this.showWithVis(new visClass());
@@ -176,7 +176,7 @@ export class Filter extends ATask {
                 configHeader.filter('.dropdown-item')
                     .attr('data-group', (d) => d.group.label)
                     .classed('selected', (d) => d.selected)
-                    .on('click', (d) => {
+                    .on('click', (evemt, d) => {
                     this.header
                         .selectAll(`li.dropdown-item[data-group="${d.group.label}"]`)
                         .classed('selected', (option) => d === option);

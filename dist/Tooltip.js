@@ -53,7 +53,7 @@ export function createSearchBarTooltip(elemWithTooltip, cssClassName, database, 
         hideOnClick: 'toggle',
         arrow: true,
         zIndex: 9000,
-        maxWidth: 'none',
+        maxWidth: 'none', // default max. width is 350px
     });
 }
 //# sourceMappingURL=Tooltip.js.map

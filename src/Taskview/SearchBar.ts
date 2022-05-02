@@ -258,31 +258,31 @@ export class SearchBar {
         }
         return text;
       })
-      .on('click', (d, i, nodes) => {
+      .on('click', (event, d) => {
         if (d.optionType !== 'gene') {
           // TODO #427 remove click handler for special attribtue 'treatment', replace with special attribtue constant
           if (d.optionId !== 'treatment') {
-            this._clickHandler(d, d.optionType, event as MouseEvent, nodes[i] as HTMLElement);
+            this._clickHandler(d, d.optionType, event as MouseEvent, event.currentTarget as HTMLElement);
             // indicate an change in the options
             this._container.dispatchEvent(new CustomEvent('optionchange'));
           }
         }
       })
-      .on('mouseover', (d, i, nodes) => {
+      .on('mouseover', (event, d) => {
         if (d.optionType === 'gene') {
           // set global optionId
           this._geneHoverOptionId = d.optionId;
           setTimeout(() => {
             // update detail after timeout time global and current optionId is equal
             if (d.optionId === this._geneHoverOptionId) {
-              this._mouseOverHandler(d, nodes[i]);
+              this._mouseOverHandler(d, event.currentTarget);
             }
           }, 200);
         } else {
-          this._mouseOverHandler(d, nodes[i]);
+          this._mouseOverHandler(d, event.currentTarget);
         }
       })
-      .on('mouseout', (d, i, nodes) => {
+      .on('mouseout', (event, d) => {
         if (d.optionType === 'gene') {
           // clear global optionId
           this._geneHoverOptionId = null;
@@ -845,8 +845,6 @@ export class SearchBar {
       log.debug(`create detail for ${data.optionId}`);
       if ((data as ISpecialOption).optionData && (data as ISpecialOption).optionData.spAttribute) {
         detail = this._createSpecialDetail(data as ISpecialOption);
-      } else {
-        detail = this._createDBColumnDetail(data as IServerColumnOption);
       }
     } else if (data.optionType === 'gene') {
       detail = this._createGeneDetail(data);
@@ -899,11 +897,11 @@ export class SearchBar {
           .attr('data-optid', (d: IDataSubtypeConfig) => {return this._composeGeneDataTypeOptId(optionId, d.id);})
           .classed('option-selected', (d: IDataSubtypeConfig) => {return badgeIds.indexOf(this._composeGeneDataTypeOptId(optionId, d.id)) !== -1;})
           .html((d: IDataSubtypeConfig) => d.name)
-          .on('click', (d: IDataSubtypeConfig, i, nodes) => {
+          .on('click', (event, d: IDataSubtypeConfig) => {
             const badgeName = this._composeGeneDataTypeName(data.optionText, d.name);
             const badgeData = deepCopy(data);
             badgeData.optionData = {subType: d, type: (d as any).dataTypeId};
-            this._clickHandlerDetail(data, badgeData, badgeName, event as MouseEvent, nodes[i] as HTMLElement);
+            this._clickHandlerDetail(data, badgeData, badgeName, event as MouseEvent, event.currentTarget as HTMLElement);
             // indicate an change in the options
             this._container.dispatchEvent(new CustomEvent('optionchange'));
           });
@@ -960,11 +958,11 @@ export class SearchBar {
       .attr('data-optid', (d) => d.id)
       .classed('option-selected', (d) => {return badgeIds.indexOf(d.id) !== -1;})
       .html((d) => d.name)
-      .on('click', (d, i, nodes) => {
+      .on('click', (event, d) => {
         const badgeName = `${option.optionText}:${d.name}`;
         const badgeData = deepCopy(option);
         badgeData.optionData = {sAttrId: option.optionId, attrOption: d.id, spAttribute: spAttr, serverColumn: option.optionData.serverColumn};
-        this._clickHandlerDetail(option, badgeData, badgeName, event as MouseEvent, nodes[i] as HTMLElement);
+        this._clickHandlerDetail(option, badgeData, badgeName, event as MouseEvent, event.currentTarget as HTMLElement);
         // this._clickHandlerDetail(data as IScoreOption, (d as any).dataTypeId, d, badgeName, event as MouseEvent, nodes[i] as HTMLElement);
         // indicate an change in the options
         log.debug('click spAttribute option: ', {oprtionId: option.optionId, badgeData});

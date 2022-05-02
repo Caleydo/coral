@@ -90,7 +90,7 @@ export default class SearchColumn {
       const enable = task.supports(attributes, cohorts);
       const taskBtn = select(this.$tasks).select(`.${task.id}`).classed('disabled', !enable).datum(task);
       if (enable) {
-        taskBtn.on('click', (t) => this.showTask(t));
+        taskBtn.on('click', (event, t) => this.showTask(t));
       } else {
         taskBtn.on('click', null);
       }

@@ -1,5 +1,4 @@
-import { IDType, IDTypeLike } from 'tdp_core';
-import { IAllFilters, IRow, IServerColumn } from 'tdp_core';
+import { IAllFilters, IDType, IDTypeLike, IRow, IServerColumn } from 'tdp_core';
 import { ICohort, ICohortRep, IElement, IElementProvJSONCohort, IProvAttrAndValuesCohort } from './CohortInterfaces';
 import { ICohortDepletionScoreFilterParams, ICohortEqualsFilterParams, ICohortGeneEqualsFilterParams, ICohortGeneNumFilterParams, ICohortNumFilterParams, ICohortPanelAnnotationFilterParams, ICohortRow, IEqualsList, INumRange } from './rest';
 import { Task } from './Tasks';
@@ -70,6 +69,11 @@ export declare class Cohort implements ICohort {
     setLabels(labelOne: string, labelTwo: string): void;
     get labelOne(): string;
     get labelTwo(): string;
+    /**
+     * Creates the label as a string with HTML elements for the # and cht_number to be bold and smaller
+     * @returns HTML formatted cohort label
+     */
+    getHTMLLabel(): string;
     set parents(parents: Array<IElement>);
     get parents(): Array<IElement>;
     /**
@@ -127,5 +131,5 @@ export declare const EMPTY_COHORT_ID = "--EMPTY--";
 export declare function getEmptyCohort(parent: Cohort): Cohort;
 export declare const LOADER_COHORT_ID = "--LOADING--";
 export declare function getLoaderCohort(parent: Cohort): Cohort;
-export declare function getCohortLabel(arrIndex: number, cht: Cohort): string;
+export declare function getCohortLabel(cht: Cohort): string;
 export declare function getCohortLabels(cohorts: Cohort[]): string[];

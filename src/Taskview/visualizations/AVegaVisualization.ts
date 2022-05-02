@@ -209,7 +209,7 @@ export abstract class AVegaVisualization implements IVegaVisualization {
   }
 
   abstract getSelectedData(): {from: string | number; to: string | number; cohort: ICohort}[];
-  abstract async show(container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]);
+  abstract show(container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]);
   abstract filter(): void;
   abstract split(): void;
   abstract showImpl(chart: HTMLDivElement, data: Array<IdValuePair>); //probably the method impl from SingleAttributeVisualization can be moved here
@@ -316,9 +316,9 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       if (d[this.attribute.dataKey] === null) {
         const attrData = this.nullValueMap.get(this.attribute.dataKey);
         const chtLabel = d[DATA_LABEL];
-        const chtIndex = parseInt(chtLabel.substr(0, chtLabel.indexOf('.')), 10);
-        const count = 1 + attrData.get(this.cohorts[chtIndex - 1]);
-        attrData.set(this.cohorts[chtIndex - 1], count);
+        const chtIndex = this.cohorts.findIndex((cht) => cht.label === chtLabel);
+        const count = 1 + attrData.get(this.cohorts[chtIndex]);
+        attrData.set(this.cohorts[chtIndex], count);
         nullValues++;
       }
     }
@@ -354,11 +354,11 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
 
   async getData() {
     const dataPromises = this.cohorts
-      .map((cht, index) =>
+      .map((cht) =>
         this.attribute.getData(cht.dbId, cht.filters)
           .then((data) =>
             data.map((item) =>
-              Object.assign(item, {[DATA_LABEL]: getCohortLabel(index, cht)})
+              Object.assign(item, {[DATA_LABEL]: getCohortLabel(cht)})
             )
           )
       );

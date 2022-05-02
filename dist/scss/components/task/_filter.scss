@@ -36,11 +36,12 @@
 
 .vis-container {
   display: grid;
-  grid-template-columns: 1fr 12em;
+  grid-template-columns: 1fr 14em;
   gap: 1em;
   grid-template-areas:
     "vis controls"
     "legend legend";
+  width: calc(100% - 1em); // save some space for scrollbar
 
   .controls {
     grid-area: controls;

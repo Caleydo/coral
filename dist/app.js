@@ -18,17 +18,19 @@ import { niceName } from './utilLabels';
  * The Cohort app that does the acutal stuff.
  */
 export class CohortApp {
-    constructor(graph, manager, parent, name = 'Cohort') {
+    constructor(graph, graphManager, parent, options) {
+        this.graph = graph;
+        this.graphManager = graphManager;
+        this.options = options;
         this.dataset = null;
         this._cohortOverview = null;
         this._taskview = null;
         this.rootCohort = null;
         this.datasetEventID = 0;
+        this.chtCounter = 1;
         this.firstOutput = true;
-        this.graph = graph;
-        this.graphManager = manager;
+        this.name = options.name;
         this.$node = select(parent).append('div').classed('cohort_app', true);
-        this.name = name;
         this.ref = graph.findOrAddObject(this, this.name, ObjectRefUtils.category.visual); // cat.visual = it is a visual operation
     }
     /**
@@ -47,6 +49,12 @@ export class CohortApp {
     async handleConfirmTask(ev) {
         const taskParams = ev.detail.params; // task parameters (e.g. column/category to filter)
         const taskAttributes = ev.detail.attributes;
+        for (const task of taskParams) {
+            for (const cht of task.outputCohorts) {
+                log.debug('app sets counter to', 1 + this.chtCounter);
+                cht.setLabels(`#${this.chtCounter++} ` + cht.labelOne, cht.labelTwo);
+            }
+        }
         // confirm the current preview as the result of the task
         this.$node.node().dispatchEvent(new PreviewConfirmEvent(taskParams, taskAttributes));
         // get the new added task (the ones confirmed from the preview)
@@ -103,7 +111,7 @@ export class CohortApp {
             NotificationHandler.pushNotification('error', 'Loading datasets failed');
             loading.html(`
       <i class="fas fa-exclamation-circle"></i>
-      Loading datasets failed. Please try to reload or <a href="https://github.com/Caleydo/coral/issues/new">report the issue</a>.
+      Loading datasets failed. Please try to reload or <a href="${this.options.clientConfig.contact.href}">${this.options.clientConfig.contact.label}</a>.
       `);
         }
         return Promise.resolve(this);
@@ -129,7 +137,7 @@ export class CohortApp {
             .attr('data-db', (d) => d.source.dbConnectorName)
             .attr('data-dbview', (d) => d.source.viewName)
             .html((d) => { return d.source.idType.toUpperCase(); })
-            .on('click', async (d) => {
+            .on('click', async (event, d) => {
             var _a, _b;
             const newDataset = ((_b = (_a = this.dataset) === null || _a === void 0 ? void 0 : _a.source) === null || _b === void 0 ? void 0 : _b.idType) === d.source.idType ? //same as current?
                 { source: null, rootCohort: null, chtOverviewElements: null } : // deselect
@@ -143,7 +151,7 @@ export class CohortApp {
             .append('span').classed('caret', true);
         const dropdown = datasetGroup.append('ul').classed('dropdown-menu', true);
         dropdown.append('li').classed('dropdown-item', true).append('a').text('All')
-            .on('click', async (d) => {
+            .on('click', async (event, d) => {
             const newDataset = { source: d.source, rootCohort: null, chtOverviewElements: null };
             this.handleDatasetClick(newDataset);
         });
@@ -156,7 +164,7 @@ export class CohortApp {
             .enter()
             .append('li').classed('data-panel', true).classed('dropdown-item', true)
             .append('a').text((d) => d.id).attr('title', (d) => d.description)
-            .on('click', async function (d) {
+            .on('click', async function (event, d) {
             // don't toggle data by checkging what is selected in dropdown
             const dataSourcesAndPanels = select(this.parentNode.parentNode).datum(); // a -> parent = li -> parent = dropdown = ul
             const newDataset = { source: dataSourcesAndPanels.source, panel: d, rootCohort: null, chtOverviewElements: null };
@@ -164,7 +172,7 @@ export class CohortApp {
         });
         this.restartSession = btnGrp.append('button')
             .attr('type', 'button')
-            .attr('class', 'btn btn-coral')
+            .attr('class', 'btn btn-coral btn-sm')
             .html(`<i class="fas fa-redo fa-flip-horizontal"></i> New Session`)
             .attr('style', 'margin-left: 2.5rem;')
             .attr('hidden', true)
@@ -438,6 +446,7 @@ export class CohortApp {
  */
 export class App extends ATDPApplication {
     constructor(name, loginDialog, showCookieDisclaimer = true) {
+        var _a;
         super({
             prefix: 'coral',
             name,
@@ -455,12 +464,20 @@ export class App extends ATDPApplication {
              * Show content in the `Coral at a Glance` page instead
              */
             showReportBugLink: false,
+            clientConfig: {
+                contact: {
+                    href: 'https://github.com/Caleydo/Coral/issues/',
+                    label: 'report an issue'
+                }
+            }
         });
+        console.log('clientConfig', this.options.clientConfig);
+        console.log('clientConfig contact', (_a = this.options.clientConfig) === null || _a === void 0 ? void 0 : _a.contact);
     }
     createApp(graph, manager, main) {
         log.debug('Create App');
         this.replaceHelpIcon();
-        return new CohortApp(graph, manager, main, this.options.name).init();
+        return new CohortApp(graph, manager, main, this.options).init();
     }
     replaceHelpIcon() {
         const helpButton = select(this.header.rightMenu).select('li[data-header="helpLink"]');

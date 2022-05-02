@@ -1,10 +1,10 @@
 import {select, Selection} from 'd3-selection';
 import SplitGrid from 'split-grid';
-import {AppContext, ATDPApplication, CLUEGraphManager, IDatabaseViewDesc, IObjectRef, IServerColumn, NotificationHandler, ObjectRefUtils, ProvenanceGraph, RestBaseUtils} from 'tdp_core';
+import {AppContext, ATDPApplication, CLUEGraphManager, IDatabaseViewDesc, IObjectRef, IServerColumn, ITDPOptions, NotificationHandler, ObjectRefUtils, ProvenanceGraph, RestBaseUtils} from 'tdp_core';
 import {cellline, tissue} from 'tdp_publicdb';
 import {Instance as TippyInstance} from 'tippy.js';
 import {Cohort, createCohort, createCohortFromDB} from './Cohort';
-import {IElementProvJSON, IElementProvJSONCohort} from './CohortInterfaces';
+import {IElementProvJSON, IElementProvJSONCohort, ITaskParams} from './CohortInterfaces';
 import {cohortOverview, createCohortOverview, destroyOld, loadViewDescription, taskview} from './cohortview';
 import {PanelScoreAttribute} from './data/Attribute';
 import {OnboardingManager} from './OnboardingManager';
@@ -26,8 +26,6 @@ import {niceName} from './utilLabels';
  */
 export class CohortApp {
 
-  public readonly graph: ProvenanceGraph;
-  public readonly graphManager: CLUEGraphManager;
   private readonly $node: Selection<HTMLDivElement, any, null, undefined>;
   private $overview: HTMLDivElement;
   private $detail: HTMLDivElement;
@@ -42,17 +40,22 @@ export class CohortApp {
 
   private datasetTip: TippyInstance;
 
+  public chtCounter = 1;
+
   /**
    * IObjectRef to this CohortApp instance
    * @type {IObjectRef<CohortApp>}
    */
   readonly ref: IObjectRef<CohortApp>;
 
-  constructor(graph: ProvenanceGraph, manager: CLUEGraphManager, parent: HTMLElement, name: string = 'Cohort') {
-    this.graph = graph;
-    this.graphManager = manager;
+  constructor(
+    public readonly graph: ProvenanceGraph,
+    public readonly graphManager: CLUEGraphManager,
+    parent: HTMLElement,
+    public readonly options: ITDPOptions
+  ) {
+    this.name = options.name;
     this.$node = select(parent).append('div').classed('cohort_app', true);
-    this.name = name;
 
     this.ref = graph.findOrAddObject(this, this.name, ObjectRefUtils.category.visual); // cat.visual = it is a visual operation
   }
@@ -74,8 +77,19 @@ export class CohortApp {
   firstOutput = true;
 
   async handleConfirmTask(ev: ConfirmTaskEvent): Promise<void> {
-    const taskParams = ev.detail.params; // task parameters (e.g. column/category to filter)
+    const taskParams: ITaskParams[] = ev.detail.params; // task parameters (e.g. column/category to filter)
     const taskAttributes = ev.detail.attributes;
+
+    for (const task of taskParams) {
+      for (const cht of task.outputCohorts) {
+        log.debug('app sets counter to', 1 + this.chtCounter);
+        (cht as Cohort).setLabels(
+          `#${this.chtCounter++} ` + (cht as Cohort).labelOne,
+          (cht as Cohort).labelTwo
+        );
+      }
+    }
+
     // confirm the current preview as the result of the task
     this.$node.node().dispatchEvent(new PreviewConfirmEvent(taskParams, taskAttributes));
     // get the new added task (the ones confirmed from the preview)
@@ -142,7 +156,7 @@ export class CohortApp {
       NotificationHandler.pushNotification('error', 'Loading datasets failed');
       loading.html(`
       <i class="fas fa-exclamation-circle"></i>
-      Loading datasets failed. Please try to reload or <a href="https://github.com/Caleydo/coral/issues/new">report the issue</a>.
+      Loading datasets failed. Please try to reload or <a href="${this.options.clientConfig.contact.href}">${this.options.clientConfig.contact.label}</a>.
       `);
     }
 
@@ -172,7 +186,7 @@ export class CohortApp {
       .attr('data-db', (d) => d.source.dbConnectorName)
       .attr('data-dbview', (d) => d.source.viewName)
       .html((d) => {return d.source.idType.toUpperCase();})
-      .on('click', async (d) => { // click on button
+      .on('click', async (event, d) => { // click on button
         const newDataset = this.dataset?.source?.idType === d.source.idType ? //same as current?
           {source: null, rootCohort: null, chtOverviewElements: null} : // deselect
           {source: d.source, rootCohort: null, chtOverviewElements: null}; // select
@@ -187,7 +201,7 @@ export class CohortApp {
 
     const dropdown = datasetGroup.append('ul').classed('dropdown-menu', true);
     dropdown.append('li').classed('dropdown-item', true).append('a').text('All')
-      .on('click', async (d) => { //click all
+      .on('click', async (event, d) => { //click all
         const newDataset = {source: d.source, rootCohort: null, chtOverviewElements: null};
         this.handleDatasetClick(newDataset);
       });
@@ -202,7 +216,7 @@ export class CohortApp {
       .enter()
       .append('li').classed('data-panel', true).classed('dropdown-item', true)
       .append('a').text((d) => d.id).attr('title', (d) => d.description)
-      .on('click', async function (d) { // click subset
+      .on('click', async function (event, d) { // click subset
         // don't toggle data by checkging what is selected in dropdown
         const dataSourcesAndPanels = select(this.parentNode.parentNode).datum() as {source: IEntitySourceConfig; panels: IPanelDesc[];}; // a -> parent = li -> parent = dropdown = ul
         const newDataset = {source: dataSourcesAndPanels.source, panel: d, rootCohort: null, chtOverviewElements: null};
@@ -211,12 +225,12 @@ export class CohortApp {
 
     this.restartSession = btnGrp.append('button')
       .attr('type', 'button')
-      .attr('class', 'btn btn-coral')
+      .attr('class', 'btn btn-coral btn-sm')
       .html(`<i class="fas fa-redo fa-flip-horizontal"></i> New Session`)
       .attr('style', 'margin-left: 2.5rem;')
       .attr('hidden', true)
-      .on('click', async () => { // click on logo
-          this.graphManager.newGraph();
+      .on('click', async () => {
+        this.graphManager.newGraph();
       });
   }
 
@@ -541,13 +555,22 @@ export class App extends ATDPApplication<CohortApp> {
        * Show content in the `Coral at a Glance` page instead
        */
       showReportBugLink: false,
+      clientConfig: {
+        contact: {
+          href: 'https://github.com/Caleydo/Coral/issues/',
+          label: 'report an issue'
+        }
+      }
     });
+
+    console.log('clientConfig', this.options.clientConfig);
+    console.log('clientConfig contact', this.options.clientConfig?.contact);
   }
 
   protected createApp(graph: ProvenanceGraph, manager: CLUEGraphManager, main: HTMLElement): CohortApp | PromiseLike<CohortApp> {
     log.debug('Create App');
     this.replaceHelpIcon();
-    return new CohortApp(graph, manager, main, this.options.name).init();
+    return new CohortApp(graph, manager, main, this.options).init();
   }
 
   private replaceHelpIcon() {
