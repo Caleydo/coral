@@ -1,2 +1,2 @@
--e git+https://github.com/phovea/phovea_server.git@develop#egg=phovea_server
--e git+https://github.com/datavisyn/tdp_core.git@develop#egg=tdp_core
+phovea_server>=9.0.0,<10.0.0
+tdp_core>=14.0.2,<15.0.0
