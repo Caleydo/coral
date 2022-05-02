@@ -3,6 +3,10 @@
 # Copyright (c) The Caleydo Team. All rights reserved.
 # Licensed under the new BSD license, available at http://caleydo.org/license
 ###############################################################################
+from os import path
+
+PROJ_NAME = 'coral'
+DB_KEY = 'cohortdb'
 
 
 def phovea(registry):
@@ -11,14 +15,22 @@ def phovea(registry):
   :param registry:
   """
   # generator-phovea:begin
-  registry.append('tdp-sql-database-definition', 'cohortdb', 'coral.db', {
-     'configKey': 'coral'
+  registry.append('tdp-sql-database-definition', DB_KEY, f'{PROJ_NAME}.db', {
+     'configKey': f'{PROJ_NAME}'
     })
 
-  registry.append('namespace', 'db_connector', 'coral.sql', {
+  registry.append('namespace', 'db_connector', f'{PROJ_NAME}.sql', {
        'namespace': '/api/cohortdb/db'
     })
   # generator-phovea:end
+
+  registry.append('tdp-sql-database-migration', DB_KEY, '', {
+    'scriptLocation': path.join(path.abspath(path.dirname(__file__)), 'migration'),
+    'configKey': f'{PROJ_NAME}.migration',
+    'dbKey': DB_KEY,
+    'versionTableSchema': 'public'
+  })
+
   pass
 
 
