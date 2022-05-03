@@ -8,7 +8,7 @@ Create Date: 2022-04-14 11:58:27.444788
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'ddd776aa28c3'
+revision = "ddd776aa28c3"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -16,7 +16,8 @@ depends_on = None
 
 def upgrade():
     connection = op.get_bind()
-    for cmd in ["""
+    for cmd in [
+        """
 CREATE SCHEMA IF NOT EXISTS cohort;
 CREATE SEQUENCE cohort.cohort_id_seq
     INCREMENT 1
@@ -24,7 +25,8 @@ CREATE SEQUENCE cohort.cohort_id_seq
     MINVALUE 1
     MAXVALUE 2147483647
     CACHE 1;
-""", """
+""",
+        """
 CREATE TABLE cohort.cohort
 (
     id integer NOT NULL DEFAULT nextval('cohort.cohort_id_seq'::regclass),
@@ -37,7 +39,8 @@ CREATE TABLE cohort.cohort
     statement character varying COLLATE pg_catalog."default",
     CONSTRAINT cohort_pkey PRIMARY KEY (id)
 );
-"""]:
+""",
+    ]:
         connection.execute(cmd)
 
 
