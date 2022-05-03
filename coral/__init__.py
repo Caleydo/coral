@@ -4,16 +4,15 @@
 # Licensed under the new BSD license, available at http://caleydo.org/license
 ###############################################################################
 from os import path
-
-PROJ_NAME = "coral"
-DB_KEY = "cohortdb"
-
 from typing import Type
 
 from pydantic import BaseModel
 from tdp_core.plugin.model import AVisynPlugin, RegHelper
 
 from .settings import CoralSettings
+
+PROJ_NAME = "coral"
+DB_KEY = "cohortdb"
 
 
 class VisynPlugin(AVisynPlugin):
