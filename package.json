@@ -47,6 +47,7 @@
     "index.js",
     "phovea.js",
     "phovea_registry.js",
+    "dist",
     "build",
     "coral",
     "__init__.py",
