@@ -71,7 +71,7 @@
     "d3-selection": "^3.0.0",
     "d3-transition": "^3.0.1",
     "jquery": "^3.5.0",
-    "lineupjs": "next",
+    "lineupjs": "~4.6.0",
     "lodash.merge": "^4.x",
     "lodash.pick": "^4.4.0",
     "loglevel": "^1.6.4",
