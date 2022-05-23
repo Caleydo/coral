@@ -1,3 +1,4 @@
+import decimal
 import logging
 import os
 import sys
@@ -257,7 +258,15 @@ class QueryElements:
 
             # transform row into a dictionary
             for row in rows:
-                result.append(dict(row))
+                # create dictionary of row
+                row_dict = dict(row)
+                # iterate over all key:value pairs
+                for key in row_dict:
+                    if isinstance(row_dict[key], decimal.Decimal):
+                        # cast decimal to float
+                        row_dict[key] = float(row_dict[key])
+
+                result.append(row_dict)
 
         except exc.SQLAlchemyError as e:
             _log.error("SQLAlchemy Error: %s", e)
