@@ -23,7 +23,7 @@
     "clean": "rimraf build dist lib",
     "compile:watch": "tsc -w",
     "compile": "tsc",
-    "copy-assets": "if [ -d src/assets ]; then cp -rv src/assets/. dist/assets/; fi && if [ -d src/template ]; then shx --verbose cp -R src/template/. dist/template/; fi",
+    "copy-assets": "if [ -d src/assets ]; then cp -rv src/assets/. dist/assets/; fi && if [ -d src/template ]; then shx --verbose cp -R src/template/. dist/template/; fi && if [ -d src/templates ]; then shx --verbose cp -R src/templates/. dist/templates/; fi",
     "copy-styles": "if [ -d src/scss ]; then shx --verbose cp -R src/scss/. dist/scss/; fi",
     "copy": "npm run copy-assets && npm run copy-styles",
     "delete-dependencies": "rimraf node_modules",
