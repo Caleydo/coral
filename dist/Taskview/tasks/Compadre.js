@@ -4,11 +4,11 @@ import { ServerColumnAttribute } from '../../data/Attribute';
 import { getAnimatedLoadingText } from '../../util';
 import { DATA_LABEL } from '../visualizations';
 import { ATask } from './ATask';
-export class Compadre extends ATask {
+export class Characterize extends ATask {
     constructor() {
         super(...arguments);
-        this.label = `Compare ++`;
-        this.id = `compadre`;
+        this.label = `Characterize`;
+        this.id = `characterize`;
         this.hasOutput = false;
         this.eventID = 0;
         this._entityName = null;
@@ -25,7 +25,7 @@ export class Compadre extends ATask {
         if (cohorts.length >= 2) {
             this.$container = this.body
                 .append('div')
-                .classed('compadre-container', true)
+                .classed('characterize-container', true)
                 .node();
             this.$container.insertAdjacentElement('beforeend', getAnimatedLoadingText('data'));
             const attrCohort = cohorts[0];
@@ -53,16 +53,30 @@ export class Compadre extends ATask {
       <input disabled type="radio" name="cmp_data" value="Mutaion Type">
       <label">Mutation Type</label>
 
-      <p><button>Compare</button></p>
+      <p><button id="meta">Compare</button></p>
+
+      <p><button id="stream">Stream</button><button id="cancel">cancel</button></p>
 
       <div class="output"></div>
     </div>
     `;
-        this.$container.querySelector('button').addEventListener('click', () => {
+        this.$container.querySelector('button#meta').addEventListener('click', () => {
             this.$container
                 .querySelector('.output')
                 .insertAdjacentElement('beforeend', getAnimatedLoadingText('data'));
             this.sendData(this.ids);
+        });
+        this.$container.querySelector('button#stream').addEventListener('click', async () => {
+            const response = await fetch('http://localhost:8444/');
+            const body = response.body;
+            const reader = body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            while (true) {
+                const { value, done } = await reader.read(); //variable names are important for destructuring
+                console.log(decoder.decode(value));
+                if (done)
+                    break; // if done, value is undefined
+            }
         });
     }
     async sendData(ids) {

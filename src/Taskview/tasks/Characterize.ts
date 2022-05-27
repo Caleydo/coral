@@ -1,21 +1,21 @@
 import * as aq from 'arquero';
-import {table} from 'console';
-import { Cohort, getCohortLabel } from '../../Cohort';
-import { ICohort } from '../../CohortInterfaces';
-import { IAttribute, ServerColumnAttribute } from '../../data/Attribute';
-import { getCohortData } from '../../rest';
-import { CohortColorSchema, getAnimatedLoadingText } from '../../util';
-import { getIdTypeFromCohort } from '../../utilIdTypes';
-import { DATA_LABEL } from '../visualizations';
-import { ATask } from './ATask';
+import {Cohort, getCohortLabel} from '../../Cohort';
+import {ICohort} from '../../CohortInterfaces';
+import {IAttribute, ServerColumnAttribute} from '../../data/Attribute';
+import {getCohortData} from '../../rest';
+import {CohortColorSchema, getAnimatedLoadingText} from '../../util';
+import {getIdTypeFromCohort} from '../../utilIdTypes';
+import {DATA_LABEL} from '../visualizations';
+import {ATask} from './ATask';
 
-export class Compadre extends ATask {
-  public label = `Compare ++`;
-  public id = `compadre`;
+export class Characterize extends ATask {
+  public label = `Characterize`;
+  public id = `characterize`;
   public hasOutput = false;
   private eventID = 0;
   private _entityName: string = null;
   private ids: any[];
+  private reader: ReadableStreamDefaultReader<Uint8Array>;
 
   supports(attributes: IAttribute[], cohorts: ICohort[]) {
     return cohorts.length >= 2;
@@ -37,8 +37,9 @@ export class Compadre extends ATask {
     if (cohorts.length >= 2) {
       this.$container = this.body
         .append('div')
-        .classed('compadre-container', true)
+        .classed('characterize-container', true)
         .node();
+
       this.$container.insertAdjacentElement(
         'beforeend',
         getAnimatedLoadingText('data')
@@ -61,8 +62,9 @@ export class Compadre extends ATask {
   appendTable() {
     this.$container.innerHTML = `
     <div>
-      <p>Differences in:</p>
+      <p>Find Differences in:</p>
 
+      <!--
       <input type="radio" name="cmp_data" value="Meta Information" checked>
       <label>Meta Information</label>
 
@@ -71,34 +73,54 @@ export class Compadre extends ATask {
 
       <input disabled type="radio" name="cmp_data" value="Mutaion Type">
       <label">Mutation Type</label>
+      -->
 
-      <p><button>Compare</button></p>
+      <div>
+        <button class="btn btn-coral" id="meta">Compare by <i>Meta-Data</i></button>
+        <button class="btn btn-coral" id="mutated">Compare by <i>AA Mutated</i></button>
+        <button class="btn btn-coral" id="stop">Stop</button>
+      </div>
 
       <div class="output"></div>
     </div>
     `;
 
-    this.$container.querySelector('button').addEventListener('click', () => {
-      this.$container
-        .querySelector('.output')
+    this.$container.querySelector('button#meta').addEventListener('click', () => {
+      this.$container.querySelector('.output').innerHTML = '';
+      this.$container.querySelector('.output')
         .insertAdjacentElement('beforeend', getAnimatedLoadingText('data'));
-      this.sendData(this.ids);
+      this.sendData(`cmp_meta`, this.ids);
     });
+
+    this.$container.querySelector('button#stop').addEventListener('click', () => this.reader?.cancel());
   }
 
-  async sendData(ids) {
+  async sendData(endpoint, ids) {
     const response = await this.postData(
-      'http://localhost:8444/cmp_meta/', {
+      `http://localhost:8444/${endpoint}/`, {
       exclude: ['tissuename', 'tdpid'],
       ids,
     });
-    console.log('Request complete! response:', JSON.stringify(response));
     this.visualize(response);
   }
 
-  visualize(response) {
-    this.$container.querySelector('.output').innerHTML =
-      'Response is here ' + JSON.stringify(response);
+  async visualize(response) {
+    this.reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let first = true;
+    while (true) {
+      const { value, done } = await this.reader.read(); //variable names are important for destructuring
+      if (done) { break; } // if done, value is undefined
+      console.log(value);
+      if (first) {
+        this.$container.querySelector('.output').innerHTML = '';
+        first = false;
+      }
+      this.$container.querySelector('.output').insertAdjacentHTML(
+        'beforeend',
+        `<p>Response is here <code>${JSON.stringify(decoder.decode(value))}</code></p>`
+      );
+    }
   }
 
   async getData(attributes: IAttribute[], cohorts: Cohort[]) {
@@ -139,8 +161,8 @@ export class Compadre extends ATask {
       },
       redirect: 'follow', // manual, *follow, error
       referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-      body: JSON.stringify(data) // body data type must match "Content-Type" header
+     body: JSON.stringify(data) // body data type must match "Content-Type" header
     });
-    return response.json(); // parses JSON response into native JavaScript objects
+    return response;
   }
 }

@@ -75,6 +75,7 @@
     "lodash.merge": "^4.x",
     "lodash.pick": "^4.4.0",
     "loglevel": "^1.6.4",
+    "ndjson": "^2.0.0",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "react-router-dom": "^5.2.0",

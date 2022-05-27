@@ -2,7 +2,7 @@ import { Cohort } from '../../Cohort';
 import { ICohort } from '../../CohortInterfaces';
 import { IAttribute } from '../../data/Attribute';
 import { ATask } from './ATask';
-export declare class Compadre extends ATask {
+export declare class Characterize extends ATask {
     label: string;
     id: string;
     hasOutput: boolean;
