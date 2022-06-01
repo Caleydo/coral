@@ -235,7 +235,7 @@ export class Characterize extends ATask {
             .supportTypes()
             .allColumns()
             .sortBy('Importance', 'desc')
-            .groupBy('Attribute')
+            // .groupBy('Attribute')
             .groupSortBy('Importance', 'desc'))
             .buildTaggle(this.$container.querySelector('.lineup-container'));
         this.dataProv = this.lineup.data;
