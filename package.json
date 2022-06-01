@@ -62,6 +62,7 @@
   },
   "dependencies": {
     "@keckelt/tsne": "^1.0.0",
+    "@upsetjs/bundle" : "^1.0.0",
     "arquero": "^4.8.0",
     "canvas-confetti": "^1.4.0",
     "clone": "^2.1.2",

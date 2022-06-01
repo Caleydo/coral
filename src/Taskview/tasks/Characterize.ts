@@ -1,21 +1,27 @@
+
 import * as aq from 'arquero';
+import * as LineUpJS from 'lineupjs';
+import {extractCombinations, extractSets, generateCombinations, isGenerateSetCombinationOptions, renderUpSet} from '@upsetjs/bundle';
 import {Cohort, getCohortLabel} from '../../Cohort';
 import {ICohort} from '../../CohortInterfaces';
 import {IAttribute, ServerColumnAttribute} from '../../data/Attribute';
-import {getCohortData} from '../../rest';
-import {CohortColorSchema, getAnimatedLoadingText} from '../../util';
-import {getIdTypeFromCohort} from '../../utilIdTypes';
+import {getAnimatedLoadingText} from '../../util';
 import {DATA_LABEL} from '../visualizations';
 import {ATask} from './ATask';
+import {colors} from '../../colors';
 
 export class Characterize extends ATask {
+  static readonly TREES = 500;
+
   public label = `Characterize`;
   public id = `characterize`;
   public hasOutput = false;
   private eventID = 0;
-  private _entityName: string = null;
   private ids: any[];
   private reader: ReadableStreamDefaultReader<Uint8Array>;
+  progressBar: any;
+  lineup: LineUpJS.Taggle;
+  dataProv: LineUpJS.LocalDataProvider;
 
   supports(attributes: IAttribute[], cohorts: ICohort[]) {
     return cohorts.length >= 2;
@@ -61,38 +67,81 @@ export class Characterize extends ATask {
 
   appendTable() {
     this.$container.innerHTML = `
-    <div>
-      <p>Find Differences in:</p>
-
-      <!--
-      <input type="radio" name="cmp_data" value="Meta Information" checked>
-      <label>Meta Information</label>
-
-      <input disabled type="radio" name="cmp_data" value="Mutated State">
-      <label">Mutated State</label>
-
-      <input disabled type="radio" name="cmp_data" value="Mutaion Type">
-      <label">Mutation Type</label>
-      -->
-
+      <div class="upset-container">
       <div>
         <button class="btn btn-coral" id="meta">Compare by <i>Meta-Data</i></button>
         <button class="btn btn-coral" id="mutated">Compare by <i>AA Mutated</i></button>
-        <button class="btn btn-coral" id="stop">Stop</button>
       </div>
 
-      <div class="output"></div>
-    </div>
+      <div class="progress-wrapper"></div>
+
+      <div class="lineup-container"></div>
     `;
 
     this.$container.querySelector('button#meta').addEventListener('click', () => {
-      this.$container.querySelector('.output').innerHTML = '';
-      this.$container.querySelector('.output')
-        .insertAdjacentElement('beforeend', getAnimatedLoadingText('data'));
+      if (this.lineup) {
+        this.lineup.destroy();
+      }
+      this.$container.querySelector('.lineup-container').innerHTML = '';
+      this.addProgressBar();
       this.sendData(`cmp_meta`, this.ids);
     });
 
-    this.$container.querySelector('button#stop').addEventListener('click', () => this.reader?.cancel());
+    this.appendUpset(this.$container.querySelector('div.upset-container'));
+  }
+
+
+  appendUpset(container: HTMLDivElement) {
+    const elems = this.getSetData(this.ids);
+    const {sets, combinations} = extractCombinations(elems, ({name, sets}) => sets, {type: 'intersection'});
+    const sets2 = extractSets(elems, ({name, sets}) => sets, {});
+    const combinations2 = generateCombinations(sets2, {type: 'intersection', min: 2, empty: true, max: 2});
+
+    let selection = null;
+
+    function onHover(set) {
+      selection = set;
+      rerender();
+    }
+
+    function rerender() {
+      renderUpSet(container, {
+        sets: sets2, combinations: combinations2,
+        width: 800, height: 200,
+        // title: 'Cohort Overlap',
+        // description: 'Intersection of selected cohorts',
+        // selection, onHover,
+        exportButtons: false,
+        setLabelAlignment: 'right',
+        // setName: 'Size',
+        color: colors.barColor
+      });
+    }
+
+    rerender();
+    // remove set size barchar
+    container.querySelectorAll('g[data-upset="setaxis"]').forEach((d) => d.remove());
+    container.querySelectorAll('text[class^="sBarTextStyle-upset"]').forEach((d) => d.remove());
+    container.querySelectorAll('g[data-upset="sets"] rect[class^="fillPrimary-upset"]').forEach((d) => d.remove());
+    // remove clipping of cohort labels
+    container.querySelectorAll('text[class^="setTextStyle-upset"]').forEach((d) => d.removeAttribute('clip-path'));
+  }
+
+  getSetData(ids: any[]) {
+    const setMap = new Map<string, string[]>();
+    const idList = ids.flat();
+    idList.forEach((d) => {
+      if (!setMap.has(d.tissuename)) {
+        setMap.set(d.tissuename, [d.Cohort]);
+      } else {
+        setMap.get(d.tissuename).push(d.Cohort);
+      }
+    });
+
+    const setArr = Array
+      .from(setMap)
+      .map(([key, value]) => ({name: key, sets: value}));
+    return setArr;
   }
 
   async sendData(endpoint, ids) {
@@ -109,17 +158,24 @@ export class Characterize extends ATask {
     const decoder = new TextDecoder('utf-8');
     let first = true;
     while (true) {
-      const { value, done } = await this.reader.read(); //variable names are important for destructuring
-      if (done) { break; } // if done, value is undefined
-      console.log(value);
-      if (first) {
-        this.$container.querySelector('.output').innerHTML = '';
-        first = false;
+      const {value, done} = await this.reader.read(); //variable names are important for destructuring
+      if (done) {console.log('done'); break;} // if done, value is undefined
+
+      const response = decoder.decode(value);
+      console.log('response', response);
+
+      try {
+        const responseData = JSON.parse(response);
+        if (first) {
+          await this.createLineUp(responseData.importances); // await so its ready for the next response
+          first = false;
+        }
+        this.setProgress(responseData.trees);
+        this.updateLineUp(responseData.importances);
+
+      } catch (e) {
+        console.error('could not read JSON data', e);
       }
-      this.$container.querySelector('.output').insertAdjacentHTML(
-        'beforeend',
-        `<p>Response is here <code>${JSON.stringify(decoder.decode(value))}</code></p>`
-      );
     }
   }
 
@@ -161,8 +217,81 @@ export class Characterize extends ATask {
       },
       redirect: 'follow', // manual, *follow, error
       referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-     body: JSON.stringify(data) // body data type must match "Content-Type" header
+      body: JSON.stringify(data), // body data type must match "Content-Type" header
+      //TODO abortController
     });
     return response;
+  }
+
+  addProgressBar() {
+    const wrapper = this.$container.querySelector('.progress-wrapper');
+    wrapper.innerHTML = '';
+    wrapper.insertAdjacentHTML('beforeend', `
+      <div class="progress-ctrl">
+        <a class="run" role="button"><i class="fas fa-fw fa-stop-circle"></i></a>
+      </div>
+      <div  class="progress">
+        <div class="progress-bar" role="progressbar">
+          0/${Characterize.TREES}
+        </div>
+      </div>
+    `);
+    this.progressBar = wrapper.querySelector('.progress .progress-bar');
+    wrapper
+      .querySelector(('a.run'))
+      .addEventListener('click', () => {
+        this.reader?.cancel();
+        wrapper.querySelector('.progress-ctrl').remove();
+        this.progressBar.textContent = 'Stopped';
+        this.fadeOutProgressBar();
+      });
+  }
+
+  setProgress(iteration: number) {
+    this.progressBar.textContent = `${iteration}/${Characterize.TREES}`;
+    this.progressBar.style.width = `${100 * iteration / Characterize.TREES}%`;
+
+    if (iteration === Characterize.TREES) {
+      this.progressBar.textContent = 'Done';
+      this.fadeOutProgressBar();
+    }
+  }
+
+  async fadeOutProgressBar(delay = 2500) {
+    return setTimeout(() => {
+      const wrapper = this.$container.querySelector('.progress-wrapper');
+      wrapper.innerHTML = '';
+    }, delay);
+  }
+
+
+  async createLineUp(data) {
+    const builder = LineUpJS.builder(data);
+    this.lineup = builder
+      .column(LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(200))
+      .column(LineUpJS.buildStringColumn('category').label('Category').width(200))
+      .column(LineUpJS.buildNumberColumn('importance').label('Importance').width(150))
+      .deriveColors()
+      .ranking(LineUpJS.buildRanking()
+        .supportTypes()
+        .allColumns()
+        .sortBy('Importance', 'desc')
+        .groupBy('Attribute')
+        .groupSortBy('Importance', 'desc')
+      )
+      .buildTaggle(this.$container.querySelector('.lineup-container'));
+
+    this.dataProv = this.lineup.data as LineUpJS.LocalDataProvider;
+
+    const children = this.lineup.data.getFirstRanking().children; // alternative: builder.buildData().getFirstRanking(),...
+    (children[children.length - 1] as LineUpJS.NumberColumn).setFilter({
+      filterMissing: true,
+      min: 0.001,
+      max: Infinity
+    });
+  }
+
+  updateLineUp(importances: any) {
+    this.dataProv.setData(importances);
   }
 }

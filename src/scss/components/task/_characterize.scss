@@ -1,0 +1,7 @@
+.characterize-container {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto 1fr;
+  row-gap: 1em;
+}
