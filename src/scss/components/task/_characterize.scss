@@ -1,7 +1,44 @@
 .characterize-container {
+  $border-radius: 0.2em;
+
   height: 100%;
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: auto auto 1fr;
   row-gap: 1em;
+
+.cht-icon {
+    width: 1.5em;
+    height: 1em;
+    border-radius: $border-radius;
+    opacity: 0.8;
+    display: inline-block;
+    &:nth-child(2) {
+      transform: translate(-0.75em, 0.25em);
+    }
+  }
+
+  .cht-intersect {
+    display: inline-flex;
+    width: 40%; //don't want thae bars to be too long
+    height: 1em;
+    align-items: center;
+    border-left: 2px solid $color-bar;
+  }
+
+  .cht-intersect-bar {
+    background: $color-bar;
+    height: 60%;
+    border-top-right-radius: $border-radius;
+    border-bottom-right-radius: $border-radius;
+  }
+
+  .cht-intersect-label {
+    display: inline-block;
+    white-space: nowrap; // bar can be up 100% of the containers width, leaving no room for the next --> but the container is 50% wide at max, so we can let the text savely overflow the container
+  }
+
+  h1 {
+    font-size: 1.1em;
+  }
 }

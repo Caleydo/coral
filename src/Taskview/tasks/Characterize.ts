@@ -1,14 +1,15 @@
-
+import {extractSets, generateCombinations, renderUpSet} from '@upsetjs/bundle';
 import * as aq from 'arquero';
 import * as LineUpJS from 'lineupjs';
-import {extractCombinations, extractSets, generateCombinations, isGenerateSetCombinationOptions, renderUpSet} from '@upsetjs/bundle';
+import tippy from 'tippy.js';
 import {Cohort, getCohortLabel} from '../../Cohort';
 import {ICohort} from '../../CohortInterfaces';
+import {colors} from '../../colors';
 import {IAttribute, ServerColumnAttribute} from '../../data/Attribute';
+import {Task} from '../../Tasks';
 import {getAnimatedLoadingText} from '../../util';
 import {DATA_LABEL} from '../visualizations';
 import {ATask} from './ATask';
-import {colors} from '../../colors';
 
 export class Characterize extends ATask {
   static readonly TREES = 500;
@@ -22,6 +23,7 @@ export class Characterize extends ATask {
   progressBar: any;
   lineup: LineUpJS.Taggle;
   dataProv: LineUpJS.LocalDataProvider;
+  cohorts: Cohort[];
 
   supports(attributes: IAttribute[], cohorts: ICohort[]) {
     return cohorts.length >= 2;
@@ -40,7 +42,9 @@ export class Characterize extends ATask {
     super.show(columnHeader, container, attributes, cohorts);
     const eventId = ++this.eventID; // get new eventID, we will compare it with the field again to see if it is still up to date
 
-    if (cohorts.length >= 2) {
+    this.cohorts = cohorts as Cohort[];
+
+    if (this.cohorts.length >= 2) {
       this.$container = this.body
         .append('div')
         .classed('characterize-container', true)
@@ -51,11 +55,11 @@ export class Characterize extends ATask {
         getAnimatedLoadingText('data')
       );
 
-      const attrCohort = (cohorts[0] as Cohort);
+      const attrCohort = (this.cohorts[0]);
       attributes = [
         new ServerColumnAttribute(attrCohort.idColumn.column, attrCohort.view, attrCohort.database, attrCohort.idColumn),
       ];
-      this.ids = await this.getData(attributes, cohorts as Cohort[]);
+      this.ids = await this.getData(attributes, this.cohorts);
 
       if (eventId !== this.eventID) {
         return;
@@ -67,10 +71,12 @@ export class Characterize extends ATask {
 
   appendTable() {
     this.$container.innerHTML = `
-      <div class="upset-container">
+      <div class="custom-upset-container"></div>
       <div>
+        <h1>Cohort Differences</h1>
         <button class="btn btn-coral" id="meta">Compare by <i>Meta-Data</i></button>
         <button class="btn btn-coral" id="mutated">Compare by <i>AA Mutated</i></button>
+        <input type="checkbox" id="exclude-attributes" checked> Exclude the cohorts' <span class="hint">defining attributes</span></input>
       </div>
 
       <div class="progress-wrapper"></div>
@@ -87,15 +93,87 @@ export class Characterize extends ATask {
       this.sendData(`cmp_meta`, this.ids);
     });
 
-    this.appendUpset(this.$container.querySelector('div.upset-container'));
+    this.definingAttributeTooltip(this.$container.querySelector('.hint'));
+    this.appendCustomUpset(this.$container.querySelector('div.custom-upset-container'));
+  }
+  appendCustomUpset(container: HTMLDivElement) {
+    container.insertAdjacentHTML('beforeend', `
+      <h1 style="display: inline">Overlap between Cohorts</h1>
+    `);  //in line to display "no overlap" note on the same line
+    let localChtCopy = this.cohorts.slice();
+
+    const aqData = this.ids.flat();
+    const idsAndTheirCohorts = aq.from(aqData)
+      .groupby('tissuename')
+      .pivot('Cohort', 'Cohort');
+    const intersections = new Map<string, number>();
+    let maxIntersection = 0;
+
+    while (localChtCopy.length > 1) {
+      const drawCht = localChtCopy.shift();
+      for (const remainingCht of localChtCopy) {
+        // To use copied code replace "data" with your own variable
+        const {count} = idsAndTheirCohorts
+          .filter(aq.escape((d) => d[drawCht.label] !== undefined && d[remainingCht.label] !== undefined))
+          .count() // still a aq table
+          .object() as {count: number};
+        intersections.set(`${drawCht.id}-${remainingCht.id}`, count);
+        if (count > maxIntersection) {
+          maxIntersection = count;
+        }
+      }
+    }
+
+    if (maxIntersection === 0) { // still zero --> no intersection
+      container.insertAdjacentHTML('beforeend', `
+        Cohorts do not overlap.
+      `);
+    } else {
+      localChtCopy = this.cohorts.slice();
+      while (localChtCopy.length > 1) {
+        const drawCht = localChtCopy.shift();
+        for (const remainingCht of localChtCopy) {
+          const count = intersections.get(`${drawCht.id}-${remainingCht.id}`);
+          if (count > 0) {
+            container.insertAdjacentHTML('beforeend', `
+            <div>
+              <div class="cht-icon" style="background-color: ${drawCht.colorTaskView}"></div>
+              <div class="cht-icon" style="background-color: ${remainingCht.colorTaskView}"></div>
+              <div class="cht-intersect">
+                <div class="cht-intersect-bar" style="width: ${100 * count / maxIntersection}%"></div>
+                <div class="cht-intersect-label">&ensp;${count}</div>
+              </div>
+            </div>
+            `);
+          }
+        }
+      }
+    }
+
+  }
+
+  definingAttributeTooltip(hintText: HTMLElement) {
+    let attributes = [];
+    for (const cht of this.cohorts) {
+      const bloodline = cht.getBloodline();
+      // get all tasks from the bloodline
+      // fist task is the one before the cohort
+      let tasks = bloodline.filter((elem) => elem.elemType === 'task').map((elem) => elem.obj) as Task[];
+      // reverse order of tasks -> now the first element is the first task after root cohort
+      tasks = tasks.reverse();
+
+      tasks.forEach((task) => attributes.push(...task.attributes.map((attr) => attr.label)));
+    }
+    attributes = Array.from(new Set(attributes)); // remove duplicates
+    const attributeList = attributes.reduce((text, attr) => text + `<li>${attr}</li>`, '<ol style="margin: 0.25em;">') + '</ol>';
+    tippy(hintText, {content: attributeList});
   }
 
 
   appendUpset(container: HTMLDivElement) {
     const elems = this.getSetData(this.ids);
-    const {sets, combinations} = extractCombinations(elems, ({name, sets}) => sets, {type: 'intersection'});
-    const sets2 = extractSets(elems, ({name, sets}) => sets, {});
-    const combinations2 = generateCombinations(sets2, {type: 'intersection', min: 2, empty: true, max: 2});
+    const sets = extractSets(elems, ({name, sets}) => sets, {});
+    const combinations = generateCombinations(sets, {type: 'intersection', min: 2, empty: true, max: 2});
 
     let selection = null;
 
@@ -106,7 +184,7 @@ export class Characterize extends ATask {
 
     function rerender() {
       renderUpSet(container, {
-        sets: sets2, combinations: combinations2,
+        sets, combinations,
         width: 800, height: 200,
         // title: 'Cohort Overlap',
         // description: 'Intersection of selected cohorts',

@@ -15,10 +15,13 @@ export declare class Characterize extends ATask {
     progressBar: any;
     lineup: LineUpJS.Taggle;
     dataProv: LineUpJS.LocalDataProvider;
+    cohorts: Cohort[];
     supports(attributes: IAttribute[], cohorts: ICohort[]): boolean;
     showSearchBar(): boolean;
     show(columnHeader: HTMLDivElement, container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]): Promise<void>;
     appendTable(): void;
+    appendCustomUpset(container: HTMLDivElement): void;
+    definingAttributeTooltip(hintText: HTMLElement): void;
     appendUpset(container: HTMLDivElement): void;
     getSetData(ids: any[]): {
         name: string;
