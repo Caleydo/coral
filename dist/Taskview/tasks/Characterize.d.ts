@@ -1,5 +1,4 @@
 /// <reference types="node" />
-import * as LineUpJS from 'lineupjs';
 import { Cohort } from '../../Cohort';
 import { ICohort } from '../../CohortInterfaces';
 import { IAttribute } from '../../data/Attribute';
@@ -12,28 +11,24 @@ export declare class Characterize extends ATask {
     private eventID;
     private ids;
     private reader;
-    progressBar: any;
-    lineup: LineUpJS.Taggle;
-    dataProv: LineUpJS.LocalDataProvider;
-    cohorts: Cohort[];
+    private progressBar;
+    private lineup;
+    private dataProv;
+    private cohorts;
+    private definingAttributes;
     supports(attributes: IAttribute[], cohorts: ICohort[]): boolean;
     showSearchBar(): boolean;
     show(columnHeader: HTMLDivElement, container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]): Promise<void>;
-    appendTable(): void;
-    appendCustomUpset(container: HTMLDivElement): void;
-    definingAttributeTooltip(hintText: HTMLElement): void;
-    appendUpset(container: HTMLDivElement): void;
-    getSetData(ids: any[]): {
-        name: string;
-        sets: string[];
-    }[];
-    sendData(endpoint: any, ids: any): Promise<void>;
-    visualize(response: any): Promise<void>;
-    getData(attributes: IAttribute[], cohorts: Cohort[]): Promise<unknown[]>;
-    postData(url?: string, data?: {}): Promise<Response>;
-    addProgressBar(): void;
-    setProgress(iteration: number): void;
-    fadeOutProgressBar(delay?: number): Promise<NodeJS.Timeout>;
+    private createView;
+    private showOverlap;
+    setDefiningAttributeTooltip(hintText: HTMLElement): void;
+    private compare;
     createLineUp(data: any): Promise<void>;
     updateLineUp(importances: any): void;
+    addProgressBar(): void;
+    setProgress(iteration: number, done?: boolean): void;
+    setProgressDone(): void;
+    fadeOutProgressBar(delay?: number): Promise<NodeJS.Timeout>;
+    getData(attributes: IAttribute[], cohorts: Cohort[]): Promise<unknown[]>;
+    postData(url?: string, data?: {}): Promise<Response>;
 }

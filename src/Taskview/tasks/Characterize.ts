@@ -1,10 +1,8 @@
-import {extractSets, generateCombinations, renderUpSet} from '@upsetjs/bundle';
 import * as aq from 'arquero';
 import * as LineUpJS from 'lineupjs';
 import tippy from 'tippy.js';
 import {Cohort, getCohortLabel} from '../../Cohort';
 import {ICohort} from '../../CohortInterfaces';
-import {colors} from '../../colors';
 import {IAttribute, ServerColumnAttribute} from '../../data/Attribute';
 import {Task} from '../../Tasks';
 import {getAnimatedLoadingText} from '../../util';
@@ -18,12 +16,15 @@ export class Characterize extends ATask {
   public id = `characterize`;
   public hasOutput = false;
   private eventID = 0;
+
   private ids: any[];
   private reader: ReadableStreamDefaultReader<Uint8Array>;
-  progressBar: any;
-  lineup: LineUpJS.Taggle;
-  dataProv: LineUpJS.LocalDataProvider;
-  cohorts: Cohort[];
+
+  private progressBar: any;
+  private lineup: LineUpJS.Taggle;
+  private dataProv: LineUpJS.LocalDataProvider;
+  private cohorts: Cohort[];
+  private definingAttributes: any[];
 
   supports(attributes: IAttribute[], cohorts: ICohort[]) {
     return cohorts.length >= 2;
@@ -65,11 +66,11 @@ export class Characterize extends ATask {
         return;
       }
 
-      this.appendTable();
+      this.createView();
     }
   }
 
-  appendTable() {
+  private createView() {
     this.$container.innerHTML = `
       <div class="custom-upset-container"></div>
       <div>
@@ -90,13 +91,14 @@ export class Characterize extends ATask {
       }
       this.$container.querySelector('.lineup-container').innerHTML = '';
       this.addProgressBar();
-      this.sendData(`cmp_meta`, this.ids);
+      this.compare(`cmp_meta`, this.ids);
     });
 
-    this.definingAttributeTooltip(this.$container.querySelector('.hint'));
-    this.appendCustomUpset(this.$container.querySelector('div.custom-upset-container'));
+    this.showOverlap(this.$container.querySelector('div.custom-upset-container'));
+    this.setDefiningAttributeTooltip(this.$container.querySelector('.hint'));
   }
-  appendCustomUpset(container: HTMLDivElement) {
+
+  private showOverlap(container: HTMLDivElement) {
     container.insertAdjacentHTML('beforeend', `
       <h1 style="display: inline">Overlap between Cohorts</h1>
     `);  //in line to display "no overlap" note on the same line
@@ -125,9 +127,7 @@ export class Characterize extends ATask {
     }
 
     if (maxIntersection === 0) { // still zero --> no intersection
-      container.insertAdjacentHTML('beforeend', `
-        Cohorts do not overlap.
-      `);
+      container.insertAdjacentHTML('beforeend', `Cohorts do not overlap.`);
     } else {
       localChtCopy = this.cohorts.slice();
       while (localChtCopy.length > 1) {
@@ -136,24 +136,23 @@ export class Characterize extends ATask {
           const count = intersections.get(`${drawCht.id}-${remainingCht.id}`);
           if (count > 0) {
             container.insertAdjacentHTML('beforeend', `
-            <div>
-              <div class="cht-icon" style="background-color: ${drawCht.colorTaskView}"></div>
-              <div class="cht-icon" style="background-color: ${remainingCht.colorTaskView}"></div>
-              <div class="cht-intersect">
-                <div class="cht-intersect-bar" style="width: ${100 * count / maxIntersection}%"></div>
-                <div class="cht-intersect-label">&ensp;${count}</div>
+              <div>
+                <div class="cht-icon" style="background-color: ${drawCht.colorTaskView}"></div>
+                <div class="cht-icon" style="background-color: ${remainingCht.colorTaskView}"></div>
+                <div class="cht-intersect">
+                  <div class="cht-intersect-bar" style="width: ${100 * count / maxIntersection}%"></div>
+                  <div class="cht-intersect-label">&ensp;${count}</div>
+                </div>
               </div>
-            </div>
             `);
           }
         }
       }
     }
-
   }
 
-  definingAttributeTooltip(hintText: HTMLElement) {
-    let attributes = [];
+  setDefiningAttributeTooltip(hintText: HTMLElement) {
+    const attributes = [];
     for (const cht of this.cohorts) {
       const bloodline = cht.getBloodline();
       // get all tasks from the bloodline
@@ -162,99 +161,132 @@ export class Characterize extends ATask {
       // reverse order of tasks -> now the first element is the first task after root cohort
       tasks = tasks.reverse();
 
-      tasks.forEach((task) => attributes.push(...task.attributes.map((attr) => attr.label)));
+      tasks.forEach(
+        (task) => attributes.push(...task.attributes)
+      );
     }
-    attributes = Array.from(new Set(attributes)); // remove duplicates
-    const attributeList = attributes.reduce((text, attr) => text + `<li>${attr}</li>`, '<ol style="margin: 0.25em;">') + '</ol>';
+
+    this.definingAttributes = attributes.filter(
+      (attr, i, arr) => arr.findIndex((attr2) => (attr2.id === attr.id)) === i // if there are multiple attributes with the same id, keep the first
+    );
+    const attributeList = this.definingAttributes
+      .map((attr) => attr.label)
+      .reduce((text, attr) => text + `<li>${attr}</li>`, '<ol style="margin: 0.25em; padding-right: 1em;">') + '</ol>';
+
     tippy(hintText, {content: attributeList});
   }
 
-
-  appendUpset(container: HTMLDivElement) {
-    const elems = this.getSetData(this.ids);
-    const sets = extractSets(elems, ({name, sets}) => sets, {});
-    const combinations = generateCombinations(sets, {type: 'intersection', min: 2, empty: true, max: 2});
-
-    let selection = null;
-
-    function onHover(set) {
-      selection = set;
-      rerender();
-    }
-
-    function rerender() {
-      renderUpSet(container, {
-        sets, combinations,
-        width: 800, height: 200,
-        // title: 'Cohort Overlap',
-        // description: 'Intersection of selected cohorts',
-        // selection, onHover,
-        exportButtons: false,
-        setLabelAlignment: 'right',
-        // setName: 'Size',
-        color: colors.barColor
-      });
-    }
-
-    rerender();
-    // remove set size barchar
-    container.querySelectorAll('g[data-upset="setaxis"]').forEach((d) => d.remove());
-    container.querySelectorAll('text[class^="sBarTextStyle-upset"]').forEach((d) => d.remove());
-    container.querySelectorAll('g[data-upset="sets"] rect[class^="fillPrimary-upset"]').forEach((d) => d.remove());
-    // remove clipping of cohort labels
-    container.querySelectorAll('text[class^="setTextStyle-upset"]').forEach((d) => d.removeAttribute('clip-path'));
-  }
-
-  getSetData(ids: any[]) {
-    const setMap = new Map<string, string[]>();
-    const idList = ids.flat();
-    idList.forEach((d) => {
-      if (!setMap.has(d.tissuename)) {
-        setMap.set(d.tissuename, [d.Cohort]);
-      } else {
-        setMap.get(d.tissuename).push(d.Cohort);
-      }
-    });
-
-    const setArr = Array
-      .from(setMap)
-      .map(([key, value]) => ({name: key, sets: value}));
-    return setArr;
-  }
-
-  async sendData(endpoint, ids) {
+  private async compare(endpoint, ids) {
     const response = await this.postData(
       `http://localhost:8444/${endpoint}/`, {
       exclude: ['tissuename', 'tdpid'],
       ids,
     });
-    this.visualize(response);
-  }
 
-  async visualize(response) {
+    // start to read response stream
     this.reader = response.body.getReader();
     const decoder = new TextDecoder('utf-8');
     let first = true;
     while (true) {
       const {value, done} = await this.reader.read(); //variable names are important for destructuring
-      if (done) {console.log('done'); break;} // if done, value is undefined
+      if (done) {
+        console.log('the reader is done');
+        this.setProgressDone();
+        break; // if done, value is undefined --> skip the rest
+      }
 
       const response = decoder.decode(value);
-      console.log('response', response);
+      // console.log('response', response);
 
       try {
         const responseData = JSON.parse(response);
+        console.log(responseData.trees);
+        this.setProgress(responseData.trees);
         if (first) {
           await this.createLineUp(responseData.importances); // await so its ready for the next response
           first = false;
+        } else {
+          this.updateLineUp(responseData.importances);
         }
-        this.setProgress(responseData.trees);
-        this.updateLineUp(responseData.importances);
-
       } catch (e) {
-        console.error('could not read JSON data', e);
+        // console.error('could not read JSON data', e);
       }
     }
+  }
+
+  async createLineUp(data) {
+    const builder = LineUpJS.builder(data);
+    this.lineup = builder
+      .column(LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(200))
+      .column(LineUpJS.buildStringColumn('category').label('Category').width(200))
+      .column(LineUpJS.buildNumberColumn('importance', [0, 1]).label('Importance').width(150))
+      .deriveColors()
+      .ranking(LineUpJS.buildRanking()
+        .supportTypes()
+        .allColumns()
+        .sortBy('Importance', 'desc')
+        // .groupBy('Attribute')
+        .groupSortBy('Importance', 'desc')
+      )
+      .buildTaggle(this.$container.querySelector('.lineup-container'));
+
+    this.dataProv = this.lineup.data as LineUpJS.LocalDataProvider;
+
+    const children = this.lineup.data.getFirstRanking().children; // alternative: builder.buildData().getFirstRanking(),...
+    (children[children.length - 1] as LineUpJS.NumberColumn).setFilter({
+      filterMissing: true,
+      min: 0.001,
+      max: Infinity
+    });
+  }
+
+  updateLineUp(importances: any) {
+    this.dataProv?.setData(importances);
+  }
+
+  addProgressBar() {
+    const wrapper = this.$container.querySelector('.progress-wrapper');
+    wrapper.innerHTML = '';
+    wrapper.insertAdjacentHTML('beforeend', `
+      <div class="progress-ctrl">
+        <a class="run" role="button"><i class="fas fa-fw fa-stop-circle"></i></a>
+      </div>
+      <div  class="progress">
+        <div class="progress-bar" role="progressbar">
+          0/${Characterize.TREES}
+        </div>
+      </div>
+    `);
+    this.progressBar = wrapper.querySelector('.progress .progress-bar');
+    wrapper
+      .querySelector(('a.run'))
+      .addEventListener('click', () => {
+        this.reader?.cancel();
+        wrapper.querySelector('.progress-ctrl').remove();
+        this.progressBar.textContent = 'Stopped';
+        this.fadeOutProgressBar();
+      });
+  }
+
+  setProgress(iteration: number, done=false) {
+    this.progressBar.textContent = `${iteration}/${Characterize.TREES}`;
+    this.progressBar.style.width = `${100 * iteration / Characterize.TREES}%`;
+
+    if (iteration === Characterize.TREES) {
+      this.setProgressDone();
+    }
+  }
+
+  setProgressDone() {
+    this.progressBar.textContent = 'Done';
+    this.fadeOutProgressBar();
+  }
+
+  async fadeOutProgressBar(delay = 2500) {
+    return setTimeout(() => {
+      const wrapper = this.$container.querySelector('.progress-wrapper');
+      wrapper.innerHTML = '';
+    }, delay);
   }
 
   async getData(attributes: IAttribute[], cohorts: Cohort[]) {
@@ -299,77 +331,5 @@ export class Characterize extends ATask {
       //TODO abortController
     });
     return response;
-  }
-
-  addProgressBar() {
-    const wrapper = this.$container.querySelector('.progress-wrapper');
-    wrapper.innerHTML = '';
-    wrapper.insertAdjacentHTML('beforeend', `
-      <div class="progress-ctrl">
-        <a class="run" role="button"><i class="fas fa-fw fa-stop-circle"></i></a>
-      </div>
-      <div  class="progress">
-        <div class="progress-bar" role="progressbar">
-          0/${Characterize.TREES}
-        </div>
-      </div>
-    `);
-    this.progressBar = wrapper.querySelector('.progress .progress-bar');
-    wrapper
-      .querySelector(('a.run'))
-      .addEventListener('click', () => {
-        this.reader?.cancel();
-        wrapper.querySelector('.progress-ctrl').remove();
-        this.progressBar.textContent = 'Stopped';
-        this.fadeOutProgressBar();
-      });
-  }
-
-  setProgress(iteration: number) {
-    this.progressBar.textContent = `${iteration}/${Characterize.TREES}`;
-    this.progressBar.style.width = `${100 * iteration / Characterize.TREES}%`;
-
-    if (iteration === Characterize.TREES) {
-      this.progressBar.textContent = 'Done';
-      this.fadeOutProgressBar();
-    }
-  }
-
-  async fadeOutProgressBar(delay = 2500) {
-    return setTimeout(() => {
-      const wrapper = this.$container.querySelector('.progress-wrapper');
-      wrapper.innerHTML = '';
-    }, delay);
-  }
-
-
-  async createLineUp(data) {
-    const builder = LineUpJS.builder(data);
-    this.lineup = builder
-      .column(LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(200))
-      .column(LineUpJS.buildStringColumn('category').label('Category').width(200))
-      .column(LineUpJS.buildNumberColumn('importance').label('Importance').width(150))
-      .deriveColors()
-      .ranking(LineUpJS.buildRanking()
-        .supportTypes()
-        .allColumns()
-        .sortBy('Importance', 'desc')
-        // .groupBy('Attribute')
-        .groupSortBy('Importance', 'desc')
-      )
-      .buildTaggle(this.$container.querySelector('.lineup-container'));
-
-    this.dataProv = this.lineup.data as LineUpJS.LocalDataProvider;
-
-    const children = this.lineup.data.getFirstRanking().children; // alternative: builder.buildData().getFirstRanking(),...
-    (children[children.length - 1] as LineUpJS.NumberColumn).setFilter({
-      filterMissing: true,
-      min: 0.001,
-      max: Infinity
-    });
-  }
-
-  updateLineUp(importances: any) {
-    this.dataProv.setData(importances);
   }
 }
