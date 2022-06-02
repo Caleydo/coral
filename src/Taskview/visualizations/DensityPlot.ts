@@ -43,7 +43,7 @@ export class DensityPlot extends SingleAttributeVisualization {
         {name: 'selected_store'},
         {
           name: 'source_0',
-          values: data
+          values: data.filter((d) => d[this.attribute.dataKey] !== null)
         },
         {
           name: 'splitvalues',
