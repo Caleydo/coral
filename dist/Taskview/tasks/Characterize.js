@@ -61,7 +61,7 @@ export class Characterize extends ATask {
             }
             this.$container.querySelector('.lineup-container').innerHTML = '';
             this.addProgressBar();
-            this.compare(`cmp_meta`, this.ids);
+            this.compare(`cmp_meta`);
         });
         this.showOverlap(this.$container.querySelector('div.custom-upset-container'));
         this.setDefiningAttributeTooltip(this.$container.querySelector('.hint'));
@@ -134,10 +134,14 @@ export class Characterize extends ATask {
             .reduce((text, attr) => text + `<li>${attr}</li>`, '<ol style="margin: 0.25em; padding-right: 1em;">') + '</ol>';
         tippy(hintText, { content: attributeList });
     }
-    async compare(endpoint, ids) {
+    async compare(endpoint) {
+        const excludeChechbox = this.$container.querySelector('input#exclude-attributes');
+        const excludeBloodline = excludeChechbox.checked;
+        const excludeAttributes = excludeBloodline ? this.definingAttributes.map((attr) => attr.id) : [];
+        const exclude = ['tissuename', 'tdpid', ...excludeAttributes];
         const response = await this.postData(`http://localhost:8444/${endpoint}/`, {
-            exclude: ['tissuename', 'tdpid'],
-            ids,
+            exclude,
+            ids: this.ids,
         });
         // start to read response stream
         this.reader = response.body.getReader();
@@ -151,7 +155,7 @@ export class Characterize extends ATask {
                 break; // if done, value is undefined --> skip the rest
             }
             const response = decoder.decode(value);
-            // console.log('response', response);
+            console.log('response', response);
             try {
                 const responseData = JSON.parse(response);
                 console.log(responseData.trees);
@@ -165,7 +169,7 @@ export class Characterize extends ATask {
                 }
             }
             catch (e) {
-                // console.error('could not read JSON data', e);
+                console.error('could not read JSON data', e);
             }
         }
     }

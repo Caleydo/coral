@@ -24,7 +24,7 @@ export class Characterize extends ATask {
   private lineup: LineUpJS.Taggle;
   private dataProv: LineUpJS.LocalDataProvider;
   private cohorts: Cohort[];
-  private definingAttributes: any[];
+  private definingAttributes: IAttribute[];
 
   supports(attributes: IAttribute[], cohorts: ICohort[]) {
     return cohorts.length >= 2;
@@ -91,7 +91,7 @@ export class Characterize extends ATask {
       }
       this.$container.querySelector('.lineup-container').innerHTML = '';
       this.addProgressBar();
-      this.compare(`cmp_meta`, this.ids);
+      this.compare(`cmp_meta`);
     });
 
     this.showOverlap(this.$container.querySelector('div.custom-upset-container'));
@@ -176,11 +176,16 @@ export class Characterize extends ATask {
     tippy(hintText, {content: attributeList});
   }
 
-  private async compare(endpoint, ids) {
+  private async compare(endpoint) {
+    const excludeChechbox = this.$container.querySelector('input#exclude-attributes') as HTMLInputElement;
+    const excludeBloodline = excludeChechbox.checked;
+    const excludeAttributes = excludeBloodline ? this.definingAttributes.map((attr) => attr.id) : [];
+    const exclude = ['tissuename', 'tdpid', ...excludeAttributes];
+
     const response = await this.postData(
       `http://localhost:8444/${endpoint}/`, {
-      exclude: ['tissuename', 'tdpid'],
-      ids,
+      exclude,
+      ids: this.ids,
     });
 
     // start to read response stream
@@ -196,7 +201,7 @@ export class Characterize extends ATask {
       }
 
       const response = decoder.decode(value);
-      // console.log('response', response);
+      console.log('response', response);
 
       try {
         const responseData = JSON.parse(response);
@@ -209,7 +214,7 @@ export class Characterize extends ATask {
           this.updateLineUp(responseData.importances);
         }
       } catch (e) {
-        // console.error('could not read JSON data', e);
+        console.error('could not read JSON data', e);
       }
     }
   }
