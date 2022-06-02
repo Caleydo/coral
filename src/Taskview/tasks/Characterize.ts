@@ -1,5 +1,6 @@
 import * as aq from 'arquero';
 import * as LineUpJS from 'lineupjs';
+import {format} from 'd3-format';
 import tippy from 'tippy.js';
 import {Cohort, getCohortLabel} from '../../Cohort';
 import {ICohort} from '../../CohortInterfaces';
@@ -8,9 +9,11 @@ import {Task} from '../../Tasks';
 import {getAnimatedLoadingText} from '../../util';
 import {DATA_LABEL} from '../visualizations';
 import {ATask} from './ATask';
+import {colors} from '../../colors';
 
 export class Characterize extends ATask {
   static readonly TREES = 500;
+  static readonly jaccardFormat = format('.1~%');
 
   public label = `Characterize`;
   public id = `characterize`;
@@ -25,6 +28,7 @@ export class Characterize extends ATask {
   private dataProv: LineUpJS.LocalDataProvider;
   private cohorts: Cohort[];
   private definingAttributes: IAttribute[];
+
 
   supports(attributes: IAttribute[], cohorts: ICohort[]) {
     return cohorts.length >= 2;
@@ -100,7 +104,7 @@ export class Characterize extends ATask {
 
   private showOverlap(container: HTMLDivElement) {
     container.insertAdjacentHTML('beforeend', `
-      <h1 style="display: inline">Overlap between Cohorts</h1>
+      <h1 style="display: inline">Item Similarity of Cohorts</h1>
     `);  //in line to display "no overlap" note on the same line
     let localChtCopy = this.cohorts.slice();
 
@@ -109,7 +113,7 @@ export class Characterize extends ATask {
       .groupby('tissuename')
       .pivot('Cohort', 'Cohort');
     const intersections = new Map<string, number>();
-    let maxIntersection = 0;
+    let maxJaccard = 0;
 
     while (localChtCopy.length > 1) {
       const drawCht = localChtCopy.shift();
@@ -118,34 +122,49 @@ export class Characterize extends ATask {
           .filter(aq.escape((d) => d[drawCht.label] !== undefined && d[remainingCht.label] !== undefined))
           .count() // still a aq table
           .object() as {count: number};
-        intersections.set(`${drawCht.id}-${remainingCht.id}`, count);
-        if (count > maxIntersection) {
-          maxIntersection = count;
+        const jaccardIndex = count / aqData.length;
+        intersections.set(`${drawCht.id}-${remainingCht.id}`, jaccardIndex);
+        if (jaccardIndex > maxJaccard) {
+          maxJaccard = jaccardIndex;
         }
       }
     }
 
-    if (maxIntersection === 0) { // still zero --> no intersection
+    let noOverlapCounter = 0;
+    if (maxJaccard === 0) { // still zero --> no intersection
       container.insertAdjacentHTML('beforeend', `Cohorts do not overlap.`);
     } else {
       localChtCopy = this.cohorts.slice();
       while (localChtCopy.length > 1) {
         const drawCht = localChtCopy.shift();
         for (const remainingCht of localChtCopy) {
-          const count = intersections.get(`${drawCht.id}-${remainingCht.id}`);
-          if (count > 0) {
+          const jaccard = intersections.get(`${drawCht.id}-${remainingCht.id}`);
+          if (jaccard > 0) {
             container.insertAdjacentHTML('beforeend', `
               <div>
                 <div class="cht-icon" style="background-color: ${drawCht.colorTaskView}"></div>
                 <div class="cht-icon" style="background-color: ${remainingCht.colorTaskView}"></div>
                 <div class="cht-intersect">
-                  <div class="cht-intersect-bar" style="width: ${100 * count / maxIntersection}%"></div>
-                  <div class="cht-intersect-label">&ensp;${count}</div>
+                  <div class="cht-intersect-bar" style="width: ${100 * jaccard}%"></div>
+                  <div class="cht-intersect-label">&ensp;${Characterize.jaccardFormat(jaccard)}</div>
                 </div>
               </div>
             `);
+          } else {
+            noOverlapCounter++;
           }
         }
+      }
+
+      if (noOverlapCounter > 0) {
+        container.insertAdjacentHTML('beforeend', `
+        <p class="note" style="margin: 1rem">
+          <i class="fa fa-info-circle" style="color: ${colors.barColor}"></i>
+          <span>
+            ${noOverlapCounter} other cohort combinations have no overlap.
+          </span>
+        </p>
+      `);
       }
     }
   }
@@ -280,7 +299,7 @@ export class Characterize extends ATask {
       });
   }
 
-  setProgress(iteration: number, done=false) {
+  setProgress(iteration: number, done = false) {
     this.progressBar.textContent = `${iteration}/${Characterize.TREES}`;
     this.progressBar.style.width = `${100 * iteration / Characterize.TREES}%`;
 
