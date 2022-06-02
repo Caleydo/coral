@@ -13,29 +13,40 @@
     border-radius: $border-radius;
     opacity: 0.8;
     display: inline-block;
-    &:nth-child(2) {
+    
+    &.up {
+      transform: translate(0, -0.25em);
+    }
+
+    &.left.down { // transformations don't stack, so combine into one rule
       transform: translate(-0.75em, 0.25em);
     }
   }
 
-  .cht-intersect {
+  .cht-overlap {
     display: inline-flex;
-    width: 40%; //don't want thae bars to be too long
+    flex-direction: column;
+    width: 500px;
+  }
+
+  .cht-bar {
+    display: inline-flex;
+    // width: 40%; //don't want thae bars to be too long
     height: 1em;
     align-items: center;
     border-left: 2px solid $color-bar;
-  }
 
-  .cht-intersect-bar {
-    background: $color-bar;
-    height: 60%;
-    border-top-right-radius: $border-radius;
-    border-bottom-right-radius: $border-radius;
-  }
+    .cht-bar-bar {
+      background: $color-bar;
+      height: 60%;
+      border-top-right-radius: $border-radius;
+      border-bottom-right-radius: $border-radius;
+    }
 
-  .cht-intersect-label {
-    display: inline-block;
-    white-space: nowrap; // bar can be up 100% of the containers width, leaving no room for the next --> but the container is 50% wide at max, so we can let the text savely overflow the container
+    .cht-bar-label {
+      display: inline-block;
+      white-space: nowrap; // bar can be up 100% of the containers width, leaving no room for the next --> but the container is 50% wide at max, so we can let the text savely overflow the container
+    }
   }
 
   h1 {

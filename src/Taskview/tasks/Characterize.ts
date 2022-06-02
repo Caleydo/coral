@@ -110,26 +110,45 @@ export class Characterize extends ATask {
 
     const aqData = this.ids.flat();
     const idsAndTheirCohorts = aq.from(aqData)
-    .groupby('tissuename')
-    .pivot('Cohort', 'Cohort');
-    const uniqueIds = (idsAndTheirCohorts.count().object() as {count: number}).count;
-    const intersections = new Map<string, number>();
+      .groupby('tissuename')
+      .pivot('Cohort', 'Cohort');
+    const intersections = new Map<string, {intersection: number, exclusiveInA: number, exclusiveInB: number}>();
     let maxJaccard = 0;
 
-    
+    let i = 0;
     while (localChtCopy.length > 1) {
       const drawCht = localChtCopy.shift();
-      for (const remainingCht of localChtCopy) {
-        const {count} = idsAndTheirCohorts // cmp: https://observablehq.com/d/59236004518c5729
+      for (const [j, remainingCht] of localChtCopy.entries()) {
+        const uniqueCohortIds = idsAndTheirCohorts.filter(aq.escape((d) => d[drawCht.label] !== undefined || d[remainingCht.label] !== undefined));
+        const uniqueIds = (uniqueCohortIds.count().object() as {count: number}).count;
+        const intersectingItems = (uniqueCohortIds // cmp: https://observablehq.com/d/59236004518c5729
           .filter(aq.escape((d) => d[drawCht.label] !== undefined && d[remainingCht.label] !== undefined))
           .count() // still a aq table
-          .object() as {count: number};
-        const jaccardIndex = count / uniqueIds;
-        intersections.set(`${drawCht.id}-${remainingCht.id}`, jaccardIndex);
+          .object() as {count: number}).count;
+        const jaccardIndex = intersectingItems / uniqueIds;
+
+        const onlyAItems = (uniqueCohortIds // cmp: https://observablehq.com/d/59236004518c5729
+          .filter(aq.escape((d) => d[drawCht.label] !== undefined && d[remainingCht.label] === undefined))
+          .count() // still a aq table
+          .object() as {count: number}).count;
+        const exclusiveInA = onlyAItems / uniqueIds;
+
+        const onlyBItems = (uniqueCohortIds // cmp: https://observablehq.com/d/59236004518c5729
+          .filter(aq.escape((d) => d[drawCht.label] === undefined && d[remainingCht.label] !== undefined))
+          .count() // still a aq table
+          .object() as {count: number}).count;
+        const exclusiveInB = onlyBItems / uniqueIds;
+
+        intersections.set(`${drawCht.id}-${remainingCht.id}`, {
+          intersection: jaccardIndex,
+          exclusiveInA,
+          exclusiveInB
+        });
         if (jaccardIndex > maxJaccard) {
           maxJaccard = jaccardIndex;
         }
       }
+      i++;
     }
 
     let noOverlapCounter = 0;
@@ -140,15 +159,25 @@ export class Characterize extends ATask {
       while (localChtCopy.length > 1) {
         const drawCht = localChtCopy.shift();
         for (const remainingCht of localChtCopy) {
-          const jaccard = intersections.get(`${drawCht.id}-${remainingCht.id}`);
-          if (jaccard > 0) {
+          const {intersection, exclusiveInA, exclusiveInB} = intersections.get(`${drawCht.id}-${remainingCht.id}`);
+          if (intersection > 0) {
             container.insertAdjacentHTML('beforeend', `
-              <div>
-                <div class="cht-icon" style="background-color: ${drawCht.colorTaskView}"></div>
-                <div class="cht-icon" style="background-color: ${remainingCht.colorTaskView}"></div>
-                <div class="cht-intersect">
-                  <div class="cht-intersect-bar" style="width: ${100 * jaccard}%"></div>
-                  <div class="cht-intersect-label">&ensp;${Characterize.jaccardFormat(jaccard)}</div>
+              <div style="display: flex;align-items: center; margin: 1em">
+                <div class="cht-icon up" style="background-color: ${drawCht.colorTaskView}"></div>
+                <div class="cht-icon down left" style="background-color: ${remainingCht.colorTaskView}"></div>
+                <div class="cht-overlap">
+                  <div class="cht-bar">
+                    <div class="cht-bar-bar" style="width: ${100 * exclusiveInA}%; background: ${drawCht.colorTaskView}"></div>
+                    <div class="cht-bar-label">&ensp;${Characterize.jaccardFormat(exclusiveInA)} are only in <div class="cht-icon" style="background-color: ${drawCht.colorTaskView}; font-size: 0.7em;"></div></div>
+                  </div>
+                  <div class="cht-bar">
+                    <div class="cht-bar-bar" style="width: ${100 * intersection}%"></div>
+                    <div class="cht-bar-label">&ensp;${Characterize.jaccardFormat(intersection)} are in both</div>
+                  </div>
+                  <div class="cht-bar">
+                    <div class="cht-bar-bar" style="width: ${100 * exclusiveInB}%; background: ${remainingCht.colorTaskView}"></div>
+                    <div class="cht-bar-label">&ensp;${Characterize.jaccardFormat(exclusiveInB)} are only in <div class="cht-icon" style="background-color: ${remainingCht.colorTaskView}; font-size: 0.7em;"></div></div>
+                  </div>
                 </div>
               </div>
             `);
