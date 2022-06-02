@@ -3,7 +3,7 @@ import * as LineUpJS from 'lineupjs';
 import tippy from 'tippy.js';
 import {Cohort, getCohortLabel} from '../../Cohort';
 import {ICohort} from '../../CohortInterfaces';
-import {IAttribute, ServerColumnAttribute} from '../../data/Attribute';
+import {IAttribute, ServerColumnAttribute, GeneScoreAttribute} from '../../data/Attribute';
 import {Task} from '../../Tasks';
 import {getAnimatedLoadingText} from '../../util';
 import {DATA_LABEL} from '../visualizations';
@@ -85,14 +85,14 @@ export class Characterize extends ATask {
       <div class="lineup-container"></div>
     `;
 
-    this.$container.querySelector('button#meta').addEventListener('click', () => {
+    this.$container.querySelectorAll('button').forEach((btn) => btn.addEventListener('click', () => {
       if (this.lineup) {
         this.lineup.destroy();
       }
       this.$container.querySelector('.lineup-container').innerHTML = '';
       this.addProgressBar();
-      this.compare(`cmp_meta`);
-    });
+      this.compare(`cmp_${btn.id}`);
+    }));
 
     this.showOverlap(this.$container.querySelector('div.custom-upset-container'));
     this.setDefiningAttributeTooltip(this.$container.querySelector('.hint'));
@@ -114,8 +114,7 @@ export class Characterize extends ATask {
     while (localChtCopy.length > 1) {
       const drawCht = localChtCopy.shift();
       for (const remainingCht of localChtCopy) {
-        // To use copied code replace "data" with your own variable
-        const {count} = idsAndTheirCohorts
+        const {count} = idsAndTheirCohorts // cmp: https://observablehq.com/d/59236004518c5729
           .filter(aq.escape((d) => d[drawCht.label] !== undefined && d[remainingCht.label] !== undefined))
           .count() // still a aq table
           .object() as {count: number};
@@ -179,7 +178,16 @@ export class Characterize extends ATask {
   private async compare(endpoint) {
     const excludeChechbox = this.$container.querySelector('input#exclude-attributes') as HTMLInputElement;
     const excludeBloodline = excludeChechbox.checked;
-    const excludeAttributes = excludeBloodline ? this.definingAttributes.map((attr) => attr.id) : [];
+    const excludeAttributes = !excludeBloodline ? [] : this.definingAttributes
+      .filter((attr) => {
+        if (endpoint === 'cmp_meta') {
+          return 'serverColumn' in attr;
+        } else if (endpoint === 'cmp_mutated') {
+          return 'gene' in attr;
+        }
+        return true;
+      })
+      .map((attr) => 'gene' in attr ? (attr as GeneScoreAttribute).gene : attr.id);
 
     const response = await this.postData(
       `http://localhost:8444/${endpoint}/`, {
