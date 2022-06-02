@@ -138,9 +138,8 @@ export class Characterize extends ATask {
         const excludeChechbox = this.$container.querySelector('input#exclude-attributes');
         const excludeBloodline = excludeChechbox.checked;
         const excludeAttributes = excludeBloodline ? this.definingAttributes.map((attr) => attr.id) : [];
-        const exclude = ['tissuename', 'tdpid', ...excludeAttributes];
         const response = await this.postData(`http://localhost:8444/${endpoint}/`, {
-            exclude,
+            exclude: excludeAttributes,
             ids: this.ids,
         });
         // start to read response stream
