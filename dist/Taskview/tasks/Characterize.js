@@ -77,6 +77,7 @@ export class Characterize extends ATask {
         const idsAndTheirCohorts = aq.from(aqData)
             .groupby('tissuename')
             .pivot('Cohort', 'Cohort');
+        const uniqueIds = idsAndTheirCohorts.count().object().count;
         const intersections = new Map();
         let maxJaccard = 0;
         while (localChtCopy.length > 1) {
@@ -86,7 +87,7 @@ export class Characterize extends ATask {
                     .filter(aq.escape((d) => d[drawCht.label] !== undefined && d[remainingCht.label] !== undefined))
                     .count() // still a aq table
                     .object();
-                const jaccardIndex = count / aqData.length;
+                const jaccardIndex = count / uniqueIds;
                 intersections.set(`${drawCht.id}-${remainingCht.id}`, jaccardIndex);
                 if (jaccardIndex > maxJaccard) {
                     maxJaccard = jaccardIndex;
