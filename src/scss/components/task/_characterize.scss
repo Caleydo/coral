@@ -26,27 +26,13 @@
   .cht-overlap {
     display: inline-flex;
     flex-direction: column;
-    width: 500px;
+    row-gap: 1px;
+    width: 50%;
   }
 
   .cht-bar {
-    display: inline-flex;
-    // width: 40%; //don't want thae bars to be too long
-    height: 1em;
-    align-items: center;
-    border-left: 2px solid $color-bar;
-
-    .cht-bar-bar {
-      background: $color-bar;
-      height: 60%;
-      border-top-right-radius: $border-radius;
-      border-bottom-right-radius: $border-radius;
-    }
-
-    .cht-bar-label {
-      display: inline-block;
-      white-space: nowrap; // bar can be up 100% of the containers width, leaving no room for the next --> but the container is 50% wide at max, so we can let the text savely overflow the container
-    }
+    height: 0.5em;
+    border-radius: $border-radius;
   }
 
   h1 {

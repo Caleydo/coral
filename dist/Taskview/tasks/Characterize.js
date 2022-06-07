@@ -70,7 +70,7 @@ export class Characterize extends ATask {
     }
     showOverlap(container) {
         container.insertAdjacentHTML('beforeend', `
-      <h1 style="display: inline">Item Similarity of Cohorts</h1>
+      <h1 style="display: inline">Overlap of Cohorts</h1>
     `); //in line to display "no overlap" note on the same line
         let localChtCopy = this.cohorts.slice();
         const aqData = this.ids.flat();
@@ -116,36 +116,27 @@ export class Characterize extends ATask {
             container.insertAdjacentHTML('beforeend', `Cohorts do not overlap.`);
         }
         else {
-            localChtCopy = this.cohorts.slice();
-            while (localChtCopy.length > 1) {
-                const drawCht = localChtCopy.shift();
-                for (const remainingCht of localChtCopy) {
-                    const { intersection, exclusiveInA, exclusiveInB } = intersections.get(`${drawCht.id}-${remainingCht.id}`);
-                    if (intersection > 0) {
-                        container.insertAdjacentHTML('beforeend', `
-              <div style="display: flex;align-items: center; margin: 1em">
-                <div class="cht-icon up" style="background-color: ${drawCht.colorTaskView}"></div>
-                <div class="cht-icon down left" style="background-color: ${remainingCht.colorTaskView}"></div>
-                <div class="cht-overlap">
-                  <div class="cht-bar">
-                    <div class="cht-bar-bar" style="width: ${100 * exclusiveInA}%; background: ${drawCht.colorTaskView}"></div>
-                    <div class="cht-bar-label">&ensp;${Characterize.jaccardFormat(exclusiveInA)} are only in <div class="cht-icon" style="background-color: ${drawCht.colorTaskView}; font-size: 0.7em;"></div></div>
-                  </div>
-                  <div class="cht-bar">
-                    <div class="cht-bar-bar" style="width: ${100 * intersection}%"></div>
-                    <div class="cht-bar-label">&ensp;${Characterize.jaccardFormat(intersection)} are in both</div>
-                  </div>
-                  <div class="cht-bar">
-                    <div class="cht-bar-bar" style="width: ${100 * exclusiveInB}%; background: ${remainingCht.colorTaskView}"></div>
-                    <div class="cht-bar-label">&ensp;${Characterize.jaccardFormat(exclusiveInB)} are only in <div class="cht-icon" style="background-color: ${remainingCht.colorTaskView}; font-size: 0.7em;"></div></div>
-                  </div>
-                </div>
+            const intersectArr = [...intersections]
+                .sort((cmp1, cmp2) => cmp2[1].intersection - cmp1[1].intersection); // sort by decreasing overlap
+            for (const [chtKey, { intersection, exclusiveInA, exclusiveInB }] of intersectArr) {
+                if (intersection > 0) {
+                    const [chtA, chtB] = chtKey.split('-');
+                    const drawCht = this.cohorts.find((cht) => cht.id === chtA);
+                    const remainingCht = this.cohorts.find((cht) => cht.id === chtB);
+                    container.insertAdjacentHTML('beforeend', `
+            <div style="display: flex;align-items: center; margin: 1em">
+              <div class="cht-icon up" style="background-color: ${drawCht.colorTaskView}"></div>
+              <div class="cht-icon down left" style="background-color: ${remainingCht.colorTaskView}"></div>
+              <div class="cht-overlap">
+                <div class="cht-bar" style="width: ${100 * (exclusiveInA + intersection)}%; background: ${drawCht.colorTaskView}"></div>
+                <div class="cht-bar" style="width: ${100 * (exclusiveInB + intersection)}%; margin-left: ${100 * (exclusiveInA)}%;background: ${remainingCht.colorTaskView}"></div>
               </div>
-            `);
-                    }
-                    else {
-                        noOverlapCounter++;
-                    }
+              <div class="cht-bar-label">&ensp;${Characterize.jaccardFormat(intersection)}</div>
+            </div>
+          `);
+                }
+                else {
+                    noOverlapCounter++;
                 }
             }
             if (noOverlapCounter > 0) {
@@ -192,7 +183,7 @@ export class Characterize extends ATask {
             return true;
         })
             .map((attr) => 'gene' in attr ? attr.gene : attr.id);
-        const response = await this.postData(`http://localhost:8444/${endpoint}/`, {
+        const response = await this.postData(`http://localhost:9666/${endpoint}/`, {
             exclude: excludeAttributes,
             ids: this.ids,
         });
