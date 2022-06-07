@@ -153,7 +153,8 @@ export class RectangleLayout {
                 return elements.sort(this._sortTasks);
             }
             else {
-                return elements.sort(this._sortCohorts);
+                return elements;
+                // return elements.sort(this._sortCohorts); // TODO make sort dependent on the sorting of the output cohort
             }
         }
         return elements;
