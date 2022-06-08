@@ -1,15 +1,15 @@
 import * as aq from 'arquero';
-import * as LineUpJS from 'lineupjs';
 import {format} from 'd3-format';
+import * as LineUpJS from 'lineupjs';
 import tippy from 'tippy.js';
 import {Cohort, getCohortLabel} from '../../Cohort';
 import {ICohort} from '../../CohortInterfaces';
-import {IAttribute, ServerColumnAttribute, GeneScoreAttribute} from '../../data/Attribute';
+import {colors} from '../../colors';
+import {GeneScoreAttribute, IAttribute, ServerColumnAttribute} from '../../data/Attribute';
 import {Task} from '../../Tasks';
 import {getAnimatedLoadingText} from '../../util';
 import {DATA_LABEL} from '../visualizations';
 import {ATask} from './ATask';
-import {colors} from '../../colors';
 
 export class Characterize extends ATask {
   static readonly TREES = 500;
@@ -167,8 +167,8 @@ export class Characterize extends ATask {
               <div class="cht-icon up" style="background-color: ${drawCht.colorTaskView}"></div>
               <div class="cht-icon down left" style="background-color: ${remainingCht.colorTaskView}"></div>
               <div class="cht-overlap">
-                <div class="cht-bar" style="width: ${100 * (exclusiveInA+intersection)}%; background: ${drawCht.colorTaskView}"></div>
-                <div class="cht-bar" style="width: ${100 * (exclusiveInB+intersection)}%; margin-left: ${100 * (exclusiveInA)}%;background: ${remainingCht.colorTaskView}"></div>
+                <div class="cht-bar" style="width: ${100 * (exclusiveInA + intersection)}%; background: ${drawCht.colorTaskView}"></div>
+                <div class="cht-bar" style="width: ${100 * (exclusiveInB + intersection)}%; margin-left: ${100 * (exclusiveInA)}%;background: ${remainingCht.colorTaskView}"></div>
               </div>
               <div class="cht-bar-label">&ensp;${Characterize.jaccardFormat(intersection)}</div>
             </div>
@@ -231,7 +231,7 @@ export class Characterize extends ATask {
       .map((attr) => 'gene' in attr ? (attr as GeneScoreAttribute).gene : attr.id);
 
     const response = await this.postData(
-      `http://localhost:8080/kokiri/${endpoint}/`, {
+      endpoint, {
       exclude: excludeAttributes,
       ids: this.ids,
     });
@@ -367,7 +367,8 @@ export class Characterize extends ATask {
   }
 
   // Example POST method implementation:
-  async postData(url = '', data = {}) {
+  async postData(endpoint: string, data = {}) {
+    const url = '/kokiri/' + endpoint + '/';
     // Default options are marked with *
     const response = await fetch(url, {
       method: 'POST', // *GET, POST, PUT, DELETE, etc.
@@ -383,6 +384,7 @@ export class Characterize extends ATask {
       body: JSON.stringify(data), // body data type must match "Content-Type" header
       //TODO abortController
     });
+
     return response;
   }
 }

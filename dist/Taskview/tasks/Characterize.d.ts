@@ -33,5 +33,5 @@ export declare class Characterize extends ATask {
     setProgressDone(): void;
     fadeOutProgressBar(delay?: number): Promise<NodeJS.Timeout>;
     getData(attributes: IAttribute[], cohorts: Cohort[]): Promise<unknown[]>;
-    postData(url?: string, data?: {}): Promise<Response>;
+    postData(endpoint: string, data?: {}): Promise<Response>;
 }

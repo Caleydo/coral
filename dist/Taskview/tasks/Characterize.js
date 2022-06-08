@@ -1,13 +1,13 @@
 import * as aq from 'arquero';
-import * as LineUpJS from 'lineupjs';
 import { format } from 'd3-format';
+import * as LineUpJS from 'lineupjs';
 import tippy from 'tippy.js';
 import { getCohortLabel } from '../../Cohort';
+import { colors } from '../../colors';
 import { ServerColumnAttribute } from '../../data/Attribute';
 import { getAnimatedLoadingText } from '../../util';
 import { DATA_LABEL } from '../visualizations';
 import { ATask } from './ATask';
-import { colors } from '../../colors';
 export class Characterize extends ATask {
     constructor() {
         super(...arguments);
@@ -183,7 +183,7 @@ export class Characterize extends ATask {
             return true;
         })
             .map((attr) => 'gene' in attr ? attr.gene : attr.id);
-        const response = await this.postData(`http://localhost:8080/kokiri/${endpoint}/`, {
+        const response = await this.postData(endpoint, {
             exclude: excludeAttributes,
             ids: this.ids,
         });
@@ -309,7 +309,8 @@ export class Characterize extends ATask {
         return data;
     }
     // Example POST method implementation:
-    async postData(url = '', data = {}) {
+    async postData(endpoint, data = {}) {
+        const url = '/kokiri/' + endpoint + '/';
         // Default options are marked with *
         const response = await fetch(url, {
             method: 'POST',
