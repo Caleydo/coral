@@ -231,7 +231,7 @@ export class Characterize extends ATask {
       .map((attr) => 'gene' in attr ? (attr as GeneScoreAttribute).gene : attr.id);
 
     const response = await this.postData(
-      `http://localhost:9666/${endpoint}/`, {
+      `http://localhost:8080/kokiri/${endpoint}/`, {
       exclude: excludeAttributes,
       ids: this.ids,
     });

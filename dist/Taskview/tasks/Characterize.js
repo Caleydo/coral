@@ -183,7 +183,7 @@ export class Characterize extends ATask {
             return true;
         })
             .map((attr) => 'gene' in attr ? attr.gene : attr.id);
-        const response = await this.postData(`http://localhost:9666/${endpoint}/`, {
+        const response = await this.postData(`http://localhost:8080/kokiri/${endpoint}/`, {
             exclude: excludeAttributes,
             ids: this.ids,
         });
