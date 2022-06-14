@@ -183,25 +183,29 @@ export class Characterize extends ATask {
             return true;
         })
             .map((attr) => 'gene' in attr ? attr.gene : attr.id);
-        const response = await this.postData(endpoint, {
-            exclude: excludeAttributes,
-            ids: this.ids,
-        });
-        // start to read response stream
-        this.reader = response.body.getReader();
-        const decoder = new TextDecoder('utf-8');
-        let first = true;
-        while (true) {
-            const { value, done } = await this.reader.read(); //variable names are important for destructuring
-            if (done) {
-                console.log('the reader is done');
-                this.setProgressDone();
-                break; // if done, value is undefined --> skip the rest
-            }
-            const response = decoder.decode(value);
-            console.log('response', response);
+        const url = new URL(`/kokiri/${endpoint}/`, location.href);
+        url.protocol = url.protocol.replace('http', 'ws');
+        console.log('url', url);
+        this.ws = new WebSocket(url);
+        this.ws.onopen = async () => {
+            const data = JSON.stringify({
+                exclude: excludeAttributes,
+                ids: this.ids,
+            });
+            console.log('Socket is open');
             try {
-                const responseData = JSON.parse(response);
+                this.ws.send(data);
+            }
+            catch {
+                console.error('error sending data');
+            }
+            console.log('sent comparison data');
+        };
+        let first = true;
+        this.ws.onmessage = async (message) => {
+            console.log('response', message);
+            const responseData = JSON.parse(message.data);
+            try {
                 console.log(responseData.trees);
                 this.setProgress(responseData.trees);
                 if (first) {
@@ -215,7 +219,11 @@ export class Characterize extends ATask {
             catch (e) {
                 console.error('could not read JSON data', e);
             }
-        }
+        };
+        this.ws.onclose = () => {
+            console.log('the socket is done');
+            this.setProgressDone();
+        };
     }
     async createLineUp(data) {
         const builder = LineUpJS.builder(data);
@@ -261,7 +269,7 @@ export class Characterize extends ATask {
             .querySelector(('a.run'))
             .addEventListener('click', () => {
             var _a;
-            (_a = this.reader) === null || _a === void 0 ? void 0 : _a.cancel();
+            (_a = this.ws) === null || _a === void 0 ? void 0 : _a.close();
             wrapper.querySelector('.progress-ctrl').remove();
             this.progressBar.textContent = 'Stopped';
             this.fadeOutProgressBar();

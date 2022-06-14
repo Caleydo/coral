@@ -13,7 +13,7 @@ export declare class Characterize extends ATask {
     hasOutput: boolean;
     private eventID;
     private ids;
-    private reader;
+    private ws;
     private progressBar;
     private lineup;
     private dataProv;
