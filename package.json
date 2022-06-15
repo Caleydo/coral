@@ -81,7 +81,7 @@
     "split-grid": "^1.0.9",
     "tdp_publicdb": "git+ssh://git@github.com:caleydo/tdp_publicdb#develop",
     "tippy.js": "^6.2.6",
-    "tourdino": "git+ssh://git@github.com:caleydo/tourdino#keckelt/vega_boxplot",
+    "tourdino": "git+ssh://git@github.com:caleydo/tourdino#develop",
     "vega": "~5.20.0",
     "vega-embed": "6.19.1",
     "vega-functions": "5.12.0",
