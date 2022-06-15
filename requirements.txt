@@ -1,1 +1,1 @@
-tdp_core>=15.0.0,<16.0.0
+tdp_core@git+https://github.com/datavisyn/tdp_core.git@develop#egg=tdp_core
