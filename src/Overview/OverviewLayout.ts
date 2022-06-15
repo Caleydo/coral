@@ -179,7 +179,8 @@ export class RectangleLayout implements IOverviewLayout {
       if (elements[0] instanceof Task) {
         return elements.sort(this._sortTasks);
       } else {
-        return elements.sort(this._sortCohorts);
+        return elements;
+        // return elements.sort(this._sortCohorts); // TODO make sort dependent on the sorting of the output cohort
       }
     }
     return elements;

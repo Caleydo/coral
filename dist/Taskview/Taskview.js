@@ -428,7 +428,7 @@ class TaskviewInput extends TaskviewTable {
             }
         });
         // assign color to cohort without one
-        const maxCohortPerColor = Math.floor(cohorts.length / this.maxColors) + 1;
+        const maxCohortPerColor = Math.ceil(cohorts.length / this.maxColors);
         cohorts.forEach((elem, i) => {
             const colorIndex = i % this.maxColors; // circle through all colors
             // check if color exists

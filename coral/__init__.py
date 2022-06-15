@@ -4,41 +4,35 @@
 # Licensed under the new BSD license, available at http://caleydo.org/license
 ###############################################################################
 from os import path
+from typing import Type
 
-PROJ_NAME = 'coral'
-DB_KEY = 'cohortdb'
+from pydantic import BaseModel
+from tdp_core.plugin.model import AVisynPlugin, RegHelper
 
+from .settings import CoralSettings
 
-def phovea(registry):
-  """
-  register extension points
-  :param registry:
-  """
-  # generator-phovea:begin
-  registry.append('tdp-sql-database-definition', DB_KEY, f'{PROJ_NAME}.db', {
-     'configKey': f'{PROJ_NAME}'
-    })
-
-  registry.append('namespace', 'db_connector', f'{PROJ_NAME}.sql', {
-       'namespace': '/api/cohortdb/db'
-    })
-  # generator-phovea:end
-
-  registry.append('tdp-sql-database-migration', DB_KEY, '', {
-    'scriptLocation': path.join(path.abspath(path.dirname(__file__)), 'migration'),
-    'configKey': f'{PROJ_NAME}.migration',
-    'dbKey': DB_KEY,
-    'versionTableSchema': 'public'
-  })
-
-  pass
+PROJ_NAME = "coral"
+DB_KEY = "cohortdb"
 
 
-def phovea_config():
-  """
-  :return: file pointer to config file
-  """
-  from os import path
-  here = path.abspath(path.dirname(__file__))
-  config_file = path.join(here, 'config.json')
-  return config_file if path.exists(config_file) else None
+class VisynPlugin(AVisynPlugin):
+    def register(self, registry: RegHelper):
+        registry.append("tdp-sql-database-definition", "cohortdb", "coral.db", {"configKey": "coral"})
+
+        registry.append("namespace", "db_connector", "coral.sql", {"namespace": "/api/cohortdb/db"})
+
+        registry.append(
+            "tdp-sql-database-migration",
+            DB_KEY,
+            "",
+            {
+                "scriptLocation": path.join(path.abspath(path.dirname(__file__)), "migration"),
+                "configKey": f"{PROJ_NAME}.migration",
+                "dbKey": DB_KEY,
+                "versionTableSchema": "public",
+            },
+        )
+
+    @property
+    def setting_class(self) -> Type[BaseModel]:
+        return CoralSettings
