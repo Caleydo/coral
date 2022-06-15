@@ -1,6 +1,7 @@
 import * as aq from 'arquero';
 import {format} from 'd3-format';
 import * as LineUpJS from 'lineupjs';
+import {ERenderMode, ICellRenderer, ICellRendererFactory, IDataRow, renderMissingDOM} from 'lineupjs';
 import tippy from 'tippy.js';
 import {Cohort, getCohortLabel} from '../../Cohort';
 import {ICohort} from '../../CohortInterfaces';
@@ -10,6 +11,7 @@ import {Task} from '../../Tasks';
 import {getAnimatedLoadingText} from '../../util';
 import {DATA_LABEL} from '../visualizations';
 import {ATask} from './ATask';
+import {LineUpDistributionColumn} from './Characterize/LineUpDistributionColumn';
 
 export class Characterize extends ATask {
   static readonly TREES = 500;
@@ -281,6 +283,9 @@ export class Characterize extends ATask {
       .column(LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(200))
       .column(LineUpJS.buildStringColumn('category').label('Category').width(200))
       .column(LineUpJS.buildNumberColumn('importance', [0, 1]).label('Importance').width(150))
+      .column(LineUpJS.buildColumn("myDistributionColumn", 'distribution').label('Distribution').renderer("myDistributionRenderer", "myDistributionRenderer").width(50).build([]))
+      .registerRenderer("myDistributionRenderer", new MyDistributionRenderer())
+      .registerColumnType("myDistributionColumn", LineUpDistributionColumn)
       .deriveColors()
       .ranking(LineUpJS.buildRanking()
         .supportTypes()
@@ -394,5 +399,26 @@ export class Characterize extends ATask {
     });
 
     return response;
+  }
+}
+
+export class MyDistributionRenderer implements ICellRendererFactory {
+  readonly title: string = "Distribution Chart";
+
+  canRender(col: LineUpDistributionColumn, mode: ERenderMode): boolean {
+    return mode === ERenderMode.CELL;
+  }
+
+  create(col: LineUpDistributionColumn): ICellRenderer {
+    return {
+      template: `<div class="svg-container">blub</div>`,
+      update: (n: HTMLImageElement, d: IDataRow) => {
+        if (renderMissingDOM(n, col, d)) {
+          return;
+        }
+        
+        console.log('Update')
+      },
+    };
   }
 }

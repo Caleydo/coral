@@ -1,6 +1,7 @@
 import * as aq from 'arquero';
 import { format } from 'd3-format';
 import * as LineUpJS from 'lineupjs';
+import { ERenderMode, renderMissingDOM } from 'lineupjs';
 import tippy from 'tippy.js';
 import { getCohortLabel } from '../../Cohort';
 import { colors } from '../../colors';
@@ -8,6 +9,7 @@ import { ServerColumnAttribute } from '../../data/Attribute';
 import { getAnimatedLoadingText } from '../../util';
 import { DATA_LABEL } from '../visualizations';
 import { ATask } from './ATask';
+import { LineUpDistributionColumn } from './Characterize/LineUpDistributionColumn';
 export class Characterize extends ATask {
     constructor() {
         super(...arguments);
@@ -231,6 +233,9 @@ export class Characterize extends ATask {
             .column(LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(200))
             .column(LineUpJS.buildStringColumn('category').label('Category').width(200))
             .column(LineUpJS.buildNumberColumn('importance', [0, 1]).label('Importance').width(150))
+            .column(LineUpJS.buildColumn("myDistributionColumn", 'distribution').label('Distribution').renderer("myDistributionRenderer", "myDistributionRenderer").width(50).build([]))
+            .registerRenderer("myDistributionRenderer", new MyDistributionRenderer())
+            .registerColumnType("myDistributionColumn", LineUpDistributionColumn)
             .deriveColors()
             .ranking(LineUpJS.buildRanking()
             .supportTypes()
@@ -339,4 +344,23 @@ export class Characterize extends ATask {
 }
 Characterize.TREES = 500;
 Characterize.jaccardFormat = format('.1~%');
+export class MyDistributionRenderer {
+    constructor() {
+        this.title = "Distribution Chart";
+    }
+    canRender(col, mode) {
+        return mode === ERenderMode.CELL;
+    }
+    create(col) {
+        return {
+            template: `<div class="svg-container">blub</div>`,
+            update: (n, d) => {
+                if (renderMissingDOM(n, col, d)) {
+                    return;
+                }
+                console.log('Update');
+            },
+        };
+    }
+}
 //# sourceMappingURL=Characterize.js.map

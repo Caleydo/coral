@@ -1,8 +1,10 @@
 /// <reference types="node" />
+import { ERenderMode, ICellRenderer, ICellRendererFactory } from 'lineupjs';
 import { Cohort } from '../../Cohort';
 import { ICohort } from '../../CohortInterfaces';
 import { IAttribute } from '../../data/Attribute';
 import { ATask } from './ATask';
+import { LineUpDistributionColumn } from './Characterize/LineUpDistributionColumn';
 export declare class Characterize extends ATask {
     static readonly TREES = 500;
     static readonly jaccardFormat: (n: number | {
@@ -34,4 +36,9 @@ export declare class Characterize extends ATask {
     fadeOutProgressBar(delay?: number): Promise<NodeJS.Timeout>;
     getData(attributes: IAttribute[], cohorts: Cohort[]): Promise<unknown[]>;
     postData(endpoint: string, data?: {}): Promise<Response>;
+}
+export declare class MyDistributionRenderer implements ICellRendererFactory {
+    readonly title: string;
+    canRender(col: LineUpDistributionColumn, mode: ERenderMode): boolean;
+    create(col: LineUpDistributionColumn): ICellRenderer;
 }
