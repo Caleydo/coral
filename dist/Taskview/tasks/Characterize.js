@@ -2,6 +2,7 @@ import * as aq from 'arquero';
 import { format } from 'd3-format';
 import * as LineUpJS from 'lineupjs';
 import tippy from 'tippy.js';
+import vegaEmbed from 'vega-embed';
 import { getCohortLabel } from '../../Cohort';
 import { colors } from '../../colors';
 import { ServerColumnAttribute } from '../../data/Attribute';
@@ -54,14 +55,18 @@ export class Characterize extends ATask {
       </div>
 
       <div class="progress-wrapper"></div>
+      <div class="accuracy-container"></div>
 
       <div class="lineup-container"></div>
+      <div class="chart-container"></div>
     `;
         this.$container.querySelectorAll('button').forEach((btn) => btn.addEventListener('click', () => {
-            if (this.lineup) {
-                this.lineup.destroy();
-            }
+            var _a, _b;
+            (_a = this.lineup) === null || _a === void 0 ? void 0 : _a.destroy();
             this.$container.querySelector('.lineup-container').innerHTML = '';
+            (_b = this.chart) === null || _b === void 0 ? void 0 : _b.finalize();
+            this.$container.querySelector('.chart-container').innerHTML = '';
+            this.$container.querySelector('.accuracy-container').innerHTML = '';
             this.addProgressBar();
             this.compare(`cmp_${btn.id}`);
         }));
@@ -205,19 +210,44 @@ export class Characterize extends ATask {
         this.ws.onmessage = async (message) => {
             console.log('response', message);
             const responseData = JSON.parse(message.data);
-            try {
-                console.log(responseData.trees);
-                this.setProgress(responseData.trees);
-                if (first) {
-                    await this.createLineUp(responseData.importances); // await so its ready for the next response
-                    first = false;
+            if (responseData.trees) {
+                try {
+                    console.log(responseData.trees);
+                    this.setProgress(responseData.trees);
+                    if (first) {
+                        await this.createLineUp(responseData.importances); // await so its ready for the next response
+                        first = false;
+                    }
+                    else {
+                        this.updateLineUp(responseData.importances);
+                    }
+                    this.$container.querySelector('.accuracy-container').innerHTML = `<h1 style="display: inline">Cohort Separability:</h1> ${Characterize.jaccardFormat(responseData.accuracy)}`;
                 }
-                else {
-                    this.updateLineUp(responseData.importances);
+                catch (e) {
+                    console.error('could not read JSON data', e);
                 }
             }
-            catch (e) {
-                console.error('could not read JSON data', e);
+            else if (responseData.embedding) {
+                console.log('create plot');
+                const result = await vegaEmbed(this.$container.querySelector('.chart-container'), {
+                    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                    "title": "Classifier",
+                    "data": {
+                        "values": responseData.embedding
+                    },
+                    "width": 500,
+                    "height": 500,
+                    "mark": { "type": "point" },
+                    "encoding": {
+                        "x": { "field": "x", "type": "quantitative", axis: null },
+                        "y": { "field": "y", "type": "quantitative", axis: null },
+                        "color": { "field": "cht", "type": "nominal", legend: null }
+                    },
+                    config: {
+                        range: { category: this.cohorts.map((cht) => cht.colorTaskView) }
+                    }
+                }, { actions: false, renderer: 'svg' });
+                this.chart = result.view;
             }
         };
         this.ws.onclose = () => {
@@ -337,6 +367,6 @@ export class Characterize extends ATask {
         return response;
     }
 }
-Characterize.TREES = 500;
+Characterize.TREES = 200;
 Characterize.jaccardFormat = format('.1~%');
 //# sourceMappingURL=Characterize.js.map

@@ -4,7 +4,7 @@
   height: 100%;
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: auto auto auto 1fr; // 1fr for lineup
+  grid-template-rows: auto auto auto auto 1fr auto; // 1fr for lineup
   row-gap: 1em;
 
 .cht-icon {
