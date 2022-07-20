@@ -27,7 +27,7 @@ export declare class Characterize extends ATask {
     private showOverlap;
     setDefiningAttributeTooltip(hintText: HTMLElement): void;
     private compare;
-    createLineUp(data: any): Promise<void>;
+    createLineUp(data: any, showCategoryColumn?: boolean): Promise<void>;
     updateLineUp(importances: any): void;
     addProgressBar(): void;
     setProgress(iteration: number, done?: boolean): void;

@@ -216,7 +216,8 @@ export class Characterize extends ATask {
                     console.log(responseData.trees);
                     this.setProgress(responseData.trees);
                     if (first) {
-                        await this.createLineUp(responseData.importances); // await so its ready for the next response
+                        const showCategoryColumn = endpoint === 'cmp_meta';
+                        await this.createLineUp(responseData.importances, showCategoryColumn); // await so its ready for the next response
                         first = false;
                     }
                     else {
@@ -269,11 +270,17 @@ export class Characterize extends ATask {
             this.setProgressDone();
         };
     }
-    async createLineUp(data) {
+    async createLineUp(data, showCategoryColumn = true) {
         const builder = LineUpJS.builder(data);
+        const categoryCol = LineUpJS.buildStringColumn('category').label('Category').width(200);
+        if (!showCategoryColumn) {
+            categoryCol.hidden();
+        }
         this.lineup = builder
-            .column(LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(200))
-            .column(LineUpJS.buildStringColumn('category').label('Category').width(200))
+            .column(showCategoryColumn ?
+            LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(200) :
+            LineUpJS.buildStringColumn('attribute').label('Attribute').width(200))
+            .column(categoryCol)
             .column(LineUpJS.buildNumberColumn('importance', [0, 1]).label('Importance').width(150))
             .deriveColors()
             .ranking(LineUpJS.buildRanking()
