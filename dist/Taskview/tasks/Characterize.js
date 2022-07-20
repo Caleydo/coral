@@ -223,7 +223,7 @@ export class Characterize extends ATask {
                         this.updateLineUp(responseData.importances);
                     }
                     this.$container.querySelector('.accuracy-container').innerHTML =
-                        `<h1 style="display: inline">Cohort Separability:</h1> ${Characterize.jaccardFormat(responseData.accuracy)} (using 8 attributes)`;
+                        `<h1 style="display: inline">Cohort Separability:</h1> ${Characterize.jaccardFormat(responseData.accuracy)}`;
                 }
                 catch (e) {
                     console.error('could not read JSON data', e);

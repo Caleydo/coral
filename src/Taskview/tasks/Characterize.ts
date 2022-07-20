@@ -274,7 +274,7 @@ export class Characterize extends ATask {
           }
 
           this.$container.querySelector('.accuracy-container').innerHTML = 
-          `<h1 style="display: inline">Cohort Separability:</h1> ${Characterize.jaccardFormat(responseData.accuracy)} (using 8 attributes)`;
+          `<h1 style="display: inline">Cohort Separability:</h1> ${Characterize.jaccardFormat(responseData.accuracy)}`;
 
         } catch (e) {
           console.error('could not read JSON data', e);
@@ -292,7 +292,7 @@ export class Characterize extends ATask {
             },
             "transform": [
               {"calculate": "'#'+datum.cht", "as": "chts"}
-           ],
+            ],
             "width": 700,
             "height": 500,
             "mark": {"type": "point"},
