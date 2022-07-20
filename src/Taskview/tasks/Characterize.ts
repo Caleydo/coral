@@ -14,7 +14,7 @@ import {DATA_LABEL} from '../visualizations';
 import {ATask} from './ATask';
 
 export class Characterize extends ATask {
-  static readonly TREES = 200;
+  static readonly TREES = 500;
   static readonly jaccardFormat = format('.1~%');
 
   public label = `Characterize`;
@@ -30,7 +30,7 @@ export class Characterize extends ATask {
   private dataProv: LineUpJS.LocalDataProvider;
   private cohorts: Cohort[];
   private definingAttributes: IAttribute[];
-  private chart: VegaView;
+  private chart: VegaView[];
 
 
   supports(attributes: IAttribute[], cohorts: ICohort[]) {
@@ -97,7 +97,8 @@ export class Characterize extends ATask {
     this.$container.querySelectorAll('button').forEach((btn) => btn.addEventListener('click', () => {
       this.lineup?.destroy();
       this.$container.querySelector('.lineup-container').innerHTML = '';
-      this.chart?.finalize();
+      this.chart?.forEach((view) => view.finalize());
+      this.chart = [];
       this.$container.querySelector('.chart-container').innerHTML = '';
       this.$container.querySelector('.accuracy-container').innerHTML = '';
       this.addProgressBar();
@@ -272,32 +273,45 @@ export class Characterize extends ATask {
             this.updateLineUp(responseData.importances);
           }
 
-          this.$container.querySelector('.accuracy-container').innerHTML = `<h1 style="display: inline">Cohort Separability:</h1> ${Characterize.jaccardFormat(responseData.accuracy)}`;
+          this.$container.querySelector('.accuracy-container').innerHTML = 
+          `<h1 style="display: inline">Cohort Separability:</h1> ${Characterize.jaccardFormat(responseData.accuracy)} (using 8 attributes)`;
 
         } catch (e) {
           console.error('could not read JSON data', e);
         }
       } else if (responseData.embedding) {
         console.log('create plot')
-        const result = await vegaEmbed(this.$container.querySelector('.chart-container') as HTMLDivElement, {
+        const vegaContainer = this.$container
+                                    .querySelector('.chart-container')
+                                    .insertAdjacentElement('beforeend', document.createElement('div')) as HTMLDivElement;
+        const result = await vegaEmbed(vegaContainer, {
             "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-            "title": "Classifier",
+            "title": `${responseData.data} Data Embedding`,
             "data": {
               "values": responseData.embedding
             },
-            "width": 500,
-            "height": 500,
+            "transform": [
+              {"calculate": "'#'+datum.cht", "as": "chts"}
+           ],
+            "width": 400,
+            "height": 400,
             "mark": {"type": "point"},
             "encoding": {
               "x": { "field": "x", "type": "quantitative", axis: null },
               "y": { "field": "y", "type": "quantitative", axis: null },
-              "color": {"field": "cht", "type": "nominal", legend: null}
+              "color": {"field": "chts", "type": "nominal"},
+              "opacity": { "condition": {"param": "cohort", "value": 0.9}, "value": 0.01 }
             },
+            "params": [{
+              "name": "cohort",
+              "select": {"type": "point", "fields": ["chts"]},
+              "bind": "legend"
+            }],
             config: {
               range: {category: this.cohorts.map((cht) => cht.colorTaskView)}
             }
         }, {actions: false, renderer: 'svg'});
-        this.chart = result.view;
+        this.chart.push(result.view);
       }
     } 
 
