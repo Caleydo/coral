@@ -293,8 +293,8 @@ export class Characterize extends ATask {
             "transform": [
               {"calculate": "'#'+datum.cht", "as": "chts"}
            ],
-            "width": 400,
-            "height": 400,
+            "width": 700,
+            "height": 500,
             "mark": {"type": "point"},
             "encoding": {
               "x": { "field": "x", "type": "quantitative", axis: null },
