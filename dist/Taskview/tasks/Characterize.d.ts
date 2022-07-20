@@ -4,7 +4,7 @@ import { ICohort } from '../../CohortInterfaces';
 import { IAttribute } from '../../data/Attribute';
 import { ATask } from './ATask';
 export declare class Characterize extends ATask {
-    static readonly TREES = 200;
+    static readonly TREES = 500;
     static readonly jaccardFormat: (n: number | {
         valueOf(): number;
     }) => string;
