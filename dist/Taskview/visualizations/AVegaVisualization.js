@@ -5,7 +5,7 @@ import tippy from 'tippy.js';
 import vegaEmbed from 'vega-embed';
 import { getCohortLabel } from '../../Cohort';
 import { NumRangeOperators } from '../../rest';
-import { CohortColorSchema, log } from '../../util';
+import { log } from '../../util';
 import { FilterEvent, SplitEvent } from '../../utilCustomEvents';
 import { DATA_LABEL } from './constants';
 export const MISSING_VALUES_LABEL = 'Missing Values';
@@ -14,7 +14,6 @@ export class AVegaVisualization {
     constructor(vegaLiteOptions = {}) {
         this.vegaLiteOptions = vegaLiteOptions;
         this.showBrush = true;
-        this.colorPalette = CohortColorSchema.COLOR_SCHEME;
         this.config = [];
     }
     clearSelection() {
@@ -221,6 +220,7 @@ export class SingleAttributeVisualization extends AVegaVisualization {
             return currSize > 0;
         });
         this.colorPalette = notZeroCohorts.map((elem) => elem.colorTaskView);
+        console.log(notZeroCohorts.map((elem) => elem.label), this.colorPalette);
         // data's outer array has one item per cohort, which in turn contains array with the items/values
         // flatten the array:
         const flatData = data.flat(1);
