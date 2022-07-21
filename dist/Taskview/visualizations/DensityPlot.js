@@ -507,7 +507,7 @@ export class DensityPlot extends SingleAttributeVisualization {
                 {
                     name: 'color',
                     type: 'ordinal',
-                    domain: { data: 'data_0', field: DATA_LABEL, sort: true },
+                    domain: { data: 'data_0', field: DATA_LABEL },
                     range: 'category'
                 }
             ],
