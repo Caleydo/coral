@@ -1,4 +1,4 @@
-import { format as d3Format } from 'd3-format';
+import { format as d3Format } from 'd3v7';
 import { ADataColumn } from './AColumn';
 export default class NumberColumn extends ADataColumn {
     constructor($container) {

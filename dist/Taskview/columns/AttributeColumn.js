@@ -1,4 +1,4 @@
-import { select } from 'd3-selection';
+import { select } from 'd3v7';
 import vegaEmbed from 'vega-embed';
 import { colors } from '../../colors';
 import { NumRangeOperators } from '../../rest';

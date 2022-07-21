@@ -1,5 +1,5 @@
 import * as Comlink from 'comlink';
-import { select } from 'd3-selection';
+import { select } from 'd3v7';
 import { ServerColumnAttribute } from '../../data/Attribute';
 import { NumRangeOperators } from '../../rest';
 import { inRange } from '../../util';

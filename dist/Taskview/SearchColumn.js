@@ -1,4 +1,4 @@
-import { select } from 'd3-selection';
+import { select } from 'd3v7';
 import * as $ from 'jquery';
 import tippy from 'tippy.js';
 import { toAttribute } from '../data/Attribute';

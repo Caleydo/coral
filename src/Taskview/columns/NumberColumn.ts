@@ -1,4 +1,4 @@
-import {format as d3Format} from 'd3-format';
+import {format as d3Format} from 'd3v7';
 import {Cohort} from '../../Cohort';
 import {ADataColumn} from './AColumn';
 

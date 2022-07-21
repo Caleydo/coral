@@ -1,5 +1,5 @@
 import log from 'loglevel';
-import {select} from 'd3-selection';
+import {select} from 'd3v7';
 import {TopLevelSpec as VegaLiteSpec} from 'vega-lite';
 import {Spec as VegaSpec, None} from 'vega';
 import {IdValuePair, ServerColumnAttribute} from '../../data/Attribute';

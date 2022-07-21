@@ -1,4 +1,4 @@
-import d3 from 'd3';
+import { hsl } from 'd3v7';
 import tippy from 'tippy.js';
 import { getRootCohort } from './cohortview';
 import { log } from './util';
@@ -233,7 +233,7 @@ export class RectCohortRep {
             this._representation.style.backgroundColor = color;
             this._repClone.style.backgroundColor = color;
             // font color = white if color is too dark
-            if (color !== null && color !== 'transparent' && d3.hsl(color).l < 0.6) { //transparent has lightness of zero
+            if (color !== null && color !== 'transparent' && hsl(color).l < 0.6) { //transparent has lightness of zero
                 this._representation.style.color = 'white';
                 this._repClone.style.color = 'white';
                 this._removeButton.style.color = 'white';

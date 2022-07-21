@@ -1,4 +1,4 @@
-import {format} from 'd3-format';
+import {format} from 'd3v7';
 import {IEqualsList, INumRange, isEqualsList, isNumRangeFilter, NumRangeOperators} from './rest';
 
 export function niceName(label: string): string {

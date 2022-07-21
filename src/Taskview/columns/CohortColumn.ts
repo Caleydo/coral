@@ -1,4 +1,4 @@
-import {select} from 'd3-selection';
+import {select} from 'd3v7';
 import {Cohort} from '../../Cohort';
 import {OnboardingManager} from '../../OnboardingManager';
 import {SortType} from '../../util';

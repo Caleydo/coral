@@ -1,4 +1,4 @@
-import {select, Selection} from 'd3-selection';
+import {select, Selection} from 'd3v7';
 import {ICohort} from '../../CohortInterfaces';
 import {IAttribute} from '../../data/Attribute';
 import {OnboardingManager} from '../../OnboardingManager';

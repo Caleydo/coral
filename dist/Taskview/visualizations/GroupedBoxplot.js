@@ -1,5 +1,4 @@
-import { format } from 'd3-format';
-import { select } from 'd3-selection';
+import { format, select } from 'd3v7';
 import log from 'loglevel';
 import { NumRangeOperators } from '../../rest';
 import { FilterEvent, SplitEvent } from '../../utilCustomEvents';

@@ -3,8 +3,8 @@
  * Copyright (c) The Caleydo Team. All rights reserved.
  * Licensed under the new BSD license, available at http://caleydo.org/license
  **************************************************************************** */
-import * as d3 from 'd3';
-import { select } from 'd3-selection';
+import { hsl, scaleLinear, select } from 'd3v7';
+import * as d3v3 from 'd3v3';
 import { MethodManager, SCOPE, Type, WorkerManager } from 'tourdino';
 import { log } from '../../util';
 import { ATask } from './ATask';
@@ -83,7 +83,7 @@ export class Compare extends ATask {
                 const parent = select(this).node().parentNode; //parent span-element
                 select(parent).style('background-color', (d) => d.colorTaskView);
                 let color = '#333333';
-                if (d && d.colorTaskView && 'transparent' !== d.colorTaskView && d3.hsl(d.colorTaskView).l < 0.5) { //transparent has lightness of zero
+                if (d && d.colorTaskView && 'transparent' !== d.colorTaskView && hsl(d.colorTaskView).l < 0.5) { //transparent has lightness of zero
                     color = 'white';
                 }
                 select(parent.parentNode).style('color', color)
@@ -398,7 +398,7 @@ export class Compare extends ATask {
             if (measure.visualization) {
                 const visualization = measure.visualization;
                 if (cellData.setParameters) {
-                    const d3v3Details = d3.select(details.node());
+                    const d3v3Details = d3v3.select(details.node());
                     visualization.generateVisualization(d3v3Details, cellData.setParameters, cellData.score);
                 }
             }
@@ -579,7 +579,7 @@ const insertLegend = (parentElement) => {
 };
 export function textColor4Background(backgroundColor) {
     let color = '#333333';
-    if ('transparent' !== backgroundColor && d3.hsl(backgroundColor).l < 0.5) { //transparent has lightness of zero
+    if ('transparent' !== backgroundColor && hsl(backgroundColor).l < 0.5) { //transparent has lightness of zero
         color = 'white';
     }
     return color;
@@ -589,7 +589,7 @@ export function score2color(score) {
     let foreground = '#333333'; //kinda black
     if (score <= 0.05) {
         // log.debug('bg color cahnge')
-        const calcColor = d3.scale.linear().domain([0, 0.05]).range(['#000000', '#FFFFFF']);
+        const calcColor = scaleLinear().domain([0, 0.05]).range(['#000000', '#FFFFFF']);
         background = calcColor(score).toString();
         foreground = textColor4Background(background);
     }
