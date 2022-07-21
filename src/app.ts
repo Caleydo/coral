@@ -1,4 +1,4 @@
-import {select, Selection} from 'd3-selection';
+import {select, Selection} from 'd3v7';
 import SplitGrid from 'split-grid';
 import {AppContext, ATDPApplication, CLUEGraphManager, IDatabaseViewDesc, IObjectRef, IServerColumn, ITDPOptions, NotificationHandler, ObjectRefUtils, ProvenanceGraph, RestBaseUtils} from 'tdp_core';
 import {cellline, tissue} from 'tdp_publicdb';

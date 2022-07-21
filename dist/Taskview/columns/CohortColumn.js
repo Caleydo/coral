@@ -1,4 +1,4 @@
-import { select } from 'd3-selection';
+import { select } from 'd3v7';
 import { OnboardingManager } from '../../OnboardingManager';
 import { SortType } from '../../util';
 import { ColumnSortEvent } from '../../utilCustomEvents';

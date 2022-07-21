@@ -1,4 +1,4 @@
-import {select, Selection} from 'd3-selection';
+import {select, Selection} from 'd3v7';
 import * as logger from 'loglevel';
 import {NotificationHandler} from 'tdp_core';
 import {ICohort} from './CohortInterfaces';

@@ -1,4 +1,4 @@
-import { format } from 'd3-format';
+import { format } from 'd3v7';
 import { isEqualsList, isNumRangeFilter, NumRangeOperators } from './rest';
 export function niceName(label) {
     return label.split('_').map((l) => l[0].toUpperCase() + l.slice(1)).join(' ');

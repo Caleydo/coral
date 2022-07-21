@@ -1,4 +1,4 @@
-import { Selection } from 'd3-selection';
+import { Selection } from 'd3v7';
 import * as logger from 'loglevel';
 import { ICohort } from './CohortInterfaces';
 import { IAttribute } from './data/Attribute';
