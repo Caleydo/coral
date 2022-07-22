@@ -59,7 +59,7 @@ export class VegaGroupedHistogram extends VegaHistogram {
                         title: this.attribute.label,
                         titleAnchor: 'end'
                     },
-                    sort: groupByConfig.getSelected().label === 'Same Cohort' ? {} :
+                    sort: groupByConfig.getSelected().label === 'Same Cohort' ? null :
                         sortByConfig.getSelected().label.includes('Name') ? sortOrderConfig.getSelected().label.toLowerCase() : {
                             field: dataConfig.getSelected().label === 'Absolute Counts' ? VegaGroupedHistogram.COUNT : 'PercentOfCohort',
                             op: sortByConfig.getSelected().label.includes('Average') ? 'average' :
@@ -81,7 +81,7 @@ export class VegaGroupedHistogram extends VegaHistogram {
                     field: yField,
                     type: 'nominal',
                     axis: rowField === DATA_LABEL ? { 'title': null, ticks: false, domain: false } : null,
-                    sort: groupByConfig.getSelected().label === 'Same Category' ? {} :
+                    sort: groupByConfig.getSelected().label === 'Same Category' ? null :
                         sortByConfig.getSelected().label.includes('Name') ? sortOrderConfig.getSelected().label.toLowerCase() : {
                             field: dataConfig.getSelected().label === 'Absolute Counts' ? VegaGroupedHistogram.COUNT : 'PercentOfCohort',
                             op: sortByConfig.getSelected().label.includes('Average') ? 'average' :
@@ -92,11 +92,13 @@ export class VegaGroupedHistogram extends VegaHistogram {
                 color: {
                     field: DATA_LABEL,
                     type: 'nominal',
+                    sort: null,
                     legend: null // use custom legend
                 },
                 stroke: {
                     field: DATA_LABEL,
                     type: 'nominal',
+                    sort: null,
                     condition: [
                         {
                             param: AVegaVisualization.HIGHLIGHT_SIGNAL_NAME,
