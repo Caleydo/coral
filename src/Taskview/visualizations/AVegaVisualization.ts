@@ -47,7 +47,7 @@ export abstract class AVegaVisualization implements IVegaVisualization {
 
   protected showBrush: boolean = true;
 
-  protected colorPalette = CohortColorSchema.COLOR_SCHEME;
+  protected colorPalette: string[];
 
   protected config: VisConfig[] = [];
 
@@ -302,6 +302,8 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       return currSize > 0;
     });
     this.colorPalette = notZeroCohorts.map((elem) => elem.colorTaskView);
+
+    console.log(notZeroCohorts.map((elem) => elem.label), this.colorPalette);
 
     // data's outer array has one item per cohort, which in turn contains array with the items/values
     // flatten the array:

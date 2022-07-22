@@ -1155,8 +1155,7 @@ export class GroupedBoxplot extends MultiAttributeVisualization {
               {data: `data_3`, field: yField},
               {data: `data_4`, field: yField},
               {data: `data_5`, field: yField}
-            ],
-            sort: true
+            ]
           },
           range: {step: {signal: `y_step`}},
           paddingInner: 0,
@@ -1165,7 +1164,7 @@ export class GroupedBoxplot extends MultiAttributeVisualization {
         {
           name: `color`,
           type: `ordinal`,
-          domain: {data: 'data_5', field: DATA_LABEL, sort: true},
+          domain: {data: 'data_5', field: DATA_LABEL},
           range: `category`
         }
       ],
