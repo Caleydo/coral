@@ -85,13 +85,26 @@ export class Characterize extends ATask {
         <button class="btn btn-coral" id="meta">Compare by <i>Meta-Data</i></button>
         <button class="btn btn-coral" id="mutated">Compare by <i>AA Mutated</i></button>
         <input type="checkbox" id="exclude-attributes" checked> Exclude the cohorts' <span class="hint">defining attributes</span></input>
+        <div class="params">
+          <label for="max-depth">Max Attributes</label>
+          <input type="range" id="max-depth" name="max-depth" min="1" max="100" value="40" oninput="this.nextElementSibling.value = this.value">
+          <output for="max-depth">40</output>
+
+          <span>&emsp;</span>
+
+          <label for="min-group-size">Min Group Size</label>
+          <input type="range" id="min-group-size" name="min-group-size" min="1" max="100" value="5" oninput="this.nextElementSibling.value = this.value">
+          <output for="min-group-size">5</output>
+        </div>
       </div>
 
       <div class="progress-wrapper"></div>
       <div class="accuracy-container"></div>
 
-      <div class="lineup-container"></div>
-      <div class="chart-container"></div>
+      <div class="classifier-result">
+        <div class="lineup-container"></div>
+        <div class="chart-container"></div>
+      </div>
     `;
 
     this.$container.querySelectorAll('button').forEach((btn) => btn.addEventListener('click', () => {
@@ -237,6 +250,8 @@ export class Characterize extends ATask {
       })
       .map((attr) => 'gene' in attr ? (attr as GeneScoreAttribute).gene : attr.id);
 
+    const maxDepth = parseInt((this.$container.querySelector('input#max-depth') as HTMLInputElement).value);
+    const minGroupSize = parseInt((this.$container.querySelector('input#min-group-size') as HTMLInputElement).value);
 
     const url = new URL(`/kokiri/${endpoint}/`, location.href);
     url.protocol = url.protocol.replace('http', 'ws');
@@ -245,6 +260,9 @@ export class Characterize extends ATask {
     this.ws.onopen = async () => {
       const data = JSON.stringify({ // send as string, because sending JSON apparantly only works this way 🤷‍♀️ (see https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications)
         exclude: excludeAttributes,
+        n_estimators: Characterize.TREES,
+        max_depth: maxDepth,
+        min_samples_leaf: minGroupSize,
         ids: this.ids,
       })
       console.log('Socket is open')
@@ -275,7 +293,11 @@ export class Characterize extends ATask {
           }
 
           this.$container.querySelector('.accuracy-container').innerHTML = 
-          `<h1 style="display: inline">Cohort Separability:</h1> ${Characterize.jaccardFormat(responseData.accuracy)}`;
+          `
+            <h1 style="display: inline">Accuracy:</h1> ${Characterize.jaccardFormat(responseData.accuracy)}
+            <h1 style="display: inline">OOB Error:</h1> ${Characterize.jaccardFormat(responseData.oobError)}
+          
+          `;
 
         } catch (e) {
           console.error('could not read JSON data', e);
@@ -283,8 +305,7 @@ export class Characterize extends ATask {
       } else if (responseData.embedding) {
         console.log('create plot')
         const vegaContainer = this.$container
-                                    .querySelector('.chart-container')
-                                    .insertAdjacentElement('beforeend', document.createElement('div')) as HTMLDivElement;
+                                    .querySelector('.chart-container') as HTMLDivElement;
         const result = await vegaEmbed(vegaContainer, {
             "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
             "title": `${responseData.data} Data Embedding`,
@@ -294,8 +315,8 @@ export class Characterize extends ATask {
             "transform": [
               {"calculate": "'#'+datum.cht", "as": "chts"}
             ],
-            "width": 700,
-            "height": 500,
+            "width": "container",
+            "height": "container",
             "mark": {"type": "point"},
             "encoding": {
               "x": { "field": "x", "type": "quantitative", axis: null },
@@ -345,6 +366,7 @@ export class Characterize extends ATask {
         // .groupBy('Attribute')
         .groupSortBy('Importance', 'desc')
       )
+      .sidePanel(false)
       .buildTaggle(this.$container.querySelector('.lineup-container'));
 
     this.dataProv = this.lineup.data as LineUpJS.LocalDataProvider;
@@ -390,8 +412,14 @@ export class Characterize extends ATask {
     this.progressBar.style.width = `${100 * iteration / Characterize.TREES}%`;
 
     if (iteration === Characterize.TREES) {
-      this.setProgressDone();
+      this.setProgressIndefinite();
     }
+  }
+
+  setProgressIndefinite() {
+    this.progressBar.textContent = 'Summarizing';
+    this.progressBar.classList.toggle('progress-bar-animated', true);
+    this.progressBar.classList.toggle('progress-bar-striped', true);
   }
 
   setProgressDone() {
