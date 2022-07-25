@@ -85,17 +85,18 @@ export class Characterize extends ATask {
         <button class="btn btn-coral" id="meta">Compare by <i>Meta-Data</i></button>
         <button class="btn btn-coral" id="mutated">Compare by <i>AA Mutated</i></button>
         <input type="checkbox" id="exclude-attributes" checked> Exclude the cohorts' <span class="hint">defining attributes</span></input>
-        <div class="params">
-          <label for="max-depth">Max Attributes</label>
-          <input type="range" id="max-depth" name="max-depth" min="1" max="100" value="40" oninput="this.nextElementSibling.value = this.value">
-          <output for="max-depth">40</output>
 
-          <span>&emsp;</span>
+        <span>&emsp;</span>
 
-          <label for="min-group-size">Min Group Size</label>
-          <input type="range" id="min-group-size" name="min-group-size" min="1" max="100" value="5" oninput="this.nextElementSibling.value = this.value">
-          <output for="min-group-size">5</output>
-        </div>
+        <label for="max-depth">Max Attributes</label>
+        <input type="range" id="max-depth" name="max-depth" min="1" max="100" value="50" oninput="this.nextElementSibling.value = this.value">
+        <output for="max-depth">50</output>
+
+        <span>&emsp;</span>
+
+        <label for="min-group-size">Min Group Size</label>
+        <input type="range" id="min-group-size" name="min-group-size" min="1" max="100" value="1" oninput="this.nextElementSibling.value = this.value"<>
+        <output for="min-group-size">1</output>
       </div>
 
       <div class="progress-wrapper"></div>
@@ -295,7 +296,7 @@ export class Characterize extends ATask {
           this.$container.querySelector('.accuracy-container').innerHTML = 
           `
             <h1 style="display: inline">Accuracy:</h1> ${Characterize.jaccardFormat(responseData.accuracy)}
-            <h1 style="display: inline">OOB Error:</h1> ${Characterize.jaccardFormat(responseData.oobError)}
+            <h1 style="display: inline">OOB Score:</h1> ${Characterize.jaccardFormat(responseData.oobError)}
           
           `;
 
