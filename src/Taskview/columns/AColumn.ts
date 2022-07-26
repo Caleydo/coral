@@ -1,4 +1,4 @@
-import {select} from 'd3-selection';
+import {select} from 'd3v7';
 import {Cohort, EMPTY_COHORT_ID, LOADER_COHORT_ID} from '../../Cohort';
 import {colors} from '../../colors';
 import {createSearchBarTooltip} from '../../Tooltip';

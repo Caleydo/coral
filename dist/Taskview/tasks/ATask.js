@@ -1,4 +1,4 @@
-import { select } from 'd3-selection';
+import { select } from 'd3v7';
 import { OnboardingManager } from '../../OnboardingManager';
 export const TASK_CLOSE_EVENT_TYPE = 'task:close';
 export class TaskCloseEvent extends CustomEvent {

@@ -1,5 +1,5 @@
 import * as Comlink from 'comlink';
-import {select} from 'd3-selection';
+import {select} from 'd3v7';
 import {Spec as VegaSpec} from 'vega';
 import {TopLevelSpec as VegaLiteSpec} from 'vega-lite';
 import {Cohort} from '../../Cohort';

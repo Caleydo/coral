@@ -1,4 +1,4 @@
-import { Selection } from 'd3-selection';
+import { Selection } from 'd3v7';
 import { ICohort } from '../../CohortInterfaces';
 import { IAttribute } from '../../data/Attribute';
 export declare const TASK_CLOSE_EVENT_TYPE = "task:close";

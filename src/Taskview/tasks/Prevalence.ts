@@ -1,6 +1,4 @@
-import {format} from 'd3-format';
-import {select} from 'd3-selection';
-import {transition} from 'd3-transition';
+import {format, select, transition} from 'd3v7';
 import tippy from 'tippy.js';
 import {Cohort, IBloodlineElement} from '../../Cohort';
 import {ICohort} from '../../CohortInterfaces';

@@ -1,4 +1,4 @@
-import { select } from 'd3-selection';
+import { select } from 'd3v7';
 import * as logger from 'loglevel';
 import { NotificationHandler } from 'tdp_core';
 logger.setDefaultLevel(logger.levels.INFO);
