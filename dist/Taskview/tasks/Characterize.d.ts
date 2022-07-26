@@ -6,7 +6,7 @@ import { IAttribute } from '../../data/Attribute';
 import { ATask } from './ATask';
 import { LineUpDistributionColumn } from './Characterize/LineUpDistributionColumn';
 export declare class Characterize extends ATask {
-    static readonly TREES = 500;
+    static readonly TREES = 200;
     static readonly jaccardFormat: (n: number | {
         valueOf(): number;
     }) => string;
@@ -41,6 +41,8 @@ export declare class Characterize extends ATask {
 }
 export declare class MyDistributionRenderer implements ICellRendererFactory {
     readonly title: string;
+    static readonly WIDTH = 200;
+    static readonly HEIGHT = 50;
     canRender(col: LineUpDistributionColumn, mode: ERenderMode): boolean;
     create(col: LineUpDistributionColumn): ICellRenderer;
 }

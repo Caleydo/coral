@@ -2,6 +2,8 @@ import * as aq from 'arquero';
 import {format} from 'd3-format';
 import * as LineUpJS from 'lineupjs';
 import {ERenderMode, ICellRenderer, ICellRendererFactory, IDataRow, renderMissingDOM} from 'lineupjs';
+// import * as d3 from 'd3';
+import {select} from 'd3-selection';
 import tippy from 'tippy.js';
 import {View as VegaView} from 'vega';
 import vegaEmbed from 'vega-embed';
@@ -16,7 +18,7 @@ import {ATask} from './ATask';
 import {LineUpDistributionColumn} from './Characterize/LineUpDistributionColumn';
 
 export class Characterize extends ATask {
-  static readonly TREES = 500;
+  static readonly TREES = 200;
   static readonly jaccardFormat = format('.1~%');
 
   public label = `Characterize`;
@@ -280,8 +282,8 @@ export class Characterize extends ATask {
 
     let first = true;
     this.ws.onmessage = async (message) => {
-      console.log('response', message);
       const responseData = JSON.parse(message.data);
+      console.log('response', responseData);
 
       if(responseData.trees) {
         try {
@@ -354,14 +356,14 @@ export class Characterize extends ATask {
     }
 
     this.lineup = builder
+      .column(LineUpJS.buildNumberColumn('importance', [0, 1]).label('Importance').width(150))
       .column(
         showCategoryColumn ? 
         LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(200) :
         LineUpJS.buildStringColumn('attribute').label('Attribute').width(200)
         )
       .column(categoryCol)
-      .column(LineUpJS.buildNumberColumn('importance', [0, 1]).label('Importance').width(150))
-      .column(LineUpJS.buildColumn("myDistributionColumn", 'distribution').label('Distribution').renderer("myDistributionRenderer", "myDistributionRenderer").width(50).build([]))
+      .column(LineUpJS.buildColumn("myDistributionColumn", 'distribution').label('Distribution').renderer("myDistributionRenderer", "myDistributionRenderer").width(200).build([]))
       .registerRenderer("myDistributionRenderer", new MyDistributionRenderer())
       .registerColumnType("myDistributionColumn", LineUpDistributionColumn)
       .deriveColors()
@@ -373,6 +375,7 @@ export class Characterize extends ATask {
         .groupSortBy('Importance', 'desc')
       )
       .sidePanel(false)
+      .rowHeight(50)
       .buildTaggle(this.$container.querySelector('.lineup-container'));
 
     this.dataProv = this.lineup.data as LineUpJS.LocalDataProvider;
@@ -489,6 +492,8 @@ export class Characterize extends ATask {
 
 export class MyDistributionRenderer implements ICellRendererFactory {
   readonly title: string = "Distribution Chart";
+  static readonly WIDTH=200;
+  static readonly HEIGHT=50;
 
   canRender(col: LineUpDistributionColumn, mode: ERenderMode): boolean {
     return mode === ERenderMode.CELL;
@@ -496,13 +501,58 @@ export class MyDistributionRenderer implements ICellRendererFactory {
 
   create(col: LineUpDistributionColumn): ICellRenderer {
     return {
-      template: `<div class="svg-container">blub</div>`,
+      template: `<div class="svg-container" style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
+        <svg id="loading" width="${MyDistributionRenderer.WIDTH}" height="${MyDistributionRenderer.HEIGHT}" viewBox="0 0 ${MyDistributionRenderer.WIDTH} ${MyDistributionRenderer.HEIGHT}" enable-background="new 0 0 0 0">
+          <circle fill="#333333" stroke="none" cx="80" cy="10" r="8">
+            <animate attributeName="opacity" dur="2s" values="0;0.5;0" repeatCount="indefinite" begin="0.1" />
+          </circle>
+          <circle fill="#333333" stroke="none" cx="100" cy="10" r="8">
+            <animate attributeName="opacity" dur="2s" values="0;0.5;0" repeatCount="indefinite" begin="0.66" />
+          </circle>
+          <circle fill="#333333" stroke="none" cx="120" cy="10" r="8">
+            <animate attributeName="opacity" dur="2s" values="0;0.5;0" repeatCount="indefinite" begin="1.33" />
+          </circle>
+        </svg>
+        <svg id="chart" width="${MyDistributionRenderer.WIDTH}" height="${MyDistributionRenderer.HEIGHT}" viewBox="0 0 ${MyDistributionRenderer.WIDTH} ${MyDistributionRenderer.HEIGHT}" enable-background="new 0 0 0 0">
+          <g>
+            <!-- filled by update function -->
+          </g>
+        </svg>
+      </div>`,
       update: (n: HTMLImageElement, d: IDataRow) => {
         if (renderMissingDOM(n, col, d)) {
           return;
-        }
         
-        console.log('Update')
+        }
+        const data = d.v?.distribution;
+        if (d.v.random !== false) {
+          console.log('remove loader');
+          select(n).selectAll('#loading').remove();
+
+          // const chart = select(n).select('#chart g')
+          // X axis
+          // var x = d3.scaleBand()
+          // .range([ 0, MyDistributionRenderer.WIDTH ])
+          // .domain(data.map(function(d) { return d.Country; }))
+          // .padding(0.2);
+
+
+          // // Add Y axis
+          // var y = d3.scaleLinear()
+          // .domain([0, 13000])
+          // .range([ MyDistributionRenderer.HEIGHT, 0]);
+
+          // // Bars
+          // chart.selectAll("mybar")
+          // .data(data)
+          // .enter()
+          // .append("rect")
+          //   .attr("x", function(d) { return x(d.Country); })
+          //   .attr("y", function(d) { return y(d.Value); })
+          //   .attr("width", x.bandwidth())
+          //   .attr("height", function(d) { return MyDistributionRenderer.HEIGHT - y(d.Value); })
+          //   .attr("fill", "#69b3a2")
+        }
       },
     };
   }
