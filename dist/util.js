@@ -189,11 +189,18 @@ const set2 = [
 const set3 = [
     // based on set3: https://vega.github.io/vega/docs/schemes/#set3
     // -> rearranged and without orange, turquose, and grey
-    '#80b1d3' /* set3:blue */, '#fb8072' /* set3:red */, '#b3de69' /* set3:green */, '#bc80bd' /* set3:lila */, '#ffed6f' /* set3:yellow */,
-    '#fccde5' /* set3:pink */, '#ccebc5' /* set3:mint */, '#bebada' /* set3:light lila */, '#f1e2cc' /* p2:brown */,
+    '#8dd3c7' /* set3:turquose */,
+    '#fdb462' /* set3:orange */,
+    '#b3de69' /* set3:green */,
+    '#fb8072' /* set3:red */,
+    '#ffed6f' /* set3:yellow */,
+    '#bc80bd' /* set3:lila */,
+    '#80b1d3' /* set3:blue */,
+    '#fccde5' /* set3:pink */,
+    '#ccebc5' /* set3:mint */,
+    '#bebada' /* set3:light lila */,
+    '#d8b5a5' /* t20: light brown */,
     // '#ffffb3' /* set3:light yellow */,
-    // '#8dd3c7' /* set3:turquose */,
-    // '#fdb462' /* set3:orange */,
     // '#d9d9d9' /* set3:grey */,
 ];
 const combination = [

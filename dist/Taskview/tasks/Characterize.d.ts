@@ -21,6 +21,7 @@ export declare class Characterize extends ATask {
     private dataProv;
     private cohorts;
     private definingAttributes;
+    private chart;
     supports(attributes: IAttribute[], cohorts: ICohort[]): boolean;
     showSearchBar(): boolean;
     show(columnHeader: HTMLDivElement, container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]): Promise<void>;
@@ -28,10 +29,11 @@ export declare class Characterize extends ATask {
     private showOverlap;
     setDefiningAttributeTooltip(hintText: HTMLElement): void;
     private compare;
-    createLineUp(data: any): Promise<void>;
+    createLineUp(data: any, showCategoryColumn?: boolean): Promise<void>;
     updateLineUp(importances: any): void;
     addProgressBar(): void;
     setProgress(iteration: number, done?: boolean): void;
+    setProgressIndefinite(): void;
     setProgressDone(): void;
     fadeOutProgressBar(delay?: number): Promise<NodeJS.Timeout>;
     getData(attributes: IAttribute[], cohorts: Cohort[]): Promise<unknown[]>;

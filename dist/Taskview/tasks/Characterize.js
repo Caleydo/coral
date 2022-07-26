@@ -3,6 +3,7 @@ import { format } from 'd3-format';
 import * as LineUpJS from 'lineupjs';
 import { ERenderMode, renderMissingDOM } from 'lineupjs';
 import tippy from 'tippy.js';
+import vegaEmbed from 'vega-embed';
 import { getCohortLabel } from '../../Cohort';
 import { colors } from '../../colors';
 import { ServerColumnAttribute } from '../../data/Attribute';
@@ -53,17 +54,36 @@ export class Characterize extends ATask {
         <button class="btn btn-coral" id="meta">Compare by <i>Meta-Data</i></button>
         <button class="btn btn-coral" id="mutated">Compare by <i>AA Mutated</i></button>
         <input type="checkbox" id="exclude-attributes" checked> Exclude the cohorts' <span class="hint">defining attributes</span></input>
+
+        <span>&emsp;</span>
+
+        <label for="max-depth">Max Attributes</label>
+        <input type="range" id="max-depth" name="max-depth" min="1" max="100" value="50" oninput="this.nextElementSibling.value = this.value">
+        <output for="max-depth">50</output>
+
+        <span>&emsp;</span>
+
+        <label for="min-group-size">Min Group Size</label>
+        <input type="range" id="min-group-size" name="min-group-size" min="1" max="100" value="1" oninput="this.nextElementSibling.value = this.value"<>
+        <output for="min-group-size">1</output>
       </div>
 
       <div class="progress-wrapper"></div>
+      <div class="accuracy-container"></div>
 
-      <div class="lineup-container"></div>
+      <div class="classifier-result">
+        <div class="lineup-container"></div>
+        <div class="chart-container"></div>
+      </div>
     `;
         this.$container.querySelectorAll('button').forEach((btn) => btn.addEventListener('click', () => {
-            if (this.lineup) {
-                this.lineup.destroy();
-            }
+            var _a, _b;
+            (_a = this.lineup) === null || _a === void 0 ? void 0 : _a.destroy();
             this.$container.querySelector('.lineup-container').innerHTML = '';
+            (_b = this.chart) === null || _b === void 0 ? void 0 : _b.forEach((view) => view.finalize());
+            this.chart = [];
+            this.$container.querySelector('.chart-container').innerHTML = '';
+            this.$container.querySelector('.accuracy-container').innerHTML = '';
             this.addProgressBar();
             this.compare(`cmp_${btn.id}`);
         }));
@@ -185,6 +205,8 @@ export class Characterize extends ATask {
             return true;
         })
             .map((attr) => 'gene' in attr ? attr.gene : attr.id);
+        const maxDepth = parseInt(this.$container.querySelector('input#max-depth').value);
+        const minGroupSize = parseInt(this.$container.querySelector('input#min-group-size').value);
         const url = new URL(`/kokiri/${endpoint}/`, location.href);
         url.protocol = url.protocol.replace('http', 'ws');
         console.log('url', url);
@@ -192,6 +214,9 @@ export class Characterize extends ATask {
         this.ws.onopen = async () => {
             const data = JSON.stringify({
                 exclude: excludeAttributes,
+                n_estimators: Characterize.TREES,
+                max_depth: maxDepth,
+                min_samples_leaf: minGroupSize,
                 ids: this.ids,
             });
             console.log('Socket is open');
@@ -207,19 +232,61 @@ export class Characterize extends ATask {
         this.ws.onmessage = async (message) => {
             console.log('response', message);
             const responseData = JSON.parse(message.data);
-            try {
-                console.log(responseData.trees);
-                this.setProgress(responseData.trees);
-                if (first) {
-                    await this.createLineUp(responseData.importances); // await so its ready for the next response
-                    first = false;
+            if (responseData.trees) {
+                try {
+                    console.log(responseData.trees);
+                    this.setProgress(responseData.trees);
+                    if (first) {
+                        const showCategoryColumn = endpoint === 'cmp_meta';
+                        await this.createLineUp(responseData.importances, showCategoryColumn); // await so its ready for the next response
+                        first = false;
+                    }
+                    else {
+                        this.updateLineUp(responseData.importances);
+                    }
+                    this.$container.querySelector('.accuracy-container').innerHTML =
+                        `
+            <h1 style="display: inline">Accuracy:</h1> ${Characterize.jaccardFormat(responseData.accuracy)}
+            <h1 style="display: inline">OOB Score:</h1> ${Characterize.jaccardFormat(responseData.oobError)}
+          
+          `;
                 }
-                else {
-                    this.updateLineUp(responseData.importances);
+                catch (e) {
+                    console.error('could not read JSON data', e);
                 }
             }
-            catch (e) {
-                console.error('could not read JSON data', e);
+            else if (responseData.embedding) {
+                console.log('create plot');
+                const vegaContainer = this.$container
+                    .querySelector('.chart-container');
+                const result = await vegaEmbed(vegaContainer, {
+                    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                    "title": `${responseData.data} Data Embedding`,
+                    "data": {
+                        "values": responseData.embedding
+                    },
+                    "transform": [
+                        { "calculate": "'#'+datum.cht", "as": "chts" }
+                    ],
+                    "width": "container",
+                    "height": "container",
+                    "mark": { "type": "point" },
+                    "encoding": {
+                        "x": { "field": "x", "type": "quantitative", axis: null },
+                        "y": { "field": "y", "type": "quantitative", axis: null },
+                        "color": { "field": "chts", "type": "nominal" },
+                        "opacity": { "condition": { "param": "cohort", "value": 0.9 }, "value": 0.01 }
+                    },
+                    "params": [{
+                            "name": "cohort",
+                            "select": { "type": "point", "fields": ["chts"] },
+                            "bind": "legend"
+                        }],
+                    config: {
+                        range: { category: this.cohorts.map((cht) => cht.colorTaskView) }
+                    }
+                }, { actions: false, renderer: 'svg' });
+                this.chart.push(result.view);
             }
         };
         this.ws.onclose = () => {
@@ -227,11 +294,17 @@ export class Characterize extends ATask {
             this.setProgressDone();
         };
     }
-    async createLineUp(data) {
+    async createLineUp(data, showCategoryColumn = true) {
         const builder = LineUpJS.builder(data);
+        const categoryCol = LineUpJS.buildStringColumn('category').label('Category').width(200);
+        if (!showCategoryColumn) {
+            categoryCol.hidden();
+        }
         this.lineup = builder
-            .column(LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(200))
-            .column(LineUpJS.buildStringColumn('category').label('Category').width(200))
+            .column(showCategoryColumn ?
+            LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(200) :
+            LineUpJS.buildStringColumn('attribute').label('Attribute').width(200))
+            .column(categoryCol)
             .column(LineUpJS.buildNumberColumn('importance', [0, 1]).label('Importance').width(150))
             .column(LineUpJS.buildColumn("myDistributionColumn", 'distribution').label('Distribution').renderer("myDistributionRenderer", "myDistributionRenderer").width(50).build([]))
             .registerRenderer("myDistributionRenderer", new MyDistributionRenderer())
@@ -243,6 +316,7 @@ export class Characterize extends ATask {
             .sortBy('Importance', 'desc')
             // .groupBy('Attribute')
             .groupSortBy('Importance', 'desc'))
+            .sidePanel(false)
             .buildTaggle(this.$container.querySelector('.lineup-container'));
         this.dataProv = this.lineup.data;
         const children = this.lineup.data.getFirstRanking().children; // alternative: builder.buildData().getFirstRanking(),...
@@ -284,8 +358,13 @@ export class Characterize extends ATask {
         this.progressBar.textContent = `${iteration}/${Characterize.TREES}`;
         this.progressBar.style.width = `${100 * iteration / Characterize.TREES}%`;
         if (iteration === Characterize.TREES) {
-            this.setProgressDone();
+            this.setProgressIndefinite();
         }
+    }
+    setProgressIndefinite() {
+        this.progressBar.textContent = 'Summarizing';
+        this.progressBar.classList.toggle('progress-bar-animated', true);
+        this.progressBar.classList.toggle('progress-bar-striped', true);
     }
     setProgressDone() {
         this.progressBar.textContent = 'Done';
