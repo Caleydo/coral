@@ -718,14 +718,7 @@ export class KaplanMeierPlot extends SingleAttributeVisualization {
         {
           name: 'color',
           type: 'ordinal',
-          domain: {
-            fields: [
-              {data: 'data_0', field: DATA_LABEL},
-              {data: 'data_2', field: DATA_LABEL},
-              {data: 'data_1', field: DATA_LABEL}
-            ],
-            sort: true
-          },
+          domain: this.cohorts.map((cht) => cht.label),
           range: 'category'
         }
       ],
