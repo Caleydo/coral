@@ -2,8 +2,7 @@ import * as aq from 'arquero';
 import { format } from 'd3-format';
 import * as LineUpJS from 'lineupjs';
 import { ERenderMode, renderMissingDOM } from 'lineupjs';
-// import * as d3 from 'd3';
-import { select } from 'd3-selection';
+import * as d3 from 'd3v7';
 import tippy from 'tippy.js';
 import vegaEmbed from 'vega-embed';
 import { getCohortLabel } from '../../Cohort';
@@ -303,13 +302,13 @@ export class Characterize extends ATask {
             categoryCol.hidden();
         }
         this.lineup = builder
-            .column(LineUpJS.buildNumberColumn('importance', [0, 1]).label('Importance').width(150))
+            .column(LineUpJS.buildNumberColumn('importance', [0, 1]).label('Importance').width(150).colorMapping(colors.barColor))
             .column(showCategoryColumn ?
-            LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(200) :
+            LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(150) :
             LineUpJS.buildStringColumn('attribute').label('Attribute').width(200))
             .column(categoryCol)
             .column(LineUpJS.buildColumn("myDistributionColumn", 'distribution').label('Distribution').renderer("myDistributionRenderer", "myDistributionRenderer").width(200).build([]))
-            .registerRenderer("myDistributionRenderer", new MyDistributionRenderer())
+            .registerRenderer("myDistributionRenderer", new MyDistributionRenderer(this.cohorts))
             .registerColumnType("myDistributionColumn", LineUpDistributionColumn)
             .deriveColors()
             .ranking(LineUpJS.buildRanking()
@@ -427,7 +426,8 @@ export class Characterize extends ATask {
 Characterize.TREES = 200;
 Characterize.jaccardFormat = format('.1~%');
 export class MyDistributionRenderer {
-    constructor() {
+    constructor(cohorts) {
+        this.cohorts = cohorts;
         this.title = "Distribution Chart";
     }
     canRender(col, mode) {
@@ -437,19 +437,23 @@ export class MyDistributionRenderer {
         return {
             template: `<div class="svg-container" style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
         <svg id="loading" width="${MyDistributionRenderer.WIDTH}" height="${MyDistributionRenderer.HEIGHT}" viewBox="0 0 ${MyDistributionRenderer.WIDTH} ${MyDistributionRenderer.HEIGHT}" enable-background="new 0 0 0 0">
-          <circle fill="#333333" stroke="none" cx="80" cy="10" r="8">
+          <circle fill="${colors.barColor}" stroke="none" cx="80" cy="10" r="8">
             <animate attributeName="opacity" dur="2s" values="0;0.5;0" repeatCount="indefinite" begin="0.1" />
           </circle>
-          <circle fill="#333333" stroke="none" cx="100" cy="10" r="8">
+          <circle fill="${colors.barColor}" stroke="none" cx="100" cy="10" r="8">
             <animate attributeName="opacity" dur="2s" values="0;0.5;0" repeatCount="indefinite" begin="0.66" />
           </circle>
-          <circle fill="#333333" stroke="none" cx="120" cy="10" r="8">
+          <circle fill="${colors.barColor}" stroke="none" cx="120" cy="10" r="8">
             <animate attributeName="opacity" dur="2s" values="0;0.5;0" repeatCount="indefinite" begin="1.33" />
           </circle>
         </svg>
         <svg id="chart" width="${MyDistributionRenderer.WIDTH}" height="${MyDistributionRenderer.HEIGHT}" viewBox="0 0 ${MyDistributionRenderer.WIDTH} ${MyDistributionRenderer.HEIGHT}" enable-background="new 0 0 0 0">
           <g>
             <!-- filled by update function -->
+          </g>
+
+          <g class="xaxis" transform="translate(0,${MyDistributionRenderer.HEIGHT})" fill="none" font-size="10" font-family="sans-serif" text-anchor="middle">
+            <path class="domain" stroke="#fff" d="M0,0 H${MyDistributionRenderer.WIDTH}"></path>
           </g>
         </svg>
       </div>`,
@@ -459,34 +463,44 @@ export class MyDistributionRenderer {
                     return;
                 }
                 const data = (_a = d.v) === null || _a === void 0 ? void 0 : _a.distribution;
-                if (d.v.random !== false) {
-                    console.log('remove loader');
-                    select(n).selectAll('#loading').remove();
-                    // const chart = select(n).select('#chart g')
-                    // X axis
-                    // var x = d3.scaleBand()
-                    // .range([ 0, MyDistributionRenderer.WIDTH ])
-                    // .domain(data.map(function(d) { return d.Country; }))
-                    // .padding(0.2);
-                    // // Add Y axis
-                    // var y = d3.scaleLinear()
-                    // .domain([0, 13000])
-                    // .range([ MyDistributionRenderer.HEIGHT, 0]);
-                    // // Bars
-                    // chart.selectAll("mybar")
-                    // .data(data)
-                    // .enter()
-                    // .append("rect")
-                    //   .attr("x", function(d) { return x(d.Country); })
-                    //   .attr("y", function(d) { return y(d.Value); })
-                    //   .attr("width", x.bandwidth())
-                    //   .attr("height", function(d) { return MyDistributionRenderer.HEIGHT - y(d.Value); })
-                    //   .attr("fill", "#69b3a2")
+                if (data && d.v.random === false) {
+                    d3.select(n).selectAll('#loading').remove();
+                    d3.select(n).select('.xaxis path').attr('stroke', colors.barColor);
+                    const chart = d3.select(n).select('#chart g');
+                    if (d.v.type === 'cat') {
+                        console.log(`OK: ${d.v.attribute}`);
+                        // X axis
+                        var x = d3.scaleBand()
+                            .range([0, MyDistributionRenderer.WIDTH])
+                            .domain(data.map(function (d) { return d.cht; }))
+                            .padding(0.2);
+                        // Add Y axis
+                        var y = d3.scaleLinear()
+                            .domain([0, 1])
+                            .range([MyDistributionRenderer.HEIGHT, 0]);
+                        // Bars
+                        chart.selectAll("rect")
+                            .data(data)
+                            .enter()
+                            .append("rect")
+                            .attr("x", (d) => x(d.cht))
+                            .attr("y", (d) => y(d.value))
+                            .attr("width", x.bandwidth())
+                            .attr("height", function (d) { return MyDistributionRenderer.HEIGHT - y(d.value); })
+                            .attr("fill", (d, i) => this.cohorts[i].colorTaskView)
+                            .exit().remove();
+                    }
+                    else {
+                        console.log(`type of ${d.v.attribute} is  ${d.v.type}`);
+                    }
+                }
+                else {
+                    console.log(`${d.v.attribute} is random`);
                 }
             },
         };
     }
 }
 MyDistributionRenderer.WIDTH = 200;
-MyDistributionRenderer.HEIGHT = 50;
+MyDistributionRenderer.HEIGHT = 40;
 //# sourceMappingURL=Characterize.js.map

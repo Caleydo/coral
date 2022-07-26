@@ -142,7 +142,8 @@ class LineUpDistributionColumn extends MapColumn {
         const r = this.getRawValue(row);
         // return r ? r.map((d) => d.value) : [NaN];
         // return r ? r[0]["value"] : [NaN];
-        return [this.get_advanced_value(EAdvancedSortMethod.median, r[0]["value"])];
+        //@ts-ignore
+        return [this.get_advanced_value(EAdvancedSortMethod.median, r.map((d) => d["value"]))];
     }
     getValue(row) {
         const values = this.getRawValue(row);

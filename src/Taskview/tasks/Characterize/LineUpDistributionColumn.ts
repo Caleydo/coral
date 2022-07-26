@@ -271,7 +271,8 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
     const r = this.getRawValue(row);
     // return r ? r.map((d) => d.value) : [NaN];
     // return r ? r[0]["value"] : [NaN];
-    return [this.get_advanced_value(EAdvancedSortMethod.median, r[0]["value"])];
+    //@ts-ignore
+    return [this.get_advanced_value(EAdvancedSortMethod.median, r.map((d) => d["value"]))];
   }
 
   getValue(row: IDataRow): IKeyValue<number[]>[] {

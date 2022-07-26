@@ -40,9 +40,11 @@ export declare class Characterize extends ATask {
     postData(endpoint: string, data?: {}): Promise<Response>;
 }
 export declare class MyDistributionRenderer implements ICellRendererFactory {
+    private cohorts;
     readonly title: string;
     static readonly WIDTH = 200;
-    static readonly HEIGHT = 50;
+    static readonly HEIGHT = 40;
+    constructor(cohorts: Cohort[]);
     canRender(col: LineUpDistributionColumn, mode: ERenderMode): boolean;
     create(col: LineUpDistributionColumn): ICellRenderer;
 }
