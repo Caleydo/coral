@@ -151,24 +151,21 @@ class LineUpDistributionColumn extends MapColumn {
             return null;
         }
         //@ts-ignore
-        return values.map(({ key, value }) => {
-            return {
-                key,
-                value: value.length === 0
-                    ? null
-                    : value.map((val) => this.mapping.apply(val)),
-            };
-        });
+        return values.map((d) => d.value);
+        // //@ts-ignore
+        // return values.map(({key, value}) => {
+        //   return {
+        //     key,
+        //     value:
+        //       value.length === 0
+        //         ? null
+        //         : value.map((val) => this.mapping.apply(val)),
+        //   };
+        // });
     }
     getRawValue(row) {
         const r = super.getValue(row);
         return r == null ? [] : r;
-        // const values = super.getValue(row);
-        // if(values.length === 0)
-        //     return null;
-        // return values.map(({key, value}) => {
-        //     return {key, value: value.length===0 ? null : value};
-        // });
     }
     getExportValue(row, format) {
         return format === "json"
@@ -279,7 +276,9 @@ class LineUpDistributionColumn extends MapColumn {
     filter(row) {
         // currently it checks, if the median is within the range
         // const value = this.getRawNumber(row);
-        const value = this.get_advanced_value(EAdvancedSortMethod.median, this.getRawValue(row)[0]["value"]);
+        const value = this.get_advanced_value(EAdvancedSortMethod.median, 
+        //@ts-ignore
+        this.getRawValue(row).map((v) => v.value));
         return this.isNumberIncluded(this.getFilter(), value);
     }
     clearFilter() {

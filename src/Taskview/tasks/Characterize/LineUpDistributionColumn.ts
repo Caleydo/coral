@@ -283,28 +283,22 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
     }
 
     //@ts-ignore
-    return values.map(({key, value}) => {
-      return {
-        key,
-        value:
-          value.length === 0
-            ? null
-            : value.map((val) => this.mapping.apply(val)),
-      };
-    });
+    return values.map((d) => d.value);
+    // //@ts-ignore
+    // return values.map(({key, value}) => {
+    //   return {
+    //     key,
+    //     value:
+    //       value.length === 0
+    //         ? null
+    //         : value.map((val) => this.mapping.apply(val)),
+    //   };
+    // });
   }
 
   getRawValue(row: IDataRow): IKeyValue<number[]>[] {
     const r = super.getValue(row);
     return r == null ? [] : r;
-    // const values = super.getValue(row);
-
-    // if(values.length === 0)
-    //     return null;
-
-    // return values.map(({key, value}) => {
-    //     return {key, value: value.length===0 ? null : value};
-    // });
   }
 
   getExportValue(row: IDataRow, format: "text" | "json"): any {
@@ -504,7 +498,8 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
     // const value = this.getRawNumber(row);
     const value = this.get_advanced_value(
       EAdvancedSortMethod.median,
-      this.getRawValue(row)[0]["value"]
+      //@ts-ignore
+      this.getRawValue(row).map((v) => v.value)
     );
 
     return this.isNumberIncluded(this.getFilter(), value);
