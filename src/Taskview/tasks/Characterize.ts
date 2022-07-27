@@ -355,16 +355,25 @@ export class Characterize extends ATask {
     }
 
     this.lineup = builder
-      .column(LineUpJS.buildNumberColumn('importance', [0, 1]).label('Importance').width(150).colorMapping(colors.barColor))
+      .column(
+        LineUpJS.buildNumberColumn('importance', [0, 1])
+          .label('Importance')
+          .width(150)
+          .colorMapping(colors.barColor)
+          .numberFormat('.3f')
+        )
       .column(
         showCategoryColumn ? 
         LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(150) :
         LineUpJS.buildStringColumn('attribute').label('Attribute').width(200)
         )
       .column(categoryCol)
-      .column(LineUpJS.buildColumn("myDistributionColumn", 'distribution').label('Distribution').renderer("myDistributionRenderer", "myDistributionRenderer").width(200).build([]))
-      .registerRenderer("myDistributionRenderer", new MyDistributionRenderer(this.cohorts))
-      .registerColumnType("myDistributionColumn", LineUpDistributionColumn)
+      .column(
+          LineUpJS.buildColumn("myDistributionColumn", 'distribution').label('Distribution')
+            .renderer("myDistributionRenderer", "myDistributionRenderer").width(200).build([])
+        )
+        .registerRenderer("myDistributionRenderer", new MyDistributionRenderer(this.cohorts))
+        .registerColumnType("myDistributionColumn", LineUpDistributionColumn)
       .deriveColors()
       .ranking(LineUpJS.buildRanking()
         .supportTypes()
