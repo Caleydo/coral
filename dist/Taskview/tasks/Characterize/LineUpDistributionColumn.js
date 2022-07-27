@@ -299,7 +299,8 @@ LineUpDistributionColumn = LineUpDistributionColumn_1 = __decorate([
 export { LineUpDistributionColumn };
 export const DEFAULT_FORMATTER = format(".3n");
 export function noNumberFilter() {
-    return { min: -Infinity, max: Infinity, filterMissing: false };
+    // return {min: Number.NEGATIVE_INFINITY, max: Number.POSITIVE_INFINITY, filterMissing: false }
+    return { min: Number.NaN, max: Number.NaN, filterMissing: false };
 }
 export function isEqualNumberFilter(a, b, delta = 0.001) {
     return (similar(a.min, b.min, delta) &&
