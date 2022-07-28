@@ -6,7 +6,7 @@ import { IAttribute } from '../../data/Attribute';
 import { ATask } from './ATask';
 import { LineUpDistributionColumn } from './Characterize/LineUpDistributionColumn';
 export declare class Characterize extends ATask {
-    static readonly TREES = 200;
+    static readonly TREES = 300;
     static readonly jaccardFormat: (n: number | {
         valueOf(): number;
     }) => string;
@@ -29,6 +29,7 @@ export declare class Characterize extends ATask {
     private showOverlap;
     setDefiningAttributeTooltip(hintText: HTMLElement): void;
     private compare;
+    updateConfusionMatrix(responseData: any): Promise<void>;
     createLineUp(data: any, showCategoryColumn?: boolean): Promise<void>;
     updateLineUp(importances: any): void;
     addProgressBar(): void;

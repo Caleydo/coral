@@ -106,18 +106,23 @@ export class Characterize extends ATask {
       <div class="accuracy-container"></div>
 
       <div class="classifier-result">
-        <div class="lineup-container"></div>
+        <div class="attribute-ranking"></div>
+        <div class="cohort-confusion"></div>
+      </div>
+      <div class="probabilities">
+        <div class="item-ranking">Items ranked by predicition probability</div>
         <div class="chart-container"></div>
       </div>
     `;
 
     this.$container.querySelectorAll('button').forEach((btn) => btn.addEventListener('click', () => {
       this.lineup?.destroy();
-      this.$container.querySelector('.lineup-container').innerHTML = '';
+      this.$container.querySelector('.attribute-ranking').innerHTML = '';
       this.chart?.forEach((view) => view.finalize());
       this.chart = [];
       this.$container.querySelector('.chart-container').innerHTML = '';
       this.$container.querySelector('.accuracy-container').innerHTML = '';
+      this.$container.querySelector('.cohort-confusion').innerHTML = '';
       this.addProgressBar();
       this.compare(`cmp_${btn.id}`);
     }));
@@ -303,6 +308,8 @@ export class Characterize extends ATask {
           
           `;
 
+          this.updateConfusionMatrix(responseData);
+
         } catch (e) {
           console.error('could not read JSON data', e);
         }
@@ -312,7 +319,7 @@ export class Characterize extends ATask {
                                     .querySelector('.chart-container') as HTMLDivElement;
         const result = await vegaEmbed(vegaContainer, {
             "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-            "title": `${responseData.data} Data Embedding`,
+            "title": `Cohort Certainty`,
             "data": {
               "values": responseData.embedding
             },
@@ -321,7 +328,7 @@ export class Characterize extends ATask {
             ],
             "width": "container",
             "height": "container",
-            "mark": {"type": "point"},
+            "mark": {"type": "point", "filled": true},
             "encoding": {
               "x": { "field": "x", "type": "quantitative", axis: null },
               "y": { "field": "y", "type": "quantitative", axis: null },
@@ -338,6 +345,7 @@ export class Characterize extends ATask {
             }
         }, {actions: false, renderer: 'svg'});
         this.chart.push(result.view);
+        console.log('scatter', result.spec);
       }
     } 
 
@@ -345,6 +353,71 @@ export class Characterize extends ATask {
       console.log('the socket is done');
       this.setProgressDone();
     }
+  }
+
+  async updateConfusionMatrix(responseData: any) {
+    // confusionMatrix by Sklearn
+    // data structure:
+    // Each row of of the confusionMatrix is for one cohort
+    // first column of first row: samples of first cohort classified as first cohort
+    // 2nd column of first row: samples of first cohort classified as second cohort
+    // and so on
+    //
+    // i.e., sum of first row equals items in first cohort
+    //       sum of first column equals items classified as first cohort
+    const confPlotData = [];
+    for (const [row,target_cht] of this.cohorts.entries()) {
+      for (const [column, predicted_cht] of this.cohorts.entries()) {
+        const shareOfPredicted = responseData.confusionMatrix[row][column];
+        confPlotData.push({
+          target: target_cht.label,
+          predict: predicted_cht.label,
+          correct: row===column,
+          share: shareOfPredicted
+        });
+      }
+    }
+    this.$container.querySelector('.cohort-confusion').innerHTML = '';
+    let vegaContainer = this.$container.querySelector('.cohort-confusion').insertAdjacentElement('beforeend', document.createElement('div')) as HTMLDivElement;
+    let result = await vegaEmbed(vegaContainer, {
+      "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+      "data": {"values": confPlotData},
+      "height": 200,
+      width: 400,
+      "encoding": {
+          "x": {
+            "field": "share", "type": "quantitative",
+            "title": "Predictions",
+            "stack": true, 
+          "axis": {"format": ".1%"}
+        }
+      },
+      "layer": [{
+      "mark": {"type": "bar", "tooltip": true, },
+        "encoding": {
+          "color": {"field": "predict", legend: null},
+          "y": {"field": "target", "title": null},
+          "order": {"field": "share", "type": "quantitative", "sort": "descending"},
+          "opacity": {
+            "condition": {"test": {"field": "correct", "equal":true}, "value": 1},
+            "value": 0.5
+          }
+        }
+      },
+      {
+      "data": {"values": [{"val": 1}]},
+      "mark": {"type": "rule", "strokeDash": [2]},
+      "encoding": {
+          "x": { "field": "val"}
+        }
+      }
+    ],
+    config: {
+      range: {category: this.cohorts.map((cht) => cht.colorTaskView)}
+    }
+    }, {actions: false, renderer: 'svg'});
+    // this.chart.push(result.view);
+    console.log('conf', result.spec);
   }
 
   async createLineUp(data, showCategoryColumn=true) {
@@ -384,7 +457,7 @@ export class Characterize extends ATask {
       )
       .sidePanel(false)
       .rowHeight(50)
-      .buildTaggle(this.$container.querySelector('.lineup-container'));
+      .buildTaggle(this.$container.querySelector('.attribute-ranking'));
 
     this.dataProv = this.lineup.data as LineUpJS.LocalDataProvider;
 

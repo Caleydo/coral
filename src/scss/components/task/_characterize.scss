@@ -4,7 +4,7 @@
   height: 100%;
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: auto auto auto auto minmax(500px, 1fr);
+  grid-template-rows: auto auto auto auto minmax(400px, 1fr) minmax(400px, 1fr);
   row-gap: 1em;
 
 .cht-icon {
@@ -39,7 +39,7 @@
     font-size: 1.1em;
   }
 
-  .classifier-result {
+  .classifier-result, .probabilities {
     display: grid;
     grid-template-columns: 2fr 1fr;
     grid-template-rows: 1fr;
