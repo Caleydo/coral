@@ -17,7 +17,7 @@ import {ATask} from './ATask';
 import {LineUpDistributionColumn} from './Characterize/LineUpDistributionColumn';
 
 export class Characterize extends ATask {
-  static readonly TREES = 200;
+  static readonly TREES = 300;
   static readonly jaccardFormat = format('.1~%');
 
   public label = `Characterize`;
