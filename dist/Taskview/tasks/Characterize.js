@@ -54,13 +54,14 @@ export class Characterize extends ATask {
         <h1>Cohort Differences</h1>
         <button class="btn btn-coral" id="meta">Compare by <i>Meta-Data</i></button>
         <button class="btn btn-coral" id="mutated">Compare by <i>AA Mutated</i></button>
+        <span>&emsp;</span>
         <input type="checkbox" id="exclude-attributes" checked> Exclude the cohorts' <span class="hint">defining attributes</span></input>
 
         <span>&emsp;</span>
 
         <label for="max-depth">Max Attributes</label>
-        <input type="range" id="max-depth" name="max-depth" min="1" max="100" value="50" oninput="this.nextElementSibling.value = this.value">
-        <output for="max-depth">50</output>
+        <input type="range" id="max-depth" name="max-depth" min="1" max="100" value="100" oninput="this.nextElementSibling.value = this.value">
+        <output for="max-depth">100</output>
 
         <span>&emsp;</span>
 
@@ -70,14 +71,17 @@ export class Characterize extends ATask {
       </div>
 
       <div class="progress-wrapper"></div>
-      <div class="accuracy-container"></div>
 
       <div class="classifier-result">
         <div class="attribute-ranking"></div>
-        <div class="cohort-confusion"></div>
+        <div style="display: flex;flex-direction: column;margin: 1em;">
+          <div class="accuracy-container center" style="margin-top: 4em"></div>
+          <div class="cohort-confusion"></div>
+        </div>
       </div>
+      <hr>
       <div class="probabilities">
-        <div class="item-ranking">Items ranked by predicition probability</div>
+        <div class="item-ranking">TODO: <i>Items ranked by predicition probability</i></div>
         <div class="chart-container"></div>
       </div>
     `;
@@ -152,14 +156,14 @@ export class Characterize extends ATask {
                     const drawCht = this.cohorts.find((cht) => cht.id === chtA);
                     const remainingCht = this.cohorts.find((cht) => cht.id === chtB);
                     container.insertAdjacentHTML('beforeend', `
-            <div style="display: flex;align-items: center; margin: 1em">
+            <div class="center" style="margin: 1em; justify-content: start;">
               <div class="cht-icon up" style="background-color: ${drawCht.colorTaskView}"></div>
               <div class="cht-icon down left" style="background-color: ${remainingCht.colorTaskView}"></div>
               <div class="cht-overlap">
                 <div class="cht-bar" style="width: ${100 * (exclusiveInA + intersection)}%; background: ${drawCht.colorTaskView}"></div>
                 <div class="cht-bar" style="width: ${100 * (exclusiveInB + intersection)}%; margin-left: ${100 * (exclusiveInA)}%;background: ${remainingCht.colorTaskView}"></div>
               </div>
-              <div class="cht-bar-label">&ensp;${Characterize.jaccardFormat(intersection)}</div>
+              <div class="cht-bar-label">&ensp;${Characterize.formatPercent(intersection)}</div>
             </div>
           `);
                 }
@@ -250,12 +254,7 @@ export class Characterize extends ATask {
                     else {
                         this.updateLineUp(responseData.importances);
                     }
-                    this.$container.querySelector('.accuracy-container').innerHTML =
-                        `
-            <h1 style="display: inline">Accuracy:</h1> ${Characterize.jaccardFormat(responseData.accuracy)}
-            <h1 style="display: inline">OOB Score:</h1> ${Characterize.jaccardFormat(responseData.oobError)}
-          
-          `;
+                    this.$container.querySelector('.accuracy-container').innerHTML = ` <h2>Differentiation:  ${Characterize.formatPercent(responseData.oobError)}</h2> `;
                     this.updateConfusionMatrix(responseData);
                 }
                 catch (e) {
@@ -329,7 +328,7 @@ export class Characterize extends ATask {
         let result = await vegaEmbed(vegaContainer, {
             "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
             "data": { "values": confPlotData },
-            "height": 200,
+            height: { step: 30 },
             width: 400,
             "encoding": {
                 "x": {
@@ -500,7 +499,7 @@ export class Characterize extends ATask {
     }
 }
 Characterize.TREES = 300;
-Characterize.jaccardFormat = format('.1~%');
+Characterize.formatPercent = format('.1~%');
 export class MyDistributionRenderer {
     constructor(cohorts) {
         this.cohorts = cohorts;
@@ -511,7 +510,7 @@ export class MyDistributionRenderer {
     }
     create(col) {
         return {
-            template: `<div class="svg-container" style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
+            template: `<div class="svg-container center" style="flex-direction: column;">
         <svg id="loading" width="${MyDistributionRenderer.WIDTH}" height="${MyDistributionRenderer.HEIGHT}" viewBox="0 0 ${MyDistributionRenderer.WIDTH} ${MyDistributionRenderer.HEIGHT}" enable-background="new 0 0 0 0">
           <circle fill="${colors.barColor}" stroke="none" cx="80" cy="10" r="8">
             <animate attributeName="opacity" dur="2s" values="0;0.5;0" repeatCount="indefinite" begin="0.1" />

@@ -2,10 +2,9 @@
   $border-radius: 0.2em;
 
   height: 100%;
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto auto auto auto minmax(400px, 1fr) minmax(400px, 1fr);
-  row-gap: 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
 
 .cht-icon {
     width: 1.5em;
@@ -34,14 +33,27 @@
     height: 0.5em;
     border-radius: $border-radius;
   }
+  .cht-bar-label {
+    font-weight: 500;
+  }
 
   h1 {
     font-size: 1.1em;
+  }
+
+  h2 {
+    font-size: 1em;
   }
 
   .classifier-result, .probabilities {
     display: grid;
     grid-template-columns: 2fr 1fr;
     grid-template-rows: 1fr;
+  }
+
+  .center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 }
