@@ -56,4 +56,13 @@
     justify-content: center;
     align-items: center;
   }
+
+  .resizeable {
+    flex-grow: 1;
+    flex-shrink: 1;
+
+    &.filled {
+      flex-basis: 400px;
+    }
+  }
 }

@@ -15,6 +15,7 @@ import {getAnimatedLoadingText} from '../../util';
 import {DATA_LABEL} from '../visualizations';
 import {ATask} from './ATask';
 import {LineUpDistributionColumn} from './Characterize/LineUpDistributionColumn';
+import {ProbabilityScatterplot} from './Characterize/ProbabilityScatterplot';
 
 export class Characterize extends ATask {
   static readonly TREES = 300;
@@ -105,15 +106,15 @@ export class Characterize extends ATask {
 
       <div class="progress-wrapper"></div>
 
-      <div class="classifier-result">
+      <div class="classifier-result resizeable">
         <div class="attribute-ranking"></div>
-        <div style="display: flex;flex-direction: column;margin: 1em;">
+        <div style="display: flex;flex-direction: column;">
           <div class="accuracy-container center" style="margin-top: 4em"></div>
           <div class="cohort-confusion"></div>
         </div>
       </div>
       <hr>
-      <div class="probabilities">
+      <div class="probabilities resizeable">
         <div class="item-ranking">TODO: <i>Items ranked by predicition probability</i></div>
         <div class="chart-container"></div>
       </div>
@@ -127,6 +128,8 @@ export class Characterize extends ATask {
       this.$container.querySelector('.chart-container').innerHTML = '';
       this.$container.querySelector('.accuracy-container').innerHTML = '';
       this.$container.querySelector('.cohort-confusion').innerHTML = '';
+      
+      this.$container.querySelectorAll('.resizeable').forEach((elem) => elem.classList.remove('filled'));
       this.addProgressBar();
       this.compare(`cmp_${btn.id}`);
     }));
@@ -298,6 +301,7 @@ export class Characterize extends ATask {
           console.log(responseData.trees);
           this.setProgress(responseData.trees);
           if (first) {
+            this.$container.querySelectorAll('.resizeable').forEach((elem) => elem.classList.add('filled'));
             const showCategoryColumn = endpoint === 'cmp_meta';
             await this.createLineUp(responseData.importances, showCategoryColumn); // await so its ready for the next response
             first = false;
@@ -315,33 +319,9 @@ export class Characterize extends ATask {
         console.log('create plot')
         const vegaContainer = this.$container
                                     .querySelector('.chart-container') as HTMLDivElement;
-        const result = await vegaEmbed(vegaContainer, {
-            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-            "title": `Cohort Certainty`,
-            "data": {
-              "values": responseData.embedding
-            },
-            "transform": [
-              {"calculate": "'#'+datum.cht", "as": "chts"}
-            ],
-            "width": "container",
-            "height": "container",
-            "mark": {"type": "point", "filled": true},
-            "encoding": {
-              "x": { "field": "x", "type": "quantitative", axis: null },
-              "y": { "field": "y", "type": "quantitative", axis: null },
-              "color": {"field": "chts", "type": "nominal"},
-              "opacity": { "condition": {"param": "cohort", "value": 0.9}, "value": 0.01 }
-            },
-            "params": [{
-              "name": "cohort",
-              "select": {"type": "point", "fields": ["chts"]},
-              "bind": "legend"
-            }],
-            config: {
-              range: {category: this.cohorts.map((cht) => cht.colorTaskView)}
-            }
-        }, {actions: false, renderer: 'svg'});
+
+        const scatterplot = new ProbabilityScatterplot(responseData.embedding, this.cohorts);
+        const result = await vegaEmbed(vegaContainer, scatterplot.getSpec(), {actions: false, renderer: 'svg'});
         this.chart.push(result.view);
         console.log('scatter', result.spec);
       }
@@ -380,6 +360,7 @@ export class Characterize extends ATask {
     let result = await vegaEmbed(vegaContainer, {
       "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
       "data": {"values": confPlotData},
+      padding: 20,
       height: {step: 30},
       width: 400,
       "encoding": {
