@@ -38,17 +38,18 @@
   }
 
   h1 {
-    font-size: 1.1em;
+    font-size: 1.2em;
   }
 
   h2 {
-    font-size: 1em;
+    font-size: 1.1em;
   }
 
   .classifier-result, .probabilities {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    grid-template-rows: 1fr;
+    grid-template-rows: auto 1fr;
+    column-gap: 1em;
   }
 
   .center {
@@ -62,7 +63,11 @@
     flex-shrink: 1;
 
     &.filled {
-      flex-basis: 400px;
+      flex-basis: 30em;
     }
+  }
+
+  .separator-left {
+    border-left: 1px solid $color-border-light;
   }
 }

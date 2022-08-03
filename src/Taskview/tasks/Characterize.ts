@@ -16,6 +16,7 @@ import {DATA_LABEL} from '../visualizations';
 import {ATask} from './ATask';
 import {LineUpDistributionColumn} from './Characterize/LineUpDistributionColumn';
 import {ProbabilityScatterplot} from './Characterize/ProbabilityScatterplot';
+import {CohortColorSchema, IFilterDesc, log} from '../../util';
 
 export class Characterize extends ATask {
   static readonly TREES = 300;
@@ -30,8 +31,12 @@ export class Characterize extends ATask {
   private ws: WebSocket;
 
   private progressBar: any;
-  private lineup: LineUpJS.Taggle;
-  private dataProv: LineUpJS.LocalDataProvider;
+  
+  private attributeRanking: LineUpJS.Taggle;
+  private attributeRankingData: LineUpJS.LocalDataProvider;
+  private itemRanking: LineUpJS.Taggle;
+  private itemRankingData: LineUpJS.LocalDataProvider;
+
   private cohorts: Cohort[];
   private definingAttributes: IAttribute[];
   private chart: VegaView[];
@@ -85,43 +90,52 @@ export class Characterize extends ATask {
     this.$container.innerHTML = `
       <div class="custom-upset-container"></div>
       <div>
-        <h1>Cohort Differences</h1>
+        <h1>Cohort Comparison</h1>
         <button class="btn btn-coral" id="meta">Compare by <i>Meta-Data</i></button>
         <button class="btn btn-coral" id="mutated">Compare by <i>AA Mutated</i></button>
         <span>&emsp;</span>
         <input type="checkbox" id="exclude-attributes" checked> Exclude the cohorts' <span class="hint">defining attributes</span></input>
 
+        <!--
         <span>&emsp;</span>
-
         <label for="max-depth">Max Attributes</label>
         <input type="range" id="max-depth" name="max-depth" min="1" max="100" value="100" oninput="this.nextElementSibling.value = this.value">
         <output for="max-depth">100</output>
 
         <span>&emsp;</span>
-
         <label for="min-group-size">Min Group Size</label>
         <input type="range" id="min-group-size" name="min-group-size" min="1" max="100" value="1" oninput="this.nextElementSibling.value = this.value"<>
         <output for="min-group-size">1</output>
+        -->
       </div>
 
-      <div class="progress-wrapper"></div>
-
+      
       <div class="classifier-result resizeable">
+        <h2>Attribute Importance</h2>
+        <h2 class="center">Cohort Differentiation</h2>
+
         <div class="attribute-ranking"></div>
-        <div style="display: flex;flex-direction: column;">
-          <div class="accuracy-container center" style="margin-top: 4em"></div>
+        <div class="separator-left" style="display: flex; flex-direction: column;">
+          <div class="accuracy-container center"></div>
           <div class="cohort-confusion"></div>
         </div>
       </div>
-      <hr>
+        
+      <div class="progress-wrapper"></div>
+
+      <h1>Cohort Characterization</h1>
       <div class="probabilities resizeable">
-        <div class="item-ranking">TODO: <i>Items ranked by predicition probability</i></div>
-        <div class="chart-container"></div>
+        <h2>Indistinguishable Items</h2>
+        <h2 class="center">Cohort Association</h2>
+
+        <div class="item-ranking"></div>
+        <div class="chart-container separator-left"></div>
       </div>
     `;
 
     this.$container.querySelectorAll('button').forEach((btn) => btn.addEventListener('click', () => {
-      this.lineup?.destroy();
+      this.attributeRanking?.destroy();
+      this.itemRanking?.destroy();
       this.$container.querySelector('.attribute-ranking').innerHTML = '';
       this.chart?.forEach((view) => view.finalize());
       this.chart = [];
@@ -266,12 +280,11 @@ export class Characterize extends ATask {
       })
       .map((attr) => 'gene' in attr ? (attr as GeneScoreAttribute).gene : attr.id);
 
-    const maxDepth = parseInt((this.$container.querySelector('input#max-depth') as HTMLInputElement).value);
-    const minGroupSize = parseInt((this.$container.querySelector('input#min-group-size') as HTMLInputElement).value);
+    const maxDepth = 100; // parseInt((this.$container.querySelector('input#max-depth') as HTMLInputElement).value);
+    const minGroupSize = 1; //parseInt((this.$container.querySelector('input#min-group-size') as HTMLInputElement).value);
 
     const url = new URL(`/kokiri/${endpoint}/`, location.href);
     url.protocol = url.protocol.replace('http', 'ws');
-    console.log('url', url)
     this.ws = new WebSocket(url)
     this.ws.onopen = async () => {
       const data = JSON.stringify({ // send as string, because sending JSON apparantly only works this way 🤷‍♀️ (see https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications)
@@ -281,54 +294,52 @@ export class Characterize extends ATask {
         min_samples_leaf: minGroupSize,
         ids: this.ids,
       })
-      console.log('Socket is open')
       try {
         this.ws.send(data)
-      } catch {
-        console.error('error sending data')
+      } catch (e) {
+        log.error('error sending data', e)
       }
-      console.log('sent comparison data')
     };
 
 
     let first = true;
     this.ws.onmessage = async (message) => {
       const responseData = JSON.parse(message.data);
-      console.log('response', responseData);
 
       if(responseData.trees) {
         try {
-          console.log(responseData.trees);
           this.setProgress(responseData.trees);
           if (first) {
+            first = false;
             this.$container.querySelectorAll('.resizeable').forEach((elem) => elem.classList.add('filled'));
             const showCategoryColumn = endpoint === 'cmp_meta';
-            await this.createLineUp(responseData.importances, showCategoryColumn); // await so its ready for the next response
-            first = false;
+            await this.createAttributeRanking(responseData.importances, showCategoryColumn); // await so its ready for the next response
+            await this.createItemRanking(responseData.probabilities); // await so its ready for the next response
           } else {
-            this.updateLineUp(responseData.importances);
+            this.attributeRankingData?.setData(responseData.importances);
+            this.itemRankingData?.setData(responseData.probabilities);
           }
 
-          this.$container.querySelector('.accuracy-container').innerHTML = ` <h2>Differentiation:  ${Characterize.formatPercent(responseData.oobError)}</h2> `;
+          this.$container.querySelector('.accuracy-container').innerHTML = `
+            <h2>Accuracy:  ${Characterize.formatPercent(responseData.accuracy)}</h2>
+          `;
           this.updateConfusionMatrix(responseData);
 
         } catch (e) {
-          console.error('could not read JSON data', e);
+          log.error('could not read JSON data', e);
         }
       } else if (responseData.embedding) {
-        console.log('create plot')
         const vegaContainer = this.$container
                                     .querySelector('.chart-container') as HTMLDivElement;
 
         const scatterplot = new ProbabilityScatterplot(responseData.embedding, this.cohorts);
         const result = await vegaEmbed(vegaContainer, scatterplot.getSpec(), {actions: false, renderer: 'svg'});
         this.chart.push(result.view);
-        console.log('scatter', result.spec);
       }
     } 
 
     this.ws.onclose = () => {
-      console.log('the socket is done');
+      log.debug('the socket is done');
       this.setProgressDone();
     }
   }
@@ -356,13 +367,13 @@ export class Characterize extends ATask {
       }
     }
     this.$container.querySelector('.cohort-confusion').innerHTML = '';
-    let vegaContainer = this.$container.querySelector('.cohort-confusion').insertAdjacentElement('beforeend', document.createElement('div')) as HTMLDivElement;
+    let vegaContainer = this.$container.querySelector('.cohort-confusion') as HTMLDivElement;
     let result = await vegaEmbed(vegaContainer, {
       "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
       "data": {"values": confPlotData},
       padding: 20,
       height: {step: 30},
-      width: 400,
+      width: "container",
       "encoding": {
           "x": {
             "field": "share", "type": "quantitative",
@@ -395,18 +406,17 @@ export class Characterize extends ATask {
       range: {category: this.cohorts.map((cht) => cht.colorTaskView)}
     }
     }, {actions: false, renderer: 'svg'});
-    // this.chart.push(result.view);
-    console.log('conf', result.spec);
+    this.chart.push(result.view);
   }
 
-  async createLineUp(data, showCategoryColumn=true) {
+  async createAttributeRanking(data, showCategoryColumn=true) {
     const builder = LineUpJS.builder(data);
     const categoryCol = LineUpJS.buildStringColumn('category').label('Category').width(200)
     if (!showCategoryColumn) {
       categoryCol.hidden();
     }
 
-    this.lineup = builder
+    this.attributeRanking = builder
       .column(
         LineUpJS.buildNumberColumn('importance', [0, 1])
           .label('Importance')
@@ -438,9 +448,9 @@ export class Characterize extends ATask {
       .rowHeight(50)
       .buildTaggle(this.$container.querySelector('.attribute-ranking'));
 
-    this.dataProv = this.lineup.data as LineUpJS.LocalDataProvider;
+    this.attributeRankingData = this.attributeRanking.data as LineUpJS.LocalDataProvider;
 
-    const children = this.lineup.data.getFirstRanking().children; // alternative: builder.buildData().getFirstRanking(),...
+    const children = this.attributeRanking.data.getFirstRanking().children; // alternative: builder.buildData().getFirstRanking(),...
     (children[children.length - 1] as LineUpJS.NumberColumn).setFilter({
       filterMissing: true,
       min: 0.001,
@@ -448,8 +458,38 @@ export class Characterize extends ATask {
     });
   }
 
-  updateLineUp(importances: any) {
-    this.dataProv?.setData(importances);
+  async createItemRanking(data) {
+    const builder = LineUpJS.builder(data);
+    console.log('item data', data)
+
+    this.itemRanking = builder
+      .column(
+        LineUpJS.buildNumberColumn('prob_max', [0, 1])
+          .label('Max')
+          .width(150)
+          .colorMapping(colors.barColor)
+          .numberFormat('.3f')
+        )
+      // .column(LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(150))
+      .column(LineUpJS.buildStringColumn('cht').label('cht').width(100))
+      .deriveColors()
+      .ranking(LineUpJS.buildRanking()
+        .supportTypes()
+        .allColumns()
+        .sortBy('Max', 'desc')
+      )
+      .sidePanel(false)
+      // .rowHeight(50)
+      .buildTaggle(this.$container.querySelector('.item-ranking'));
+
+    this.itemRankingData = this.itemRanking.data as LineUpJS.LocalDataProvider;
+
+    // const children = this.itemRanking.data.getFirstRanking().children; // alternative: builder.buildData().getFirstRanking(),...
+    // (children[children.length - 1] as LineUpJS.NumberColumn).setFilter({
+    //   filterMissing: true,
+    //   min: 0.001,
+    //   max: Infinity
+    // });
   }
 
   addProgressBar() {
@@ -526,28 +566,6 @@ export class Characterize extends ATask {
     const data = await Promise.all(dataPromises);
     return data;
   }
-
-  // Example POST method implementation:
-  async postData(endpoint: string, data = {}) {
-    const url = '/kokiri/' + endpoint + '/';
-    // Default options are marked with *
-    const response = await fetch(url, {
-      method: 'POST', // *GET, POST, PUT, DELETE, etc.
-      mode: 'cors', // no-cors, *cors, same-origin
-      cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-      credentials: 'same-origin', // include, *same-origin, omit
-      headers: {
-        'Content-Type': 'application/json'
-        // 'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      redirect: 'follow', // manual, *follow, error
-      referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-      body: JSON.stringify(data), // body data type must match "Content-Type" header
-      //TODO abortController
-    });
-
-    return response;
-  }
 }
 
 export class MyDistributionRenderer implements ICellRendererFactory {
@@ -597,7 +615,6 @@ export class MyDistributionRenderer implements ICellRendererFactory {
 
           const chart = d3.select(n).select('#chart g')
           if (d.v.type === 'cat') {
-            console.log(`OK: ${d.v.attribute}`);
             // X axis
             var x = d3.scaleBand()
             .range([ 0, MyDistributionRenderer.WIDTH ])

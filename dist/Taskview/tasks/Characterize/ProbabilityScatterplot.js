@@ -118,7 +118,7 @@ export class ProbabilityScatterplot {
                             "y": { "scale": "y", "field": "bin_y", "offset": 0.5 },
                             "y2": { "scale": "y", "field": "bin_y_end", "offset": 0.5 },
                             "tooltip": {
-                                "signal": "{\"cht\": datum[\"max_cht\"], \"prob\": format(datum[\"max_max_prob\"], \".0%\")}"
+                                "signal": "{\"Prediction\": datum[\"max_cht\"], \"Likelihood\": format(datum[\"max_max_prob\"], \".0%\")}"
                             },
                             "opacity": { "value": 0 }
                         }

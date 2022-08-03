@@ -17,8 +17,10 @@ export declare class Characterize extends ATask {
     private ids;
     private ws;
     private progressBar;
-    private lineup;
-    private dataProv;
+    private attributeRanking;
+    private attributeRankingData;
+    private itemRanking;
+    private itemRankingData;
     private cohorts;
     private definingAttributes;
     private chart;
@@ -30,15 +32,14 @@ export declare class Characterize extends ATask {
     setDefiningAttributeTooltip(hintText: HTMLElement): void;
     private compare;
     updateConfusionMatrix(responseData: any): Promise<void>;
-    createLineUp(data: any, showCategoryColumn?: boolean): Promise<void>;
-    updateLineUp(importances: any): void;
+    createAttributeRanking(data: any, showCategoryColumn?: boolean): Promise<void>;
+    createItemRanking(data: any): Promise<void>;
     addProgressBar(): void;
     setProgress(iteration: number, done?: boolean): void;
     setProgressIndefinite(): void;
     setProgressDone(): void;
     fadeOutProgressBar(delay?: number): Promise<NodeJS.Timeout>;
     getData(attributes: IAttribute[], cohorts: Cohort[]): Promise<unknown[]>;
-    postData(endpoint: string, data?: {}): Promise<Response>;
 }
 export declare class MyDistributionRenderer implements ICellRendererFactory {
     private cohorts;
