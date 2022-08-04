@@ -50,6 +50,10 @@
     grid-template-columns: 2fr 1fr;
     grid-template-rows: auto 1fr;
     column-gap: 1em;
+
+    &.probabilities {
+      grid-template-columns: 1fr 1fr;
+    }
   }
 
   .center {
@@ -63,7 +67,7 @@
     flex-shrink: 1;
 
     &.filled {
-      flex-basis: 30em;
+      flex-basis: 20em;
     }
   }
 

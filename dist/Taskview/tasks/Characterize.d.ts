@@ -14,6 +14,7 @@ export declare class Characterize extends ATask {
     id: string;
     hasOutput: boolean;
     private eventID;
+    private _entityName;
     private ids;
     private ws;
     private progressBar;

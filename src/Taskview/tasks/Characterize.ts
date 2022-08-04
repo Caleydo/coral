@@ -1,8 +1,8 @@
 import * as aq from 'arquero';
 import {format} from 'd3-format';
+import * as d3 from 'd3v7';
 import * as LineUpJS from 'lineupjs';
 import {ERenderMode, ICellRenderer, ICellRendererFactory, IDataRow, renderMissingDOM} from 'lineupjs';
-import * as d3 from 'd3v7';
 import tippy from 'tippy.js';
 import {View as VegaView} from 'vega';
 import vegaEmbed from 'vega-embed';
@@ -11,12 +11,12 @@ import {ICohort} from '../../CohortInterfaces';
 import {colors} from '../../colors';
 import {GeneScoreAttribute, IAttribute, ServerColumnAttribute} from '../../data/Attribute';
 import {Task} from '../../Tasks';
-import {getAnimatedLoadingText} from '../../util';
+import {getAnimatedLoadingText, log} from '../../util';
+import {getIdTypeFromCohort} from '../../utilIdTypes';
 import {DATA_LABEL} from '../visualizations';
 import {ATask} from './ATask';
 import {LineUpDistributionColumn} from './Characterize/LineUpDistributionColumn';
 import {ProbabilityScatterplot} from './Characterize/ProbabilityScatterplot';
-import {CohortColorSchema, IFilterDesc, log} from '../../util';
 
 export class Characterize extends ATask {
   static readonly TREES = 300;
@@ -26,6 +26,7 @@ export class Characterize extends ATask {
   public id = `characterize`;
   public hasOutput = false;
   private eventID = 0;
+  private _entityName: string = null;
 
   private ids: any[];
   private ws: WebSocket;
@@ -56,6 +57,8 @@ export class Characterize extends ATask {
     attributes: IAttribute[],
     cohorts: ICohort[]
   ) {
+    const idType = getIdTypeFromCohort(cohorts[0] as Cohort);
+    this._entityName = idType.entityName;
     super.show(columnHeader, container, attributes, cohorts);
     const eventId = ++this.eventID; // get new eventID, we will compare it with the field again to see if it is still up to date
 
@@ -323,6 +326,7 @@ export class Characterize extends ATask {
           this.$container.querySelector('.accuracy-container').innerHTML = `
             <h2>Accuracy:  ${Characterize.formatPercent(responseData.accuracy)}</h2>
           `;
+          log.info(`OOB Score ${Characterize.formatPercent(responseData.oobError)} for ${responseData.trees} trees`)
           this.updateConfusionMatrix(responseData);
 
         } catch (e) {
@@ -422,7 +426,7 @@ export class Characterize extends ATask {
           .label('Importance')
           .width(150)
           .colorMapping(colors.barColor)
-          .numberFormat('.3f')
+          .numberFormat('.1%')
         )
       .column(
         showCategoryColumn ? 
@@ -453,43 +457,37 @@ export class Characterize extends ATask {
     const children = this.attributeRanking.data.getFirstRanking().children; // alternative: builder.buildData().getFirstRanking(),...
     (children[children.length - 1] as LineUpJS.NumberColumn).setFilter({
       filterMissing: true,
-      min: 0.001,
+      min: 0.005,
       max: Infinity
     });
   }
 
   async createItemRanking(data) {
-    const builder = LineUpJS.builder(data);
-    console.log('item data', data)
 
-    this.itemRanking = builder
+    this.itemRanking = LineUpJS.builder(data)
+      .column(LineUpJS.buildStringColumn(this._entityName).label('Id').width(200))
       .column(
-        LineUpJS.buildNumberColumn('prob_max', [0, 1])
-          .label('Max')
-          .width(150)
-          .colorMapping(colors.barColor)
-          .numberFormat('.3f')
+        LineUpJS .buildCategoricalColumn(
+          'cht',
+          this.cohorts.map((cht, i) => ({name: ''+i, label: cht.label, color: (cht as Cohort).colorTaskView}))
         )
-      // .column(LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(150))
-      .column(LineUpJS.buildStringColumn('cht').label('cht').width(100))
-      .deriveColors()
-      .ranking(LineUpJS.buildRanking()
-        .supportTypes()
-        .allColumns()
-        .sortBy('Max', 'desc')
+        .label('Cohort')
+        .renderer('catheatmap', 'categorical').asSet())
+      .column( 
+        LineUpJS.buildNumberColumn('probs', [0, 1])
+        .label('Prob')
+        .width(100)
+        .colorMapping(colors.barColor)
+        .numberFormat('.1%')
+        .asArray(this.cohorts.map((cht, i) => cht.label))
       )
+      .column( LineUpJS.buildNumberColumn('prob_max', [0, 1]).label('Max Probality').width(100).colorMapping(colors.barColor).numberFormat('.1%'))
+      .deriveColors()
+      .ranking(LineUpJS.buildRanking().supportTypes().allColumns().sortBy('prob_max', 'asc') )
       .sidePanel(false)
-      // .rowHeight(50)
       .buildTaggle(this.$container.querySelector('.item-ranking'));
 
     this.itemRankingData = this.itemRanking.data as LineUpJS.LocalDataProvider;
-
-    // const children = this.itemRanking.data.getFirstRanking().children; // alternative: builder.buildData().getFirstRanking(),...
-    // (children[children.length - 1] as LineUpJS.NumberColumn).setFilter({
-    //   filterMissing: true,
-    //   min: 0.001,
-    //   max: Infinity
-    // });
   }
 
   addProgressBar() {
