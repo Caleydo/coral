@@ -332,8 +332,8 @@ export class Characterize extends ATask {
             "layer": [{
                     "mark": { "type": "bar", "tooltip": true, },
                     "encoding": {
-                        "color": { "field": "predict", legend: null },
-                        "y": { "field": "target", "title": null },
+                        "color": { "field": "predict", legend: null, sort: null },
+                        "y": { "field": "target", "title": null, sort: null },
                         "order": { "field": "share", "type": "quantitative", "sort": "descending" },
                         "opacity": {
                             "condition": { "test": { "field": "correct", "equal": true }, "value": 1 },
@@ -353,6 +353,7 @@ export class Characterize extends ATask {
                 range: { category: this.cohorts.map((cht) => cht.colorTaskView) }
             }
         }, { actions: false, renderer: 'svg' });
+        console.log('confusion', result.spec);
         this.chart.push(result.view);
     }
     async createAttributeRanking(data, showCategoryColumn = true) {
