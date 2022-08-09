@@ -72,6 +72,10 @@
   }
 
   .separator-left {
-    border-left: 1px solid $color-border-light;
+    border-left: 1px solid $color-background-darker;
+  }
+
+  .progress-wrapper {
+    border-left: 1px solid $color-background-darker;
   }
 }
