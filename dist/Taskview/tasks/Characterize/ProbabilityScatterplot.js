@@ -129,7 +129,7 @@ export class ProbabilityScatterplot {
                             "type": "heatmap",
                             "field": "datum.grid",
                             "resolve": "shared",
-                            "color": { "expr": "scale('color', warn(datum.datum.max_cht))" }
+                            "color": { "expr": "scale('color', datum.datum.max_cht)" }
                         }
                     ]
                 }, {
