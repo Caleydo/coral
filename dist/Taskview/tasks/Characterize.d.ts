@@ -6,10 +6,12 @@ import { IAttribute } from '../../data/Attribute';
 import { ATask } from './ATask';
 import { LineUpDistributionColumn } from './Characterize/LineUpDistributionColumn';
 export declare class Characterize extends ATask {
-    static readonly TREES = 150;
+    static readonly TREES = 500;
     static readonly formatPercent: (n: number | {
         valueOf(): number;
     }) => string;
+    static readonly spinner = "<div class=\"fa-3x center green\"> <i class=\"fas fa-spinner fa-pulse\"></i></div>";
+    static readonly KOKIRI_COLOR = "#90C08F";
     label: string;
     id: string;
     hasOutput: boolean;

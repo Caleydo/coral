@@ -120,10 +120,13 @@ export var SortType;
     SortType["Size_91"] = "size_91";
 })(SortType || (SortType = {}));
 export function getAnimatedLoadingText(thingToLoad = '', large = true) {
+    return getAnimatedText(`Loading ${thingToLoad}`, large);
+}
+export function getAnimatedText(thingToLoad = '', large = true) {
     const span = document.createElement('p');
     span.classList.add('loading');
     span.classList.toggle('large', large);
-    span.innerHTML = `Loading ${thingToLoad} <span class="one">.</span><span class="two">.</span><span class="three">.</span>`;
+    span.innerHTML = `${thingToLoad} <span class="one">.</span><span class="two">.</span><span class="three">.</span>`;
     return span;
 }
 export function getAnimatedLoadingBars() {

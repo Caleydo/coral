@@ -1,3 +1,5 @@
+$kokiri-color: #90C08F;
+
 .characterize-container {
   $border-radius: 0.2em;
 
@@ -72,10 +74,15 @@
   }
 
   .separator-left {
-    border-left: 1px solid $color-background-darker;
+    border-left: 1px solid $kokiri-color;
   }
 
-  .progress-wrapper {
-    border-bottom: 1px solid $color-background-darker;
+  .green {
+    color: $kokiri-color;
+  }
+
+  .progress-bar {
+    background-color: $kokiri-color !important;
+    color: $color-text;
   }
 }

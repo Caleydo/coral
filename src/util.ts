@@ -152,10 +152,14 @@ export interface IAttributeFilter {
 }
 
 export function getAnimatedLoadingText(thingToLoad: string = '', large: boolean = true) {
+  return getAnimatedText(`Loading ${thingToLoad}`, large);
+}
+
+export function getAnimatedText(thingToLoad: string = '', large: boolean = true) {
   const span = document.createElement('p');
   span.classList.add('loading');
   span.classList.toggle('large', large);
-  span.innerHTML = `Loading ${thingToLoad} <span class="one">.</span><span class="two">.</span><span class="three">.</span>`;
+  span.innerHTML = `${thingToLoad} <span class="one">.</span><span class="two">.</span><span class="three">.</span>`;
   return span;
 }
 

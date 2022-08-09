@@ -8,7 +8,7 @@ import vegaEmbed from 'vega-embed';
 import { getCohortLabel } from '../../Cohort';
 import { colors } from '../../colors';
 import { ServerColumnAttribute } from '../../data/Attribute';
-import { getAnimatedLoadingText, log } from '../../util';
+import { getAnimatedLoadingText, getAnimatedText, log } from '../../util';
 import { getIdTypeFromCohort } from '../../utilIdTypes';
 import { DATA_LABEL } from '../visualizations';
 import { ATask } from './ATask';
@@ -78,8 +78,9 @@ export class Characterize extends ATask {
         -->
       </div>
 
+      <div class="progress-wrapper hidden-for-result" hidden></div>
       
-      <div class="classifier-result resizeable">
+      <div class="classifier-result resizeable hidden-for-result" hidden>
         <div class="center">
           <h2>Attribute Importance</h2>
           <div style="flex-grow: 1; flex-shrink: 1;"></div>
@@ -91,33 +92,38 @@ export class Characterize extends ATask {
 
         <div class="attribute-ranking"></div>
         <div class="separator-left" style="display: flex; flex-direction: column;">
-          <div class="accuracy-container center"></div>
-          <div class="cohort-confusion"></div>
+          <div class="accuracy-container center">
+          </div>
+          <div class="cohort-confusion">
+          </div>
         </div>
       </div>
         
-      <div class="progress-wrapper"></div>
 
-      <h1>Cohort Characterization</h1>
-      <div class="probabilities resizeable">
+      <h1 class="hidden-for-result" style="border-top: 1px solid ${Characterize.KOKIRI_COLOR}; padding-top: 1em;" hidden>Cohort Characterization</h1>
+      <div class="probabilities resizeable hidden-for-result" hidden>
         <h2>Item Predictions</h2>
-        <h2 class="center">Cohort Association</h2>
+        <h2 class="center">Cohort Overview</h2>
 
-        <div class="item-ranking"></div>
-        <div class="chart-container separator-left"></div>
+        <div class="item-ranking">
+        </div>
+        <div class="chart-container separator-left">
+        </div>
       </div>
     `;
         this.$container.querySelectorAll('button.compare').forEach((btn) => btn.addEventListener('click', () => {
             var _a, _b, _c;
             (_a = this.attributeRanking) === null || _a === void 0 ? void 0 : _a.destroy();
+            this.$container.querySelector('.attribute-ranking').innerHTML = Characterize.spinner;
             (_b = this.itemRanking) === null || _b === void 0 ? void 0 : _b.destroy();
-            this.$container.querySelector('.attribute-ranking').innerHTML = '';
+            this.$container.querySelector('.item-ranking').innerHTML = Characterize.spinner;
             (_c = this.chart) === null || _c === void 0 ? void 0 : _c.forEach((view) => view.finalize());
             this.chart = [];
             this.scatterplot = null;
-            this.$container.querySelector('.chart-container').innerHTML = '';
-            this.$container.querySelector('.accuracy-container').innerHTML = '';
-            this.$container.querySelector('.cohort-confusion').innerHTML = '';
+            this.$container.querySelector('.accuracy-container').innerHTML = Characterize.spinner;
+            this.$container.querySelector('.cohort-confusion').innerHTML = ``;
+            this.$container.querySelector('.chart-container').innerHTML = Characterize.spinner;
+            this.$container.querySelectorAll('.hidden-for-result').forEach((btn) => btn.toggleAttribute('hidden', false));
             this.$container.querySelectorAll('.result-based').forEach((btn) => btn.toggleAttribute('hidden', true));
             this.$container.querySelectorAll('.resizeable').forEach((elem) => elem.classList.remove('filled'));
             this.addProgressBar();
@@ -292,6 +298,7 @@ export class Characterize extends ATask {
             else if (responseData.embedding) {
                 const vegaContainer = this.$container
                     .querySelector('.chart-container');
+                vegaContainer.innerHTML = '';
                 const embeddingData = responseData.embedding;
                 embeddingData.forEach((i) => i.selected = false);
                 this.scatterplot = new ProbabilityScatterplot(embeddingData, this.cohorts, this.itemRanking);
@@ -377,6 +384,7 @@ export class Characterize extends ATask {
         if (!showCategoryColumn) {
             categoryCol.hidden();
         }
+        this.$container.querySelector('.attribute-ranking').innerHTML = '';
         this.attributeRanking = builder
             .column(LineUpJS.buildNumberColumn('importance', [0, 1])
             .label('Importance')
@@ -414,6 +422,7 @@ export class Characterize extends ATask {
         this.$container.querySelectorAll('.result-based').forEach((btn) => btn.toggleAttribute('hidden', dataIndices.length === 0));
     }
     async createItemRanking(data) {
+        this.$container.querySelector('.item-ranking').innerHTML = '';
         this.itemRanking = LineUpJS.builder(data)
             .column(LineUpJS.buildStringColumn(this._entityName).label('Item Id').width(200))
             .column(LineUpJS.buildCategoricalColumn('cht', this.cohorts.map((cht, i) => ({ name: '' + i, label: cht.label, color: cht.colorTaskView })))
@@ -485,9 +494,10 @@ export class Characterize extends ATask {
         }
     }
     setProgressIndefinite() {
-        this.progressBar.textContent = 'Summarizing';
+        this.progressBar.textContent = 'Summarizing Predictions';
         this.progressBar.classList.toggle('progress-bar-animated', true);
         this.progressBar.classList.toggle('progress-bar-striped', true);
+        this.$container.querySelector('.chart-container').innerHTML = `<div class="center">${getAnimatedText('Creating Chart').outerHTML}</div>`;
     }
     setProgressDone() {
         this.progressBar.textContent = 'Done';
@@ -524,8 +534,10 @@ export class Characterize extends ATask {
         return data;
     }
 }
-Characterize.TREES = 150;
+Characterize.TREES = 500;
 Characterize.formatPercent = format('.1~%');
+Characterize.spinner = `<div class="fa-3x center green"> <i class="fas fa-spinner fa-pulse"></i></div>`;
+Characterize.KOKIRI_COLOR = '#90C08F';
 export class MyDistributionRenderer {
     constructor(cohorts) {
         this.cohorts = cohorts;
@@ -538,13 +550,13 @@ export class MyDistributionRenderer {
         return {
             template: `<div class="svg-container center" style="flex-direction: column;">
         <svg id="loading" width="${MyDistributionRenderer.WIDTH}" height="${MyDistributionRenderer.HEIGHT}" viewBox="0 0 ${MyDistributionRenderer.WIDTH} ${MyDistributionRenderer.HEIGHT}" enable-background="new 0 0 0 0">
-          <circle fill="${colors.barColor}" stroke="none" cx="80" cy="10" r="8">
+          <circle fill="${Characterize.KOKIRI_COLOR}" stroke="none" cx="80" cy="10" r="8">
             <animate attributeName="opacity" dur="2s" values="0;0.5;0" repeatCount="indefinite" begin="0.1" />
           </circle>
-          <circle fill="${colors.barColor}" stroke="none" cx="100" cy="10" r="8">
+          <circle fill="${Characterize.KOKIRI_COLOR}" stroke="none" cx="100" cy="10" r="8">
             <animate attributeName="opacity" dur="2s" values="0;0.5;0" repeatCount="indefinite" begin="0.66" />
           </circle>
-          <circle fill="${colors.barColor}" stroke="none" cx="120" cy="10" r="8">
+          <circle fill="${Characterize.KOKIRI_COLOR}" stroke="none" cx="120" cy="10" r="8">
             <animate attributeName="opacity" dur="2s" values="0;0.5;0" repeatCount="indefinite" begin="1.33" />
           </circle>
         </svg>

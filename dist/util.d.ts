@@ -58,6 +58,7 @@ export interface IAttributeFilter {
     range: INumRange[] | IEqualsList;
 }
 export declare function getAnimatedLoadingText(thingToLoad?: string, large?: boolean): HTMLParagraphElement;
+export declare function getAnimatedText(thingToLoad?: string, large?: boolean): HTMLParagraphElement;
 export declare function getAnimatedLoadingBars(): HTMLDivElement;
 export declare class CohortColorSchema {
     static readonly COLOR_SCHEME: string[];
