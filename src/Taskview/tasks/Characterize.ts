@@ -341,6 +341,7 @@ export class Characterize extends ATask {
         const embeddingData = responseData.embedding as any[];
         embeddingData.forEach((i) => i.selected=false);
         this.scatterplot = new ProbabilityScatterplot(embeddingData, this.cohorts);
+        const result = await vegaEmbed(vegaContainer, this.scatterplot.getSpec(), {actions: false, renderer: 'canvas'});
         this.scatterplot.setView(result.view);
         this.chart.push(result.view);
         console.log('embedding', result.spec);

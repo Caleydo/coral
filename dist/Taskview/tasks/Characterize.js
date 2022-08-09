@@ -282,8 +282,10 @@ export class Characterize extends ATask {
             else if (responseData.embedding) {
                 const vegaContainer = this.$container
                     .querySelector('.chart-container');
-                this.scatterplot = new ProbabilityScatterplot(responseData.embedding, this.cohorts);
-                const result = await vegaEmbed(vegaContainer, this.scatterplot.getSpec(), { actions: false, renderer: 'svg' });
+                const embeddingData = responseData.embedding;
+                embeddingData.forEach((i) => i.selected = false);
+                this.scatterplot = new ProbabilityScatterplot(embeddingData, this.cohorts);
+                const result = await vegaEmbed(vegaContainer, this.scatterplot.getSpec(), { actions: false, renderer: 'canvas' });
                 this.scatterplot.setView(result.view);
                 this.chart.push(result.view);
                 console.log('embedding', result.spec);
