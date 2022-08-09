@@ -1,5 +1,5 @@
-import { Spec as VegaSpec, View } from 'vega';
 import * as LineUpJS from 'lineupjs';
+import { Spec as VegaSpec, View } from 'vega';
 export declare class ProbabilityScatterplot {
     private cohorts;
     private lineup;

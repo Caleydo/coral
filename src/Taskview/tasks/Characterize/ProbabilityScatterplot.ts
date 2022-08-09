@@ -1,9 +1,9 @@
+import * as LineUpJS from 'lineupjs';
+import {LocalDataProvider} from 'lineupjs';
 import {inRange} from 'lodash';
 import {BaseUtils} from 'tdp_core';
 import {Spec as VegaSpec, View} from 'vega';
 import {colors} from '../../../colors';
-import * as LineUpJS from 'lineupjs';
-import {LocalDataProvider} from 'lineupjs';
 
 export class ProbabilityScatterplot {
   view: View;
@@ -27,7 +27,12 @@ export class ProbabilityScatterplot {
         return undefined; // to be filtered out
       })
       .filter((item) => item !== undefined)
+
     this.lineup.setSelection(lineUpSelection);
+    const selCol = this.lineup.data
+      .find((d) => (d.desc as any).type === "selection");
+    selCol.toggleMySorting();
+    selCol.sortByMe(false);
   }
 
   setData(data: any[]) {

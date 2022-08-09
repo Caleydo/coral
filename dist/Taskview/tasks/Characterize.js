@@ -91,7 +91,7 @@ export class Characterize extends ATask {
 
       <h1>Cohort Characterization</h1>
       <div class="probabilities resizeable">
-        <h2>Indistinguishable Items</h2>
+        <h2>Item Predictions</h2>
         <h2 class="center">Cohort Association</h2>
 
         <div class="item-ranking"></div>
@@ -401,17 +401,18 @@ export class Characterize extends ATask {
     }
     async createItemRanking(data) {
         this.itemRanking = LineUpJS.builder(data)
-            .column(LineUpJS.buildStringColumn(this._entityName).label('Id').width(200))
+            .column(LineUpJS.buildStringColumn(this._entityName).label('Item Id').width(200))
             .column(LineUpJS.buildCategoricalColumn('cht', this.cohorts.map((cht, i) => ({ name: '' + i, label: cht.label, color: cht.colorTaskView })))
             .label('Cohort')
+            .width(Math.min(Math.max(this.cohorts.length * 30, 100), 200))
             .renderer('catheatmap', 'categorical').asSet())
             .column(LineUpJS.buildNumberColumn('probs', [0, 1])
-            .label('Prob')
-            .width(100)
+            .label('Cohort Probability')
+            .width(150)
             .colorMapping(colors.barColor)
             .numberFormat('.1%')
             .asArray(this.cohorts.map((cht, i) => cht.label)))
-            .column(LineUpJS.buildNumberColumn('prob_max', [0, 1]).label('Max Probality').width(100).colorMapping(colors.barColor).numberFormat('.1%'))
+            .column(LineUpJS.buildNumberColumn('prob_max', [0, 1]).label('Max Probability').width(120).colorMapping(colors.barColor).numberFormat('.1%'))
             .deriveColors()
             .ranking(LineUpJS.buildRanking().supportTypes().allColumns().sortBy('prob_max', 'asc'))
             .sidePanel(false)

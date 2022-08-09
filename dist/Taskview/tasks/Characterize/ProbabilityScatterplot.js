@@ -25,6 +25,10 @@ export class ProbabilityScatterplot {
         })
             .filter((item) => item !== undefined);
         this.lineup.setSelection(lineUpSelection);
+        const selCol = this.lineup.data
+            .find((d) => d.desc.type === "selection");
+        selCol.toggleMySorting();
+        selCol.sortByMe(false);
     }
     setData(data) {
         this.data = data.slice();
