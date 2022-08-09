@@ -47,7 +47,7 @@
 
   .classifier-result, .probabilities {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 1fr 1fr;
     grid-template-rows: auto 1fr;
     column-gap: 1em;
 
@@ -67,7 +67,7 @@
     flex-shrink: 1;
 
     &.filled {
-      flex-basis: 40em;
+      flex-basis: 25em;
     }
   }
 

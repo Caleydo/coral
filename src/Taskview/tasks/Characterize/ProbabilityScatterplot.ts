@@ -1,8 +1,26 @@
-import {Spec as VegaSpec} from 'vega';
+import {Spec as VegaSpec, View} from 'vega';
+import {colors} from '../../../colors';
 
 export class ProbabilityScatterplot{
-  constructor(private data, private cohorts) {
-    
+  view: View;
+  data: any[];
+
+  setView(view: View) {
+    this.view = view;
+  }
+
+  setData(data: any[]) {
+    this.data = data.slice();
+    this.view.data('source', this.data);
+    this.view.runAsync().then((view) => console.log('view updated', view));
+  }
+
+  getData(): any[] {
+    return this.view.data('source').slice();
+  }
+
+  constructor(data, private cohorts) {
+    this.data = data.slice();
   }
 
   public getSpec(): VegaSpec {
@@ -51,6 +69,12 @@ export class ProbabilityScatterplot{
             "field": "cht"
           },
           "range": this.cohorts.map(c => c.colorTaskView)
+        },
+        {
+          "name": "strokeOpacity",
+          "type": "point",
+          "domain": [false, true],
+          "range": [ 0, 1 ]
         },
         {
           "name": "prob",
@@ -104,7 +128,10 @@ export class ProbabilityScatterplot{
               "y": {"scale": "y", "field": "y"},
               "fill": {"scale": "color", "field": "cht"},
               "opacity": {"value": 0.7},
-              "size": {"value": 15}
+              "size": {"value": 15}, 
+              "stroke": { "value": colors.barColor },
+              "strokeWidth": { "value": 5 },
+              "strokeOpacity": { "scale": "strokeOpacity", "field": "selected" }
             }
           }
         },

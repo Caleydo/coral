@@ -25,6 +25,7 @@ export declare class Characterize extends ATask {
     private cohorts;
     private definingAttributes;
     private chart;
+    private scatterplot;
     supports(attributes: IAttribute[], cohorts: ICohort[]): boolean;
     showSearchBar(): boolean;
     show(columnHeader: HTMLDivElement, container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]): Promise<void>;
@@ -35,6 +36,7 @@ export declare class Characterize extends ATask {
     updateConfusionMatrix(responseData: any): Promise<void>;
     createAttributeRanking(data: any, showCategoryColumn?: boolean): Promise<void>;
     createItemRanking(data: any): Promise<void>;
+    lineUpItemSelection(dataIndices: number[]): void;
     addProgressBar(): void;
     setProgress(iteration: number, done?: boolean): void;
     setProgressIndefinite(): void;

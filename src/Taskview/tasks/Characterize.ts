@@ -41,6 +41,7 @@ export class Characterize extends ATask {
   private cohorts: Cohort[];
   private definingAttributes: IAttribute[];
   private chart: VegaView[];
+  private scatterplot: ProbabilityScatterplot;
 
 
   supports(attributes: IAttribute[], cohorts: ICohort[]) {
@@ -142,6 +143,7 @@ export class Characterize extends ATask {
       this.$container.querySelector('.attribute-ranking').innerHTML = '';
       this.chart?.forEach((view) => view.finalize());
       this.chart = [];
+      this.scatterplot = null;
       this.$container.querySelector('.chart-container').innerHTML = '';
       this.$container.querySelector('.accuracy-container').innerHTML = '';
       this.$container.querySelector('.cohort-confusion').innerHTML = '';
@@ -336,9 +338,12 @@ export class Characterize extends ATask {
         const vegaContainer = this.$container
                                     .querySelector('.chart-container') as HTMLDivElement;
 
-        const scatterplot = new ProbabilityScatterplot(responseData.embedding, this.cohorts);
-        const result = await vegaEmbed(vegaContainer, scatterplot.getSpec(), {actions: false, renderer: 'svg'});
+        const embeddingData = responseData.embedding as any[];
+        embeddingData.forEach((i) => i.selected=false);
+        this.scatterplot = new ProbabilityScatterplot(embeddingData, this.cohorts);
+        this.scatterplot.setView(result.view);
         this.chart.push(result.view);
+        console.log('embedding', result.spec);
       }
     } 
 
@@ -489,6 +494,28 @@ export class Characterize extends ATask {
       .buildTaggle(this.$container.querySelector('.item-ranking'));
 
     this.itemRankingData = this.itemRanking.data as LineUpJS.LocalDataProvider;
+    this.itemRanking.on('selectionChanged', (dataIndices) => this.lineUpItemSelection(dataIndices))
+  }
+  
+  lineUpItemSelection(dataIndices: number[]) {
+    console.log('lineup selection indices', dataIndices);
+    console.log('lineup selection data', dataIndices.map((i) => this.itemRankingData.data[i]));
+    
+    if(this.scatterplot) {
+      const selectedItems = dataIndices.map((i) => this.itemRankingData.data[i][this._entityName]);
+      console.log('lineup selection tissuzes', selectedItems);
+      
+      const plotData = this.scatterplot.getData()
+      for (const [i, item] of plotData.entries()) {
+        if (selectedItems.includes(item[this._entityName])) {
+          item.selected = true;
+        } else {
+          item.selected = false;
+        }
+      }
+  
+      this.scatterplot?.setData(plotData);
+    }
   }
 
   addProgressBar() {
