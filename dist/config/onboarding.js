@@ -92,6 +92,15 @@ export const CONFIG_ONBOARDING = {
         This operation cannot create output cohorts and therefore takes up their space.
       `,
         },
+        characterize: {
+            placement: 'left-start',
+            content: `
+        <p>
+          trololo.
+        </p>
+        This operation cannot create output cohorts and therefore takes up their space.
+      `,
+        },
         prevalence: {
             placement: 'left-start',
             content: `
