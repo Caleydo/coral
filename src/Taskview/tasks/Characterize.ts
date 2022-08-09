@@ -95,10 +95,13 @@ export class Characterize extends ATask {
       <div class="custom-upset-container"></div>
       <div>
         <h1>Cohort Comparison</h1>
-        <button class="btn btn-coral" id="meta">Compare by <i>Meta-Data</i></button>
-        <button class="btn btn-coral" id="mutated">Compare by <i>AA Mutated</i></button>
+        <button class="btn btn-coral compare" id="meta">Compare by <i>Meta-Data</i></button>
+        <span>&ensp;</span>
+        <button class="btn btn-coral compare" id="mutated">Compare by <i>AA Mutated</i></button>
         <span>&emsp;</span>
         <input type="checkbox" id="exclude-attributes" checked> Exclude the cohorts' <span class="hint">defining attributes</span></input>
+        <span>&emsp;</span><span>&emsp;</span>
+
 
         <!--
         <span>&emsp;</span>
@@ -115,7 +118,13 @@ export class Characterize extends ATask {
 
       
       <div class="classifier-result resizeable">
-        <h2>Attribute Importance</h2>
+        <div class="center">
+          <h2>Attribute Importance</h2>
+          <div style="flex-grow: 1; flex-shrink: 1;"></div>
+          <button class="btn btn-coral result-based btn-sm" hidden id="exclude-attr">Exclude Selected Attributes</button>
+          <span>&ensp;</span>
+          <button class="btn btn-coral result-based btn-sm" hidden id="limit-attr">Limit to Selected Attributes</button>
+        </div>
         <h2 class="center">Cohort Differentiation</h2>
 
         <div class="attribute-ranking"></div>
@@ -137,7 +146,7 @@ export class Characterize extends ATask {
       </div>
     `;
 
-    this.$container.querySelectorAll('button').forEach((btn) => btn.addEventListener('click', () => {
+    this.$container.querySelectorAll('button.compare').forEach((btn) => btn.addEventListener('click', () => {
       this.attributeRanking?.destroy();
       this.itemRanking?.destroy();
       this.$container.querySelector('.attribute-ranking').innerHTML = '';
@@ -147,7 +156,7 @@ export class Characterize extends ATask {
       this.$container.querySelector('.chart-container').innerHTML = '';
       this.$container.querySelector('.accuracy-container').innerHTML = '';
       this.$container.querySelector('.cohort-confusion').innerHTML = '';
-      
+      this.$container.querySelectorAll('.result-based').forEach((btn) => btn.toggleAttribute('hidden', true));
       this.$container.querySelectorAll('.resizeable').forEach((elem) => elem.classList.remove('filled'));
       this.addProgressBar();
       this.compare(`cmp_${btn.id}`);
@@ -467,6 +476,13 @@ export class Characterize extends ATask {
       min: 0.005,
       max: Infinity
     });
+
+    
+    this.attributeRanking.on('selectionChanged', (dataIndices) => this.lineUpAttributeSelection(dataIndices))
+  }
+
+  lineUpAttributeSelection(dataIndices: number[]): void {
+    this.$container.querySelectorAll('.result-based').forEach((btn) => btn.toggleAttribute('hidden', dataIndices.length === 0));
   }
 
   async createItemRanking(data) {

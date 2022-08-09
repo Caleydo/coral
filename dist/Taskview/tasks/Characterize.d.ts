@@ -35,6 +35,7 @@ export declare class Characterize extends ATask {
     private compare;
     updateConfusionMatrix(responseData: any): Promise<void>;
     createAttributeRanking(data: any, showCategoryColumn?: boolean): Promise<void>;
+    lineUpAttributeSelection(dataIndices: number[]): void;
     createItemRanking(data: any): Promise<void>;
     lineUpItemSelection(dataIndices: number[]): void;
     addProgressBar(): void;
