@@ -1,11 +1,30 @@
+import { inRange } from 'lodash';
+import { BaseUtils } from 'tdp_core';
 import { colors } from '../../../colors';
 export class ProbabilityScatterplot {
-    constructor(data, cohorts) {
+    constructor(data, cohorts, lineup) {
         this.cohorts = cohorts;
+        this.lineup = lineup;
         this.data = data.slice();
     }
     setView(view) {
         this.view = view;
+        this.view.addSignalListener('brush', BaseUtils.debounce(this.handleVegaIntervalEvent.bind(this), 250));
+    }
+    handleVegaIntervalEvent(name, value) {
+        console.log('debounced?', name, value);
+        const xRange = value.x;
+        const yRange = value.y;
+        const plotSelection = this.getData().filter((d) => inRange(d.x, xRange[0], xRange[1]) && inRange(d.y, yRange[0], yRange[1])).map((d) => d.tissuename);
+        const lineUpSelection = this.lineup.data.data
+            .map((item, i) => {
+            if (plotSelection.includes(item.tissuename)) {
+                return i;
+            }
+            return undefined; // to be filtered out
+        })
+            .filter((item) => item !== undefined);
+        this.lineup.setSelection(lineUpSelection);
     }
     setData(data) {
         this.data = data.slice();
@@ -109,6 +128,43 @@ export class ProbabilityScatterplot {
                             "color": { "expr": "scale('color', warn(datum.datum.max_cht))" }
                         }
                     ]
+                }, {
+                    "name": "brush_brush_bg",
+                    "type": "rect",
+                    "clip": true,
+                    "encode": {
+                        "enter": { "fill": { "value": "#333" }, "fillOpacity": { "value": 0.125 } },
+                        "update": {
+                            "x": [
+                                {
+                                    "test": "data(\"brush_store\").length && data(\"brush_store\")[0].unit === \"\"",
+                                    "signal": "brush_x[0]"
+                                },
+                                { "value": 0 }
+                            ],
+                            "y": [
+                                {
+                                    "test": "data(\"brush_store\").length && data(\"brush_store\")[0].unit === \"\"",
+                                    "signal": "brush_y[0]"
+                                },
+                                { "value": 0 }
+                            ],
+                            "x2": [
+                                {
+                                    "test": "data(\"brush_store\").length && data(\"brush_store\")[0].unit === \"\"",
+                                    "signal": "brush_x[1]"
+                                },
+                                { "value": 0 }
+                            ],
+                            "y2": [
+                                {
+                                    "test": "data(\"brush_store\").length && data(\"brush_store\")[0].unit === \"\"",
+                                    "signal": "brush_y[1]"
+                                },
+                                { "value": 0 }
+                            ]
+                        }
+                    }
                 },
                 {
                     "name": "marks",
@@ -124,6 +180,51 @@ export class ProbabilityScatterplot {
                             "stroke": { "value": colors.barColor },
                             "strokeWidth": { "value": 5 },
                             "strokeOpacity": { "scale": "strokeOpacity", "field": "selected" }
+                        }
+                    }
+                },
+                {
+                    "name": "brush_brush",
+                    "type": "rect",
+                    "clip": true,
+                    "encode": {
+                        "enter": { "fill": { "value": "transparent" } },
+                        "update": {
+                            "x": [
+                                {
+                                    "test": "data(\"brush_store\").length && data(\"brush_store\")[0].unit === \"\"",
+                                    "signal": "brush_x[0]"
+                                },
+                                { "value": 0 }
+                            ],
+                            "y": [
+                                {
+                                    "test": "data(\"brush_store\").length && data(\"brush_store\")[0].unit === \"\"",
+                                    "signal": "brush_y[0]"
+                                },
+                                { "value": 0 }
+                            ],
+                            "x2": [
+                                {
+                                    "test": "data(\"brush_store\").length && data(\"brush_store\")[0].unit === \"\"",
+                                    "signal": "brush_x[1]"
+                                },
+                                { "value": 0 }
+                            ],
+                            "y2": [
+                                {
+                                    "test": "data(\"brush_store\").length && data(\"brush_store\")[0].unit === \"\"",
+                                    "signal": "brush_y[1]"
+                                },
+                                { "value": 0 }
+                            ],
+                            "stroke": [
+                                {
+                                    "test": "brush_x[0] !== brush_x[1] && brush_y[0] !== brush_y[1]",
+                                    "value": "white"
+                                },
+                                { "value": null }
+                            ]
                         }
                     }
                 },
@@ -227,7 +328,8 @@ export class ProbabilityScatterplot {
                         }
                     ]
                 },
-                { "name": "zoom_store" }
+                { "name": "zoom_store" },
+                { "name": "brush_store" }
             ], "signals": [
                 {
                     "name": "width",
@@ -257,6 +359,10 @@ export class ProbabilityScatterplot {
                     ]
                 },
                 { "name": "zoom", "update": "vlSelectionResolve(\"zoom_store\", \"union\")" },
+                {
+                    "name": "brush",
+                    "update": "vlSelectionResolve(\"brush_store\", \"union\")"
+                },
                 {
                     "name": "zoom_x",
                     "on": [
@@ -320,6 +426,7 @@ export class ProbabilityScatterplot {
                                 {
                                     "source": "window",
                                     "type": "mousemove",
+                                    "filter": ["!event.ctrlKey"],
                                     "consume": true,
                                     "between": [
                                         { "source": "scope", "type": "mousedown" },
@@ -356,6 +463,230 @@ export class ProbabilityScatterplot {
                         {
                             "events": { "signal": "zoom_tuple" },
                             "update": "modify(\"zoom_store\", zoom_tuple, true)"
+                        }
+                    ]
+                },
+                {
+                    "name": "brush_x",
+                    "value": [],
+                    "on": [
+                        {
+                            "events": {
+                                "source": "scope",
+                                "type": "mousedown",
+                                "filter": [
+                                    "event.ctrlKey",
+                                    "!event.item || event.item.mark.name !== \"brush_brush\""
+                                ]
+                            },
+                            "update": "[x(unit), x(unit)]"
+                        },
+                        {
+                            "events": {
+                                "source": "scope",
+                                "type": "mousemove",
+                                "between": [
+                                    {
+                                        "source": "scope",
+                                        "type": "mousedown",
+                                        "filter": [
+                                            "event.ctrlKey",
+                                            "!event.item || event.item.mark.name !== \"brush_brush\""
+                                        ]
+                                    },
+                                    { "source": "scope", "type": "mouseup" }
+                                ]
+                            },
+                            "update": "[brush_x[0], clamp(x(unit), 0, width)]"
+                        },
+                        {
+                            "events": { "signal": "brush_scale_trigger" },
+                            "update": "[scale(\"x\", brush_xAttr[0]), scale(\"x\", brush_xAttr[1])]"
+                        },
+                        {
+                            "events": [{ "source": "view", "type": "dblclick" }],
+                            "update": "[0, 0]"
+                        },
+                        {
+                            "events": { "signal": "brush_translate_delta" },
+                            "update": "clampRange(panLinear(brush_translate_anchor.extent_x, brush_translate_delta.x / span(brush_translate_anchor.extent_x)), 0, width)"
+                        },
+                        {
+                            "events": { "signal": "brush_zoom_delta" },
+                            "update": "clampRange(zoomLinear(brush_x, brush_zoom_anchor.x, brush_zoom_delta), 0, width)"
+                        }
+                    ]
+                },
+                {
+                    "name": "brush_xAttr",
+                    "on": [
+                        {
+                            "events": { "signal": "brush_x" },
+                            "update": "brush_x[0] === brush_x[1] ? null : invert(\"x\", brush_x)"
+                        }
+                    ]
+                },
+                {
+                    "name": "brush_y",
+                    "value": [],
+                    "on": [
+                        {
+                            "events": {
+                                "source": "scope",
+                                "type": "mousedown",
+                                "filter": [
+                                    "event.ctrlKey",
+                                    "!event.item || event.item.mark.name !== \"brush_brush\""
+                                ]
+                            },
+                            "update": "[y(unit), y(unit)]"
+                        },
+                        {
+                            "events": {
+                                "source": "scope",
+                                "type": "mousemove",
+                                "between": [
+                                    {
+                                        "source": "scope",
+                                        "type": "mousedown",
+                                        "filter": [
+                                            "event.ctrlKey",
+                                            "!event.item || event.item.mark.name !== \"brush_brush\""
+                                        ]
+                                    },
+                                    { "source": "scope", "type": "mouseup" }
+                                ]
+                            },
+                            "update": "[brush_y[0], clamp(y(unit), 0, height)]"
+                        },
+                        {
+                            "events": { "signal": "brush_scale_trigger" },
+                            "update": "[scale(\"y\", brush_yAttr[0]), scale(\"y\", brush_yAttr[1])]"
+                        },
+                        {
+                            "events": [{ "source": "view", "type": "dblclick" }],
+                            "update": "[0, 0]"
+                        },
+                        {
+                            "events": { "signal": "brush_translate_delta" },
+                            "update": "clampRange(panLinear(brush_translate_anchor.extent_y, brush_translate_delta.y / span(brush_translate_anchor.extent_y)), 0, height)"
+                        },
+                        {
+                            "events": { "signal": "brush_zoom_delta" },
+                            "update": "clampRange(zoomLinear(brush_y, brush_zoom_anchor.y, brush_zoom_delta), 0, height)"
+                        }
+                    ]
+                },
+                {
+                    "name": "brush_yAttr",
+                    "on": [
+                        {
+                            "events": { "signal": "brush_y" },
+                            "update": "brush_y[0] === brush_y[1] ? null : invert(\"y\", brush_y)"
+                        }
+                    ]
+                },
+                {
+                    "name": "brush_scale_trigger",
+                    "value": {},
+                    "on": [
+                        {
+                            "events": [{ "scale": "x" }, { "scale": "y" }],
+                            "update": "(!isArray(brush_xAttr) || (+invert(\"x\", brush_x)[0] === +brush_xAttr[0] && +invert(\"x\", brush_x)[1] === +brush_xAttr[1])) && (!isArray(brush_yAttr) || (+invert(\"y\", brush_y)[0] === +brush_yAttr[0] && +invert(\"y\", brush_y)[1] === +brush_yAttr[1])) ? brush_scale_trigger : {}"
+                        }
+                    ]
+                },
+                {
+                    "name": "brush_tuple",
+                    "on": [
+                        {
+                            "events": [{ "signal": "brush_xAttr || brush_yAttr" }],
+                            "update": "brush_xAttr && brush_yAttr ? {unit: \"\", fields: brush_tuple_fields, values: [brush_xAttr,brush_yAttr]} : null"
+                        }
+                    ]
+                },
+                {
+                    "name": "brush_tuple_fields",
+                    "value": [
+                        { "field": "x", "channel": "x", "type": "R" },
+                        { "field": "y", "channel": "y", "type": "R" }
+                    ]
+                },
+                {
+                    "name": "brush_translate_anchor",
+                    "value": {},
+                    "on": [
+                        {
+                            "events": [
+                                { "source": "scope", "type": "mousedown", "markname": "brush_brush" }
+                            ],
+                            "update": "{x: x(unit), y: y(unit), extent_x: slice(brush_x), extent_y: slice(brush_y)}"
+                        }
+                    ]
+                },
+                {
+                    "name": "brush_translate_delta",
+                    "value": {},
+                    "on": [
+                        {
+                            "events": [
+                                {
+                                    "source": "window",
+                                    "type": "mousemove",
+                                    "consume": true,
+                                    "between": [
+                                        {
+                                            "source": "scope",
+                                            "type": "mousedown",
+                                            "markname": "brush_brush"
+                                        },
+                                        { "source": "window", "type": "mouseup" }
+                                    ]
+                                }
+                            ],
+                            "update": "{x: brush_translate_anchor.x - x(unit), y: brush_translate_anchor.y - y(unit)}"
+                        }
+                    ]
+                },
+                {
+                    "name": "brush_zoom_anchor",
+                    "on": [
+                        {
+                            "events": [
+                                {
+                                    "source": "scope",
+                                    "type": "wheel",
+                                    "consume": true,
+                                    "markname": "brush_brush"
+                                }
+                            ],
+                            "update": "{x: x(unit), y: y(unit)}"
+                        }
+                    ]
+                },
+                {
+                    "name": "brush_zoom_delta",
+                    "on": [
+                        {
+                            "events": [
+                                {
+                                    "source": "scope",
+                                    "type": "wheel",
+                                    "consume": true,
+                                    "markname": "brush_brush"
+                                }
+                            ],
+                            "force": true,
+                            "update": "pow(1.001, event.deltaY * pow(16, event.deltaMode))"
+                        }
+                    ]
+                },
+                {
+                    "name": "brush_modify",
+                    "on": [
+                        {
+                            "events": { "signal": "brush_tuple" },
+                            "update": "modify(\"brush_store\", brush_tuple, true)"
                         }
                     ]
                 }

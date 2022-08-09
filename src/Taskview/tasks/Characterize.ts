@@ -19,7 +19,7 @@ import {LineUpDistributionColumn} from './Characterize/LineUpDistributionColumn'
 import {ProbabilityScatterplot} from './Characterize/ProbabilityScatterplot';
 
 export class Characterize extends ATask {
-  static readonly TREES = 300;
+  static readonly TREES = 150;
   static readonly formatPercent = format('.1~%');
 
   public label = `Characterize`;
@@ -340,7 +340,7 @@ export class Characterize extends ATask {
 
         const embeddingData = responseData.embedding as any[];
         embeddingData.forEach((i) => i.selected=false);
-        this.scatterplot = new ProbabilityScatterplot(embeddingData, this.cohorts);
+        this.scatterplot = new ProbabilityScatterplot(embeddingData, this.cohorts, this.itemRanking);
         const result = await vegaEmbed(vegaContainer, this.scatterplot.getSpec(), {actions: false, renderer: 'canvas'});
         this.scatterplot.setView(result.view);
         this.chart.push(result.view);

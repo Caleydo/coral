@@ -6,7 +6,7 @@ import { IAttribute } from '../../data/Attribute';
 import { ATask } from './ATask';
 import { LineUpDistributionColumn } from './Characterize/LineUpDistributionColumn';
 export declare class Characterize extends ATask {
-    static readonly TREES = 300;
+    static readonly TREES = 150;
     static readonly formatPercent: (n: number | {
         valueOf(): number;
     }) => string;

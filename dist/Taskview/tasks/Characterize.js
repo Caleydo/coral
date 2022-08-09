@@ -284,7 +284,7 @@ export class Characterize extends ATask {
                     .querySelector('.chart-container');
                 const embeddingData = responseData.embedding;
                 embeddingData.forEach((i) => i.selected = false);
-                this.scatterplot = new ProbabilityScatterplot(embeddingData, this.cohorts);
+                this.scatterplot = new ProbabilityScatterplot(embeddingData, this.cohorts, this.itemRanking);
                 const result = await vegaEmbed(vegaContainer, this.scatterplot.getSpec(), { actions: false, renderer: 'canvas' });
                 this.scatterplot.setView(result.view);
                 this.chart.push(result.view);
@@ -509,7 +509,7 @@ export class Characterize extends ATask {
         return data;
     }
 }
-Characterize.TREES = 300;
+Characterize.TREES = 150;
 Characterize.formatPercent = format('.1~%');
 export class MyDistributionRenderer {
     constructor(cohorts) {
