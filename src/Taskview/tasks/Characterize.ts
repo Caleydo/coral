@@ -363,7 +363,7 @@ export class Characterize extends ATask {
         const result = await vegaEmbed(vegaContainer, this.scatterplot.getSpec(), {actions: false, renderer: 'canvas'});
         this.scatterplot.setView(result.view);
         this.chart.push(result.view);
-        console.log('embedding', result.spec);
+        log.debug('embedding', result.spec);
       }
     } 
 
@@ -435,7 +435,7 @@ export class Characterize extends ATask {
       range: {category: this.cohorts.map((cht) => cht.colorTaskView)}
     }
     }, {actions: false, renderer: 'svg'});
-    console.log('confusion', result.spec);
+    log.debug('confusion', result.spec);
     this.chart.push(result.view);
   }
 
@@ -528,12 +528,9 @@ export class Characterize extends ATask {
   }
   
   lineUpItemSelection(dataIndices: number[]) {
-    console.log('lineup selection indices', dataIndices);
-    console.log('lineup selection data', dataIndices.map((i) => this.itemRankingData.data[i]));
     
     if(this.scatterplot) {
       const selectedItems = dataIndices.map((i) => this.itemRankingData.data[i][this._entityName]);
-      console.log('lineup selection tissuzes', selectedItems);
       
       const plotData = this.scatterplot.getData()
       for (const [i, item] of plotData.entries()) {
@@ -695,10 +692,10 @@ export class MyDistributionRenderer implements ICellRendererFactory {
               .attr("fill", (d, i) => this.cohorts[i].colorTaskView)
             .exit().remove();
           } else {
-            console.log(`type of ${d.v.attribute} is  ${d.v.type}`);
+            log.info(`type of ${d.v.attribute} is  ${d.v.type}, which is not supported`);
           }
         } else {
-          console.log(`${d.v.attribute} is random`);
+          log.debug(`no distribution for ${d.v.attribute}`);
         }
       },
     };
