@@ -96,7 +96,7 @@ export const CONFIG_ONBOARDING = {
             placement: 'left-start',
             content: `
         <p>
-          Characterizes cohorts by a large set of attributes.
+          Characterize cohorts by a large set of attributes.
         </p>
         <p>
         The individual views show what the driving differences are, how well the cohorts are separable, and give insight into the homogeneity and outliers of the cohorts.
