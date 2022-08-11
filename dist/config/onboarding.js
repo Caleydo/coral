@@ -96,7 +96,10 @@ export const CONFIG_ONBOARDING = {
             placement: 'left-start',
             content: `
         <p>
-          trololo.
+          Characterizes cohorts by a large set of attributes.
+        </p>
+        <p>
+        The individual views show what the driving differences are, how well the cohorts are separable, and give insight into the homogeneity and outliers of the cohorts.
         </p>
         This operation cannot create output cohorts and therefore takes up their space.
       `,
