@@ -300,7 +300,11 @@ export class Characterize extends ATask {
                     .querySelector('.chart-container');
                 vegaContainer.innerHTML = '';
                 const embeddingData = responseData.embedding;
-                embeddingData.forEach((i) => i.selected = false);
+                embeddingData.forEach((i) => {
+                    i.selected = false;
+                    i.cht = this.cohorts[i.cht].label;
+                    i.predicted = this.cohorts[i.predicted].label;
+                });
                 this.scatterplot = new ProbabilityScatterplot(embeddingData, this.cohorts, this.itemRanking);
                 const result = await vegaEmbed(vegaContainer, this.scatterplot.getSpec(), { actions: false, renderer: 'canvas' });
                 this.scatterplot.setView(result.view);

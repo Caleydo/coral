@@ -129,7 +129,7 @@ export class ProbabilityScatterplot {
                             "type": "heatmap",
                             "field": "datum.grid",
                             "resolve": "shared",
-                            "color": { "expr": "scale('color', datum.datum.max_cht)" }
+                            "color": { "expr": "scale('color', datum.datum.max_predicted)" }
                         }
                     ]
                 }, {
@@ -244,7 +244,7 @@ export class ProbabilityScatterplot {
                             "y": { "scale": "y", "field": "bin_y", "offset": 0.5 },
                             "y2": { "scale": "y", "field": "bin_y_end", "offset": 0.5 },
                             "tooltip": {
-                                "signal": "{\"Prediction\": datum[\"max_cht\"], \"Likelihood\": format(datum[\"max_max_prob\"], \".0%\")}"
+                                "signal": "{\"Prediction\": datum[\"max_predicted\"], \"Likelihood\": format(datum[\"max_max_prob\"], \".0%\")}"
                             },
                             "opacity": { "value": 0 }
                         }
@@ -290,8 +290,8 @@ export class ProbabilityScatterplot {
                         },
                         {
                             "type": "formula",
-                            "expr": "datum.max.cht",
-                            "as": "max_cht"
+                            "expr": "datum.max.predicted",
+                            "as": "max_predicted"
                         },
                         {
                             "type": "formula",
@@ -316,7 +316,7 @@ export class ProbabilityScatterplot {
                     "transform": [
                         {
                             "type": "kde2d",
-                            "groupby": ["max_cht"],
+                            "groupby": ["max_predicted"],
                             "size": [{ "signal": "width" }, { "signal": "height" }],
                             "x": { "expr": "scale('x', datum.x_sampled)" },
                             "y": { "expr": "scale('y', datum.y_sampled)" },
