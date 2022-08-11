@@ -59,7 +59,7 @@ export class Characterize extends ATask {
         <h1>Cohort Comparison</h1>
         <button class="btn btn-coral compare" id="meta">Compare by <i>Meta-Data</i></button>
         <span>&ensp;</span>
-        <button class="btn btn-coral compare" id="mutated">Compare by <i>AA Mutated</i></button>
+        <button class="btn btn-coral compare" id="mutated">Compare by <i>Mutation Frequency</i></button>
         <span>&emsp;</span>
         <input type="checkbox" id="exclude-attributes" checked> Exclude the cohorts' <span class="hint">defining attributes</span></input>
         <span>&emsp;</span><span>&emsp;</span>
@@ -407,7 +407,7 @@ export class Characterize extends ATask {
             // .groupBy('Attribute')
             .groupSortBy('Importance', 'desc'))
             .sidePanel(false)
-            .rowHeight(50)
+            .rowHeight(40)
             .buildTaggle(this.$container.querySelector('.attribute-ranking'));
         this.attributeRankingData = this.attributeRanking.data;
         const children = this.attributeRanking.data.getFirstRanking().children; // alternative: builder.buildData().getFirstRanking(),...
