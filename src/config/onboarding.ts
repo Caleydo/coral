@@ -1,4 +1,4 @@
-import {Props} from 'tippy.js';
+import { Props } from 'tippy.js';
 
 // compare:
 // * Demo: https://atomiks.github.io/tippyjs/
@@ -9,12 +9,12 @@ export const CONFIG_ONBOARDING: ITippyConfig = {
     inertia: true,
     theme: 'light-border',
     delay: [500, null],
-    allowHTML: true
+    allowHTML: true,
   },
   tooltips: {
     dataset: {
       placement: 'bottom',
-      content: 'Start by selecting a dataset for your analysis.'
+      content: 'Start by selecting a dataset for your analysis.',
     },
     rootCohort: {
       placement: 'bottom-start',
@@ -25,7 +25,7 @@ export const CONFIG_ONBOARDING: ITippyConfig = {
         </p>
         <p>Click the cohort to select it for use.</p>
       `,
-      maxWidth: 250
+      maxWidth: 250,
     },
     input: {
       placement: 'top',
@@ -113,14 +113,14 @@ export const CONFIG_ONBOARDING: ITippyConfig = {
         <p>Click a cohort to toggle its selection. To directly select only a single cohort, double-click it.</p>
       `,
       maxWidth: 250,
-      onHidden: (instance) => instance.destroy() // auto remove after first click
+      onHidden: (instance) => instance.destroy(), // auto remove after first click
     },
-  }
+  },
 };
 
 interface ITippyConfig {
   defaultSettings: Partial<Props>;
   tooltips: {
-    [tipId: string]: Partial<Props>
+    [tipId: string]: Partial<Props>;
   };
 }

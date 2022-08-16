@@ -25,4 +25,14 @@ node_modules/
 *.css
 /.cache-loader
 package-lock.json
-*:Zone.Identifier
+*:Zone.Identifier/dist/
+
+
+# yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

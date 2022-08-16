@@ -1,16 +1,23 @@
-import {IAllFilters, IParams} from 'tdp_core';
-import {ElementProvType, IElement, IElementProvJSON, IElementProvJSONTask, ITask, ITaskRep, TaskType} from './CohortInterfaces';
-import {IAttribute, toAttribute} from './data/Attribute';
-import {deepCopy, log} from './util';
+import { IAllFilters, IParams } from 'tdp_core';
+import { ElementProvType, IElement, IElementProvJSON, IElementProvJSONTask, ITask, ITaskRep, TaskType } from './CohortInterfaces';
+import { IAttribute, toAttribute } from './data/Attribute';
+import { deepCopy, log } from './util';
 
 export abstract class Task implements ITask {
   id: string;
+
   label: string;
+
   type: TaskType;
+
   parents: Array<IElement>;
+
   children: Array<IElement>;
+
   representation: ITaskRep;
+
   attributes: IAttribute[];
+
   creationDate: number;
 
   constructor(id: string, label: string, attributes: IAttribute[]) {
@@ -26,9 +33,7 @@ export abstract class Task implements ITask {
   abstract toProvenanceJSON(): IElementProvJSONTask;
 }
 
-
 export class TaskFilter extends Task {
-
   constructor(id: string, label: string, attributes: IAttribute[]) {
     super(id, label, attributes);
     this.type = TaskType.Filter;
@@ -42,14 +47,13 @@ export class TaskFilter extends Task {
       parent: this.parents.map((elem) => elem.id),
       children: this.children.map((elem) => elem.id),
       attrAndValues: {
-        attributes: this.attributes.map((elem) => elem.toJSON())
-      }
+        attributes: this.attributes.map((elem) => elem.toJSON()),
+      },
     };
   }
 }
 
 export class TaskSplit extends Task {
-
   constructor(id: string, label: string, attributes: IAttribute[]) {
     super(id, label, attributes);
     this.type = TaskType.Split;
@@ -63,8 +67,8 @@ export class TaskSplit extends Task {
       parent: this.parents.map((elem) => elem.id),
       children: this.children.map((elem) => elem.id),
       attrAndValues: {
-        attributes: this.attributes.map((elem) => elem.toJSON())
-      }
+        attributes: this.attributes.map((elem) => elem.toJSON()),
+      },
     };
   }
 }
@@ -77,29 +81,28 @@ export function createTaskFromProvJSON(config: IElementProvJSON): Task {
 
   if (config.type === ElementProvType.TaskFilter) {
     return new TaskFilter(config.id, config.label, attributes);
-  } else {
-    return new TaskSplit(config.id, config.label, attributes);
   }
+  return new TaskSplit(config.id, config.label, attributes);
 }
 
 function mergerAllFilterPart(filterType: FilterType, existingFilter: IParams, newFilter: IParams): IParams {
   let mergedFilter = deepCopy(existingFilter);
   // const currType : FilterType = FilterType.normal;
-  let filterContradiction: boolean = false;
+  let filterContradiction = false;
   // go through all attribuets of the new filter
   for (const attr in newFilter) {
     // check if attribute exists in the new filter
     if (Object.prototype.hasOwnProperty.call(newFilter, attr)) {
       // check if attribute exists in the existing filter
       if (Object.prototype.hasOwnProperty.call(existingFilter, attr)) {
-        const newVal = newFilter[attr]; //current value for attribute
-        const existVal = existingFilter[attr]; //current value for attribute
+        const newVal = newFilter[attr]; // current value for attribute
+        const existVal = existingFilter[attr]; // current value for attribute
 
         if (filterType === FilterType.normal) {
           // convert newVal to an array of values
-          const newValArray = Array.isArray(newVal) ? newVal as string[] | number[] | boolean[] : new Array(newVal as string | number | boolean);
+          const newValArray = Array.isArray(newVal) ? (newVal as string[] | number[] | boolean[]) : new Array(newVal as string | number | boolean);
           // convert existVal to an array of values
-          const existValArray = Array.isArray(existVal) ? existVal as string[] | number[] | boolean[] : new Array(existVal as string | number | boolean);
+          const existValArray = Array.isArray(existVal) ? (existVal as string[] | number[] | boolean[]) : new Array(existVal as string | number | boolean);
           // if all new values are part of the existing values, then the filter is OK
           for (const nv of newValArray) {
             if (!existValArray.includes(nv)) {
@@ -107,7 +110,8 @@ function mergerAllFilterPart(filterType: FilterType, existingFilter: IParams, ne
             }
           }
           // no filter contradiction -> new filter values can be used
-          if (!filterContradiction) { // outside of for-loop
+          if (!filterContradiction) {
+            // outside of for-loop
             mergedFilter[attr] = newFilter[attr];
           }
         } else if (filterType === FilterType.lt || filterType === FilterType.lte) {
@@ -156,7 +160,7 @@ export function mergeTwoAllFilters(existingFilter: IAllFilters, newFilter: IAllF
         lt,
         lte,
         gt,
-        gte
+        gte,
       };
     }
   }
@@ -169,5 +173,5 @@ enum FilterType {
   lt,
   lte,
   gt,
-  gte
+  gte,
 }

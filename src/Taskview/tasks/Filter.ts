@@ -1,30 +1,36 @@
-
-import {Selection} from 'd3-selection';
-import {ICohort} from '../../CohortInterfaces';
-import {IAttribute} from '../../data/Attribute';
-import {getAnimatedLoadingText, log} from '../../util';
-import {AreaChart} from '../visualizations/AreaChart';
-import {AVegaVisualization} from '../visualizations/AVegaVisualization';
-import {Option, OptionGroup, VisConfig} from '../visualizations/config/VisConfig';
-import {DensityPlot} from '../visualizations/DensityPlot';
-import {GroupedBoxplot} from '../visualizations/GroupedBoxplot';
-import {VegaGroupedHistogram} from '../visualizations/GroupedHistogram';
-import {KaplanMeierPlot} from '../visualizations/KaplanMeierPlot';
-import {Scatterplot} from '../visualizations/Scatterplot';
-import {ATask} from './ATask';
+import { Selection } from 'd3-selection';
+import { ICohort } from '../../CohortInterfaces';
+import { IAttribute } from '../../data/Attribute';
+import { getAnimatedLoadingText, log } from '../../util';
+import { AreaChart } from '../visualizations/AreaChart';
+import { AVegaVisualization } from '../visualizations/AVegaVisualization';
+import { Option, OptionGroup, VisConfig } from '../visualizations/config/VisConfig';
+import { DensityPlot } from '../visualizations/DensityPlot';
+import { GroupedBoxplot } from '../visualizations/GroupedBoxplot';
+import { VegaGroupedHistogram } from '../visualizations/GroupedHistogram';
+import { KaplanMeierPlot } from '../visualizations/KaplanMeierPlot';
+import { Scatterplot } from '../visualizations/Scatterplot';
+import { ATask } from './ATask';
 
 export class Filter extends ATask {
   public label = `View, Filter & Split`;
+
   public id = `filter`;
+
   public hasOutput = true;
 
   public vis: AVegaVisualization;
+
   public $visContainer: HTMLDivElement;
+
   controls: Selection<HTMLDivElement, any, null, undefined>;
 
   private eventID = 0;
-  visualizations: {new(): AVegaVisualization}[]; // non-absract subclasses
+
+  visualizations: { new (): AVegaVisualization }[]; // non-absract subclasses
+
   attributes: IAttribute[];
+
   cohorts: ICohort[];
 
   supports(attributes: IAttribute[], cohorts: ICohort[]) {
@@ -61,9 +67,7 @@ export class Filter extends ATask {
   }
 
   addVisSelector() {
-    this.header.append('div')
-      .classed('vis-selector', true)
-      .html(`
+    this.header.append('div').classed('vis-selector', true).html(`
         <div class="btn-group vis-header"> <!-- vis dropdown and settings -->
           <div class="btn-group vis-type"> <!-- vis dropdown -->
             <button type="button" class="btn btn-coral dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -89,7 +93,7 @@ export class Filter extends ATask {
       this.$visContainer.innerHTML = '<p>Select one or more cohorts to see visualizations <i class="fas fa-chart-bar" aria-hidden="true"></i></p>';
     } else if (cohorts.length >= 1) {
       if (attribute.type === 'number') {
-        const visualizations: {new(): AVegaVisualization}[] = [DensityPlot];
+        const visualizations: { new (): AVegaVisualization }[] = [DensityPlot];
         if (attribute.id === 'days_to_death' || attribute.id === 'days_to_last_followup') {
           visualizations.unshift(KaplanMeierPlot);
         }
@@ -108,7 +112,7 @@ export class Filter extends ATask {
       this.$visContainer.innerHTML = '<p>Select one or more cohorts to see visualizations <i class="fas fa-chart-bar" aria-hidden="true"></i></p>';
     } else if (cohorts.length >= 1) {
       if (attributes.every((attr) => attr.type === 'number')) {
-        const visualizations: {new(): AVegaVisualization}[] = [Scatterplot];
+        const visualizations: { new (): AVegaVisualization }[] = [Scatterplot];
         if (attributes.every((attr) => ['days_to_death', 'days_to_last_followup'].includes(attr.id))) {
           visualizations.unshift(KaplanMeierPlot);
         }
@@ -132,28 +136,33 @@ export class Filter extends ATask {
   }
 
   set title(title: string) {
-    this.header.select('.vis-selector .vis-type .type').each(function () {(this as HTMLSpanElement).textContent = title;});
+    this.header.select('.vis-selector .vis-type .type').each(function () {
+      (this as HTMLSpanElement).textContent = title;
+    });
   }
 
-  setVisualizations(visualizations: {new(): AVegaVisualization}[]) {
+  setVisualizations(visualizations: { new (): AVegaVisualization }[]) {
     this.visualizations = visualizations;
 
-    //Show the first one
+    // Show the first one
     if (visualizations.length > 0) {
       this.showWithVis(new visualizations[0]());
 
       // only add dropdown caret for vis types if there are more than one
       this.header.select('.vis-selector .vis-type button').classed('dropdown-toggle', visualizations.length > 1);
 
-      const entries = this.header.select('.vis-selector .vis-type ul.dropdown-menu')
-        .selectAll('li').data(visualizations);
+      const entries = this.header.select('.vis-selector .vis-type ul.dropdown-menu').selectAll('li').data(visualizations);
 
-      entries.enter()
-        .append('li').classed('dropdown-item', true)
+      entries
+        .enter()
+        .append('li')
+        .classed('dropdown-item', true)
         .classed('selected', (vis) => (vis as any).NAME === (this.vis.constructor as any).NAME)
-        .append('a').text((vis) => (vis as any).NAME) // cast to any to access static property
+        .append('a')
+        .text((vis) => (vis as any).NAME) // cast to any to access static property
         .on('click', (event, visClass) => {
-          if ((visClass as any).NAME !== (this.vis.constructor as any).NAME) { //check if vis has changed
+          if ((visClass as any).NAME !== (this.vis.constructor as any).NAME) {
+            // check if vis has changed
             this.header.selectAll('.vis-selector .vis-type li').classed('selected', (vis) => (vis as any).NAME === (visClass as any).NAME);
             this.showWithVis(new visClass());
           }
@@ -179,53 +188,62 @@ export class Filter extends ATask {
     this.title = (vis.constructor as any).NAME; // access static property from instance via constructor property
     try {
       await vis.show(this.$visContainer, this.attributes, this.cohorts);
-      if (eventId !== this.eventID) { // remove the visualization if we changed it in the meantime
+      if (eventId !== this.eventID) {
+        // remove the visualization if we changed it in the meantime
         vis.destroy();
       } else {
-        //Show options
+        // Show options
         const configs = vis.getConfig();
 
-        const entries = this.header.select('.vis-selector .vis-header')
-          .selectAll('.vis-config').data(configs, (d) => (d as VisConfig).label);
+        const entries = this.header
+          .select('.vis-selector .vis-header')
+          .selectAll('.vis-config')
+          .data(configs, (d) => (d as VisConfig).label);
 
-        const configGrps = entries.enter()
-          .append('div').classed('vis-config btn-group', true);
+        const configGrps = entries.enter().append('div').classed('vis-config btn-group', true);
 
         configGrps
-          .append('button').attr('type', 'button')
+          .append('button')
+          .attr('type', 'button')
           .classed('btn btn-coral', true) //  dropdown-toggle class to avoid dropdown caret symbol
-          .attr('data-bs-toggle', 'dropdown').attr('title', (d) => `${d.label} Config`)
-          .append('span').classed('icon', true).html((d) => d.icon);
+          .attr('data-bs-toggle', 'dropdown')
+          .attr('title', (d) => `${d.label} Config`)
+          .append('span')
+          .classed('icon', true)
+          .html((d) => d.icon);
 
         const configDropdown = configGrps
-          .append('ul').classed('dropdown-menu dropdown-menu-right', true)
-          .selectAll('li').data((d) => d.groups.flatMap((group) => [group, ...group.options])); // headers and options are on the same level, so create one array that contains both
+          .append('ul')
+          .classed('dropdown-menu dropdown-menu-right', true)
+          .selectAll('li')
+          .data((d) => d.groups.flatMap((group) => [group, ...group.options])); // headers and options are on the same level, so create one array that contains both
 
-        const configHeader = configDropdown.enter()
-          .append('li').attr('class', (d) => (d as OptionGroup).options ? 'dropdown-header' : 'dropdown-item')
-          .html((d) => 'icon' in d ? `${d.icon} ${d.label}` : `<a>${d.label}</a>`);
+        const configHeader = configDropdown
+          .enter()
+          .append('li')
+          .attr('class', (d) => ((d as OptionGroup).options ? 'dropdown-header' : 'dropdown-item'))
+          .html((d) => ('icon' in d ? `${d.icon} ${d.label}` : `<a>${d.label}</a>`));
 
-        configHeader.filter('.dropdown-item')
+        configHeader
+          .filter('.dropdown-item')
           .attr('data-group', (d: Option) => d.group.label)
           .classed('selected', (d) => (d as Option).selected)
           .on('click', (evemt, d: Option) => {
-            this.header
-              .selectAll(`li.dropdown-item[data-group="${d.group.label}"]`)
-              .classed('selected', (option) => d === option);
+            this.header.selectAll(`li.dropdown-item[data-group="${d.group.label}"]`).classed('selected', (option) => d === option);
             vis.selectOption(d);
           });
 
         entries.exit().remove();
       }
 
-      //remove loading
+      // remove loading
       if (this.$visContainer.contains(loading)) {
         loading.remove();
       }
     } catch (e) {
       let msg = 'Creating the visualization failed.';
       log.error(msg, e);
-      //remove loading
+      // remove loading
       if (this.$visContainer.contains(loading)) {
         loading.remove();
       }
@@ -236,13 +254,15 @@ export class Filter extends ATask {
         icon = `<i class="fa fa-hourglass-end" aria-hidden="true"></i>`;
       }
 
-      this.$visContainer.insertAdjacentHTML('afterbegin', `
+      this.$visContainer.insertAdjacentHTML(
+        'afterbegin',
+        `
         <p>
           ${icon}
           ${msg}
         </p>
-      `);
+      `,
+      );
     }
-
   }
 }

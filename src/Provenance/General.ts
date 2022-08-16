@@ -1,23 +1,28 @@
-import {ActionMetaData, ActionUtils, ICmdResult, IObjectRef, ObjectRefUtils} from 'tdp_core';
-import {CohortApp} from '../app';
-import {IElementProvJSON, IElementProvJSONCohort} from '../CohortInterfaces';
-import {log} from '../util';
-import {IEntitySourceConfig} from '../utilIdTypes';
+import { ActionMetaData, ActionUtils, ICmdResult, IObjectRef, ObjectRefUtils } from 'tdp_core';
+import { CohortApp } from '../app';
+import { IElementProvJSON, IElementProvJSONCohort } from '../CohortInterfaces';
+import { log } from '../util';
+import { IEntitySourceConfig } from '../utilIdTypes';
 
-
-/******************************
+/** ****************************
  ---------- GENERAL ----------
-*******************************/
+****************************** */
 
 // ----------------------------
 // ---- DATASET ---------------
 // ----------------------------
 export function setDatasetAction(provider: IObjectRef<CohortApp>, newDataset: IDatasetDesc, oldDataset: IDatasetDesc) {
   log.debug('Create setDataset Action');
-  return ActionUtils.action(ActionMetaData.actionMeta('Change Dataset', ObjectRefUtils.category.data, ObjectRefUtils.operation.update), 'chtSetDataset', setDatasetImpl, [provider], {
-    newDataset,
-    oldDataset
-  });
+  return ActionUtils.action(
+    ActionMetaData.actionMeta('Change Dataset', ObjectRefUtils.category.data, ObjectRefUtils.operation.update),
+    'chtSetDataset',
+    setDatasetImpl,
+    [provider],
+    {
+      newDataset,
+      oldDataset,
+    },
+  );
 }
 
 export async function setDatasetImpl(inputs: IObjectRef<CohortApp>[], parameter: any): Promise<ICmdResult> {
@@ -25,10 +30,9 @@ export async function setDatasetImpl(inputs: IObjectRef<CohortApp>[], parameter:
   const app: CohortApp = await inputs[0].v;
   await app.setDataset(parameter.newDataset);
   return {
-    inverse: setDatasetAction(inputs[0], parameter.oldDataset, parameter.newDataset)
+    inverse: setDatasetAction(inputs[0], parameter.oldDataset, parameter.newDataset),
   };
 }
-
 
 // Compressor function -> commented out due to problems with the add/remove cohort actions
 // export function compressChtSetDataset(path: ActionNode[]) {
@@ -47,4 +51,3 @@ export interface IDatasetDesc {
   rootCohort: IElementProvJSONCohort;
   chtOverviewElements: IElementProvJSON[];
 }
-

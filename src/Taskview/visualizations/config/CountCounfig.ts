@@ -1,5 +1,4 @@
-import {OptionGroup, Option, VisConfig} from './VisConfig';
-
+import { OptionGroup, Option, VisConfig } from './VisConfig';
 
 const probability = new Option('Estimated Probability', true);
 export const counts = new Option('Smoothed Counts');

@@ -1,6 +1,5 @@
-import {Ajax, AppContext} from 'tdp_core';
-import {IParams, IRow} from 'tdp_core';
-import {deepCopy, log} from './util';
+import { Ajax, AppContext, IParams, IRow } from 'tdp_core';
+import { deepCopy, log } from './util';
 
 export interface ICohortDBParams extends IParams {
   name: string;
@@ -59,7 +58,7 @@ export enum NumRangeOperators {
   lt = 'lt',
   lte = 'lte',
   gt = 'gt',
-  gte = 'gte'
+  gte = 'gte',
 }
 export interface INumRange {
   operatorOne: NumRangeOperators;
@@ -180,7 +179,7 @@ enum CohortRoutes {
   dataUsePanelAnnotationFilter = 'dataUsePanelAnnotationFilter',
   sizeUsePanelAnnotationFilter = 'sizeUsePanelAnnotationFilter',
   hist = 'hist',
-  createUseTreatmentFilter = 'createUseTreatmentFilter'
+  createUseTreatmentFilter = 'createUseTreatmentFilter',
 }
 
 interface IDataBaseToDisplay {
@@ -192,23 +191,23 @@ interface IDataBaseToDisplay {
 // for 'Copy Number Class'
 // table: copynumber, attribtue: copynumberclass
 const mapCopyNumberCat: IDataBaseToDisplay[] = [
-  {value: 2, name: 'Amplification'},
-  {value: -2, name: 'Deep Deletion'},
-  //{value: -1, name: 'Heterozygous deletion'},
-  {value: 0, name: 'NORMAL'},
-  //{value: 1, name: 'Low level amplification'},
-  //{value: 2, name: 'High level amplification'},
-  {value: 'null', name: 'Unknown'},
-  {value: '!null', name: '!null'}
+  { value: 2, name: 'Amplification' },
+  { value: -2, name: 'Deep Deletion' },
+  // {value: -1, name: 'Heterozygous deletion'},
+  { value: 0, name: 'NORMAL' },
+  // {value: 1, name: 'Low level amplification'},
+  // {value: 2, name: 'High level amplification'},
+  { value: 'null', name: 'Unknown' },
+  { value: '!null', name: '!null' },
 ];
 
 // for 'AA Mutated' and 'DNA Mutated'
 // table: mutation, attribute: aa_mutated / dna_mutated
 const mapMutationCat: IDataBaseToDisplay[] = [
-  {value: 'true', name: 'Mutated'},
-  {value: 'false', name: 'Non Mutated'},
-  {value: 'null', name: 'Unknown'},
-  {value: '!null', name: '!null'}
+  { value: 'true', name: 'Mutated' },
+  { value: 'false', name: 'Non Mutated' },
+  { value: 'null', name: 'Unknown' },
+  { value: '!null', name: '!null' },
 ];
 
 /**
@@ -229,12 +228,16 @@ enum DataMappingDirection {
 }
 
 // maps the database value to a display name
-function mapDataBaseValueToDisplayName(mapObject: IDataBaseToDisplay[], valueLabel: string, values: {id: string | number, score: string | number}[]): {id: string | number, score: string | number}[] {
+function mapDataBaseValueToDisplayName(
+  mapObject: IDataBaseToDisplay[],
+  valueLabel: string,
+  values: { id: string | number; score: string | number }[],
+): { id: string | number; score: string | number }[] {
   for (const v of values) {
-    const vStr = v['' + valueLabel] === null ? 'null' : v['' + valueLabel].toString(); // convert values into string
+    const vStr = v[`${valueLabel}`] === null ? 'null' : v[`${valueLabel}`].toString(); // convert values into string
     const currVauleMap = mapObject.filter((a) => vStr === a.value.toString()); // get map object
     const currDisplay = currVauleMap[0].name; // get display name of map object
-    v['' + valueLabel] = currDisplay; // set the score value to the display name
+    v[`${valueLabel}`] = currDisplay; // set the score value to the display name
   }
   return values;
 }
@@ -251,7 +254,7 @@ function mapDisplayNameToDataBaseValue(mapObject: IDataBaseToDisplay[], values: 
 }
 
 // add the data mapping to the different attributes
-function addDataValueMapping(table: string, attribute: string, values: any[], direction: DataMappingDirection, databaseValueLabel: string = 'score') {
+function addDataValueMapping(table: string, attribute: string, values: any[], direction: DataMappingDirection, databaseValueLabel = 'score') {
   if (table === 'mutation' || table === 'copynumber') {
     if (attribute === 'aa_mutated' || attribute === 'dna_mutated') {
       log.debug('map either "AA_Mutated" or "DNA_Muatated" values: ', attribute);
@@ -286,14 +289,14 @@ function addDataValueMapping(table: string, attribute: string, values: any[], di
 // const SCORE_ROUTES = 'geneScore' | 'celllineDepletionScore' | 'panelAnnotation';
 // const HIST = 'hist'
 
-function getCohortDataImpl(route: CohortRoutes, params: IParams = {}, assignIds: boolean = false) {
+function getCohortDataImpl(route: CohortRoutes, params: IParams = {}, assignIds = false) {
   if (assignIds) {
     params._assignids = true; // assign globally ids on the server side
   }
 
   const url = `/cohortdb/db/${route}`;
   const encoded = Ajax.encodeParams(params);
-  if (encoded && (url.length + encoded.length > Ajax.MAX_URL_LENGTH)) {
+  if (encoded && url.length + encoded.length > Ajax.MAX_URL_LENGTH) {
     // use post instead
     return AppContext.getInstance().sendAPI(url, params, 'POST');
   }
@@ -301,7 +304,7 @@ function getCohortDataImpl(route: CohortRoutes, params: IParams = {}, assignIds:
 }
 
 // const CREATION_ROUTES = 'create' | 'createUseEqulasFilter' | 'createUseNumFilter' | 'createUseGeneNumFilter' | 'createUseDepletionScoreFilter' | 'createUsePanelAnnotationFilter';
-export function createDBCohort(params: ICohortDBParams, assignIds: boolean = false): Promise<IRow[]> {
+export function createDBCohort(params: ICohortDBParams, assignIds = false): Promise<IRow[]> {
   return getCohortDataImpl(CohortRoutes.create, params, assignIds);
 }
 
@@ -309,7 +312,7 @@ function convertEqualValues(values: Array<string> | Array<number>): string {
   return values.join(valueListDelimiter);
 }
 
-export function createDBCohortWithEqualsFilter(params: ICohortDBWithEqualsFilterParams, assignIds: boolean = false): Promise<IRow[]> {
+export function createDBCohortWithEqualsFilter(params: ICohortDBWithEqualsFilterParams, assignIds = false): Promise<IRow[]> {
   const newParams = deepCopy(params) as IParams;
   newParams.values = convertEqualValues(params.values);
   return getCohortDataImpl(CohortRoutes.createUseEqulasFilter, newParams, assignIds);
@@ -320,39 +323,38 @@ function convertNumRanges(ranges: INumRange[]): string {
   for (const r of ranges) {
     let limits = `${r.operatorOne}_${r.valueOne}`;
     if (r.operatorTwo && r.valueTwo) {
-      limits = limits + `%${r.operatorTwo}_${r.valueTwo}`;
+      limits += `%${r.operatorTwo}_${r.valueTwo}`;
     }
-    rangeString = rangeString + limits + ';';
+    rangeString = `${rangeString + limits};`;
   }
 
   rangeString = rangeString.slice(0, -1); // remove the last ;
   return rangeString;
 }
 
-export function createDBCohortWithNumFilter(params: ICohortDBWithNumFilterParams, assignIds: boolean = false): Promise<IRow[]> {
+export function createDBCohortWithNumFilter(params: ICohortDBWithNumFilterParams, assignIds = false): Promise<IRow[]> {
   const newParams: IParams = {
     cohortId: params.cohortId,
     name: params.name,
     attribute: params.attribute,
-    ranges: convertNumRanges(params.ranges)
+    ranges: convertNumRanges(params.ranges),
   };
   return getCohortDataImpl(CohortRoutes.createUseNumFilter, newParams, assignIds);
 }
 
-
-export function createDBCohortWithGeneNumFilter(params: ICohortDBWithGeneNumFilterParams, assignIds: boolean = false): Promise<IRow[]> {
+export function createDBCohortWithGeneNumFilter(params: ICohortDBWithGeneNumFilterParams, assignIds = false): Promise<IRow[]> {
   const newParams: IParams = {
     cohortId: params.cohortId,
     name: params.name,
     table: params.table,
     attribute: params.attribute,
     ensg: params.ensg,
-    ranges: convertNumRanges(params.ranges)
+    ranges: convertNumRanges(params.ranges),
   };
   return getCohortDataImpl(CohortRoutes.createUseGeneNumFilter, newParams, assignIds);
 }
 
-export function createDBCohortWithGeneEqualsFilter(params: ICohortDBWithGeneEqualsFilterParams, assignIds: boolean = false): Promise<IRow[]> {
+export function createDBCohortWithGeneEqualsFilter(params: ICohortDBWithGeneEqualsFilterParams, assignIds = false): Promise<IRow[]> {
   const newParams = deepCopy(params) as IParams;
   let newValues = [].concat(newParams.values);
   // add data value mapping
@@ -361,7 +363,7 @@ export function createDBCohortWithGeneEqualsFilter(params: ICohortDBWithGeneEqua
   return getCohortDataImpl(CohortRoutes.createUseGeneEqualsFilter, newParams, assignIds);
 }
 
-export function createDBCohortWithDepletionScoreFilter(params: ICohortDBWithDepletionScoreFilterParams, assignIds: boolean = false): Promise<IRow[]> {
+export function createDBCohortWithDepletionScoreFilter(params: ICohortDBWithDepletionScoreFilterParams, assignIds = false): Promise<IRow[]> {
   const newParams: IParams = {
     cohortId: params.cohortId,
     name: params.name,
@@ -369,18 +371,18 @@ export function createDBCohortWithDepletionScoreFilter(params: ICohortDBWithDepl
     attribute: params.attribute,
     ensg: params.ensg,
     depletionscreen: params.depletionscreen,
-    ranges: convertNumRanges(params.ranges)
+    ranges: convertNumRanges(params.ranges),
   };
   return getCohortDataImpl(CohortRoutes.createUseDepletionScoreFilter, newParams, assignIds);
 }
 
-export function createDBCohortWithPanelAnnotationFilter(params: ICohortDBWithPanelAnnotationFilterParams, assignIds: boolean = false): Promise<IRow[]> {
+export function createDBCohortWithPanelAnnotationFilter(params: ICohortDBWithPanelAnnotationFilterParams, assignIds = false): Promise<IRow[]> {
   const newParams = deepCopy(params) as IParams;
   newParams.values = convertEqualValues(params.values);
   return getCohortDataImpl(CohortRoutes.createUsePanelAnnotationFilter, newParams, assignIds);
 }
 
-export function createDBCohortWithTreatmentFilter(params: ICohortDBWithTreatmentFilterParams, assignIds: boolean = false): Promise<IRow[]> {
+export function createDBCohortWithTreatmentFilter(params: ICohortDBWithTreatmentFilterParams, assignIds = false): Promise<IRow[]> {
   const newParams = deepCopy(params) as IParams;
   if (newParams.agent === null) {
     delete newParams.agent;
@@ -394,16 +396,15 @@ export function createDBCohortWithTreatmentFilter(params: ICohortDBWithTreatment
   return getCohortDataImpl(CohortRoutes.createUseTreatmentFilter, newParams, assignIds);
 }
 
-
 // const ENTITY_ROUTES = 'size' | 'cohortData';
 /**
  * returns the data a cohort represents
  */
-export function getCohortData(params: ICohortDBDataParams, assignIds: boolean = false): Promise<IRow[]> {
+export function getCohortData(params: ICohortDBDataParams, assignIds = false): Promise<IRow[]> {
   return getCohortDataImpl(CohortRoutes.cohortData, params, assignIds);
 }
 
-export async function getCohortSize(params: ICohortDBSizeParams, assignIds: boolean = false): Promise<number> {
+export async function getCohortSize(params: ICohortDBSizeParams, assignIds = false): Promise<number> {
   const sizeResp = await getCohortDataImpl(CohortRoutes.size, params, assignIds);
   return Promise.resolve(Number(sizeResp[0].size));
 }
@@ -411,7 +412,7 @@ export async function getCohortSize(params: ICohortDBSizeParams, assignIds: bool
 /**
  * returns the saved cohort tuples in the DB
  */
-export function getDBCohortData(params: ICohortDBCohortDataParams, assignIds: boolean = false): Promise<ICohortRow[]> {
+export function getDBCohortData(params: ICohortDBCohortDataParams, assignIds = false): Promise<ICohortRow[]> {
   const cohortIdsString = params.cohortIds.join(valueListDelimiter);
   delete params.cohortIds;
   const newParams = deepCopy(params) as IParams;
@@ -423,12 +424,12 @@ export function getDBCohortData(params: ICohortDBCohortDataParams, assignIds: bo
  * updates the name of the cohort in the DB
  * @returns the updated cohort data from the DB
  */
-export function updateCohortName(params: ICohortDBUpdateName, assignIds: boolean = false): Promise<ICohortRow[]> {
+export function updateCohortName(params: ICohortDBUpdateName, assignIds = false): Promise<ICohortRow[]> {
   return getCohortDataImpl(CohortRoutes.updateCohortName, params, assignIds);
 }
 
 // const CLONE_FILTER_ENTITY_ROUTES = 'sizeUseEqulasFilter' | 'dataUseEqulasFilter' | 'sizeUseNumFilter' | 'dataUseNumFilter';
-export async function sizeDBCohortWithEqualsFilter(params: ICohortEqualsFilterParams, assignIds: boolean = false): Promise<number> {
+export async function sizeDBCohortWithEqualsFilter(params: ICohortEqualsFilterParams, assignIds = false): Promise<number> {
   const valueString = convertEqualValues(params.values);
   delete params.values;
   const newParams = deepCopy(params) as IParams;
@@ -437,7 +438,7 @@ export async function sizeDBCohortWithEqualsFilter(params: ICohortEqualsFilterPa
   return Promise.resolve(Number(sizeResp[0].size));
 }
 
-export function dataDBCohortWithEqualsFilter(params: ICohortEqualsFilterParams, assignIds: boolean = false): Promise<IRow[]> {
+export function dataDBCohortWithEqualsFilter(params: ICohortEqualsFilterParams, assignIds = false): Promise<IRow[]> {
   const valueString = convertEqualValues(params.values);
   delete params.values;
   const newParams = deepCopy(params) as IParams;
@@ -445,51 +446,50 @@ export function dataDBCohortWithEqualsFilter(params: ICohortEqualsFilterParams, 
   return getCohortDataImpl(CohortRoutes.dataUseEqulasFilter, newParams, assignIds);
 }
 
-export async function sizeDBCohortWithNumFilter(params: ICohortNumFilterParams, assignIds: boolean = false): Promise<number> {
+export async function sizeDBCohortWithNumFilter(params: ICohortNumFilterParams, assignIds = false): Promise<number> {
   const newParams: IParams = {
     cohortId: params.cohortId,
     attribute: params.attribute,
-    ranges: convertNumRanges(params.ranges)
+    ranges: convertNumRanges(params.ranges),
   };
   const sizeResp = await getCohortDataImpl(CohortRoutes.sizeUseNumFilter, newParams, assignIds);
   return Promise.resolve(Number(sizeResp[0].size));
 }
 
-export function dataDBCohortWithNumFilter(params: ICohortNumFilterParams, assignIds: boolean = false): Promise<IRow[]> {
+export function dataDBCohortWithNumFilter(params: ICohortNumFilterParams, assignIds = false): Promise<IRow[]> {
   const newParams: IParams = {
     cohortId: params.cohortId,
     attribute: params.attribute,
-    ranges: convertNumRanges(params.ranges)
+    ranges: convertNumRanges(params.ranges),
   };
   return getCohortDataImpl(CohortRoutes.dataUseNumFilter, newParams, assignIds);
 }
 
-
 // const CLONE_FILTER_SCORE_ROUTES = 'sizeUseGeneNumFilter' | 'dataUseGeneNumFilter' | 'sizeUseGeneEqualsFilter' | 'dataUseGeneEqualsFilter' | 'sizeUseDepletionScoreFilter' | 'dataUseDepletionScoreFilter' | 'sizeUsePanelAnnotationFilter' | 'dataUsePanelAnnotationFilter';
-export async function sizeDBCohortGeneWithNumFilter(params: ICohortGeneNumFilterParams, assignIds: boolean = false): Promise<number> {
+export async function sizeDBCohortGeneWithNumFilter(params: ICohortGeneNumFilterParams, assignIds = false): Promise<number> {
   const newParams: IParams = {
     cohortId: params.cohortId,
     table: params.table,
     attribute: params.attribute,
     ensg: params.ensg,
-    ranges: convertNumRanges(params.ranges)
+    ranges: convertNumRanges(params.ranges),
   };
   const sizeResp = await getCohortDataImpl(CohortRoutes.sizeUseGeneNumFilter, newParams, assignIds);
   return Promise.resolve(Number(sizeResp[0].size));
 }
 
-export function dataDBCohortGeneWithNumFilter(params: ICohortGeneNumFilterParams, assignIds: boolean = false): Promise<IRow[]> {
+export function dataDBCohortGeneWithNumFilter(params: ICohortGeneNumFilterParams, assignIds = false): Promise<IRow[]> {
   const newParams: IParams = {
     cohortId: params.cohortId,
     table: params.table,
     attribute: params.attribute,
     ensg: params.ensg,
-    ranges: convertNumRanges(params.ranges)
+    ranges: convertNumRanges(params.ranges),
   };
   return getCohortDataImpl(CohortRoutes.dataUseGeneNumFilter, newParams, assignIds);
 }
 
-export async function sizeDBCohortGeneWithEqualsFilter(params: ICohortGeneEqualsFilterParams, assignIds: boolean = false): Promise<number> {
+export async function sizeDBCohortGeneWithEqualsFilter(params: ICohortGeneEqualsFilterParams, assignIds = false): Promise<number> {
   const newParams = deepCopy(params) as IParams;
   newParams.values = convertEqualValues(params.values);
 
@@ -497,73 +497,74 @@ export async function sizeDBCohortGeneWithEqualsFilter(params: ICohortGeneEquals
   return Promise.resolve(Number(sizeResp[0].size));
 }
 
-export function dataDBCohortGeneWithEqualsFilter(params: ICohortGeneEqualsFilterParams, assignIds: boolean = false): Promise<IRow[]> {
+export function dataDBCohortGeneWithEqualsFilter(params: ICohortGeneEqualsFilterParams, assignIds = false): Promise<IRow[]> {
   const newParams = deepCopy(params) as IParams;
   newParams.values = convertEqualValues(params.values);
   return getCohortDataImpl(CohortRoutes.dataUseGeneEqualsFilter, newParams, assignIds);
 }
 
-export async function sizeDBCohortDepletionScoreFilter(params: ICohortDepletionScoreFilterParams, assignIds: boolean = false): Promise<number> {
+export async function sizeDBCohortDepletionScoreFilter(params: ICohortDepletionScoreFilterParams, assignIds = false): Promise<number> {
   const newParams: IParams = {
     cohortId: params.cohortId,
     table: params.table,
     attribute: params.attribute,
     ensg: params.ensg,
     depletionscreen: params.depletionscreen,
-    ranges: convertNumRanges(params.ranges)
+    ranges: convertNumRanges(params.ranges),
   };
   const sizeResp = await getCohortDataImpl(CohortRoutes.sizeUseDepletionScoreFilter, newParams, assignIds);
   return Promise.resolve(Number(sizeResp[0].size));
 }
 
-export function dataDBCohortDepletionScoreFilter(params: ICohortDepletionScoreFilterParams, assignIds: boolean = false): Promise<IRow[]> {
+export function dataDBCohortDepletionScoreFilter(params: ICohortDepletionScoreFilterParams, assignIds = false): Promise<IRow[]> {
   const newParams: IParams = {
     cohortId: params.cohortId,
     table: params.table,
     attribute: params.attribute,
     ensg: params.ensg,
     depletionscreen: params.depletionscreen,
-    ranges: convertNumRanges(params.ranges)
+    ranges: convertNumRanges(params.ranges),
   };
   return getCohortDataImpl(CohortRoutes.dataUseDepletionScoreFilter, newParams, assignIds);
 }
 
-export async function sizeDBCohortPanelAnnotationFilter(params: ICohortPanelAnnotationFilterParams, assignIds: boolean = false): Promise<number> {
+export async function sizeDBCohortPanelAnnotationFilter(params: ICohortPanelAnnotationFilterParams, assignIds = false): Promise<number> {
   const newParams = deepCopy(params) as IParams;
   newParams.values = convertEqualValues(params.values);
   const sizeResp = await getCohortDataImpl(CohortRoutes.sizeUsePanelAnnotationFilter, newParams, assignIds);
   return Promise.resolve(Number(sizeResp[0].size));
 }
 
-export function dataDBCohortPanelAnnotationFilter(params: ICohortPanelAnnotationFilterParams, assignIds: boolean = false): Promise<IRow[]> {
+export function dataDBCohortPanelAnnotationFilter(params: ICohortPanelAnnotationFilterParams, assignIds = false): Promise<IRow[]> {
   const newParams = deepCopy(params) as IParams;
   newParams.values = convertEqualValues(params.values);
   return getCohortDataImpl(CohortRoutes.dataUsePanelAnnotationFilter, newParams, assignIds);
 }
 
-
 // const SCORE_ROUTES = 'geneScore' | 'celllineDepletionScore' | 'panelAnnotation';
-export async function getCohortGeneScore(idType: 'tissue' | 'cellline' | 'more', params: ICohortDBGeneScoreParams, assignIds: boolean = false): Promise<IRow[]> {
+export async function getCohortGeneScore(idType: 'tissue' | 'cellline' | 'more', params: ICohortDBGeneScoreParams, assignIds = false): Promise<IRow[]> {
   if (idType === 'tissue' || idType === 'cellline') {
     let values = await getCohortDataImpl(CohortRoutes.geneScore, params, assignIds);
     // add data value mapping
     values = addDataValueMapping(params.table, params.attribute, values, DataMappingDirection.DB2Display);
     return values;
-  } else {
-    return null;
   }
+  return null;
 }
 
-export function getCohortDepletionScore(params: ICohortDBDepletionScoreParams, assignIds: boolean = false): Promise<IRow[]> {
+export function getCohortDepletionScore(params: ICohortDBDepletionScoreParams, assignIds = false): Promise<IRow[]> {
   return getCohortDataImpl(CohortRoutes.celllineDepletionScore, params, assignIds);
 }
 
-export function getCohortPanelAnnotation(idType: 'tissue' | 'cellline' | 'gene' | 'more', params: ICohortDBPanelAnnotationParams, assignIds: boolean = false): Promise<IRow[]> {
+export function getCohortPanelAnnotation(
+  idType: 'tissue' | 'cellline' | 'gene' | 'more',
+  params: ICohortDBPanelAnnotationParams,
+  assignIds = false,
+): Promise<IRow[]> {
   if (idType === 'tissue' || idType === 'cellline' || idType === 'gene') {
     return getCohortDataImpl(CohortRoutes.panelAnnotation, params, assignIds);
-  } else {
-    return null;
   }
+  return null;
 }
 
 export enum HistRouteType {
@@ -572,9 +573,8 @@ export enum HistRouteType {
   geneScoreCat = 'geneScoreCat',
   geneScoreNum = 'geneScoreNum',
   depletionScore = 'depletionScore',
-  panelAnnotation = 'panelAnnotation'
+  panelAnnotation = 'panelAnnotation',
 }
-
 
 export interface ICohortDBHistDataParms extends IParams {
   cohortId: number;
@@ -604,12 +604,22 @@ export interface ICohortDBHistPanelParms extends IParams {
 }
 
 // const HIST = 'hist'
-export async function getCohortHist(histType: HistRouteType, params: ICohortDBHistDataParms | ICohortDBHistScoreParms | ICohortDBHistScoreDepletionParms | ICohortDBHistPanelParms, assignIds: boolean = false): Promise<{bin: string, count: number}[]> {
+export async function getCohortHist(
+  histType: HistRouteType,
+  params: ICohortDBHistDataParms | ICohortDBHistScoreParms | ICohortDBHistScoreDepletionParms | ICohortDBHistPanelParms,
+  assignIds = false,
+): Promise<{ bin: string; count: number }[]> {
   params.type = histType;
   let bins = await getCohortDataImpl(CohortRoutes.hist, params, assignIds);
   if (params.type === HistRouteType.geneScoreCat || params.type === HistRouteType.geneScoreNum) {
     // add data value mapping
-    bins = addDataValueMapping((params as ICohortDBHistScoreParms).table, (params as ICohortDBHistScoreParms).attribute, bins, DataMappingDirection.DB2Display, 'bin');
+    bins = addDataValueMapping(
+      (params as ICohortDBHistScoreParms).table,
+      (params as ICohortDBHistScoreParms).attribute,
+      bins,
+      DataMappingDirection.DB2Display,
+      'bin',
+    );
   }
   return bins;
 }

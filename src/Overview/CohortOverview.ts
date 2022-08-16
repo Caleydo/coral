@@ -1,47 +1,81 @@
-import {IObjectRef, ObjectRefUtils, ProvenanceGraph, UniqueIdManager} from 'tdp_core';
-import {IDatabaseViewDesc} from 'tdp_core';
+import { IObjectRef, ObjectRefUtils, ProvenanceGraph, UniqueIdManager, IDatabaseViewDesc } from 'tdp_core';
 import tippy from 'tippy.js';
-import {CohortApp} from '../app';
-import {Cohort, createCohortFromDB} from '../Cohort';
-import {ElementProvType, IElement, IElementProvJSON, IOverviewLayout, IRectCohortRep, IRectTaskRep, ITask, ITaskParams, TaskType} from '../CohortInterfaces';
-import {RectCohortRep} from '../CohortRepresentations';
-import {IAttribute} from '../data/Attribute';
-import {addOverviewCohortAction, removeOverviewCohortAction} from '../Provenance/CohortEV';
-import {getDBCohortData} from '../rest';
-import {RectTaskRep} from '../TaskRepresentations';
-import {createTaskFromProvJSON, Task, TaskFilter, TaskSplit} from '../Tasks';
-import {deepCopy, log, ScrollLinker} from '../util';
-import {CohortRemoveEvent, CohortSelectionEvent, COHORT_REMOVE_EVENT_TYPE, OVERVIEW_PREVIEW_CHANGE_EVENT_TYPE, OVERVIEW_PREVIEW_CONFIRM_EVENT_TYPE, PreviewChangeEvent, TaskRemoveEvent, TASK_REMOVE_EVENT_TYPE} from '../utilCustomEvents';
-import {niceName} from '../utilLabels';
-import {RectangleLayout} from './OverviewLayout';
+import { CohortApp } from '../app';
+import { Cohort, createCohortFromDB } from '../Cohort';
+import { ElementProvType, IElement, IElementProvJSON, IOverviewLayout, IRectCohortRep, IRectTaskRep, ITask, ITaskParams, TaskType } from '../CohortInterfaces';
+import { RectCohortRep } from '../CohortRepresentations';
+import { IAttribute } from '../data/Attribute';
+import { addOverviewCohortAction, removeOverviewCohortAction } from '../Provenance/CohortEV';
+import { getDBCohortData } from '../rest';
+import { RectTaskRep } from '../TaskRepresentations';
+import { createTaskFromProvJSON, Task, TaskFilter, TaskSplit } from '../Tasks';
+import { deepCopy, log, ScrollLinker } from '../util';
+import {
+  CohortRemoveEvent,
+  CohortSelectionEvent,
+  COHORT_REMOVE_EVENT_TYPE,
+  OVERVIEW_PREVIEW_CHANGE_EVENT_TYPE,
+  OVERVIEW_PREVIEW_CONFIRM_EVENT_TYPE,
+  PreviewChangeEvent,
+  TaskRemoveEvent,
+  TASK_REMOVE_EVENT_TYPE,
+} from '../utilCustomEvents';
+import { niceName } from '../utilLabels';
+import { RectangleLayout } from './OverviewLayout';
 
 export class CohortOverview {
   private root: Cohort;
+
   private rootDBid: number;
+
   private elements: Array<IElement> = [];
+
   public sizeReference: number;
+
   public layout: IOverviewLayout;
+
   public container: HTMLDivElement;
+
   public viewDescr: IDatabaseViewDesc;
+
   public taskHistory: Array<Task>;
 
   private _arrangements: any;
+
   private _zoomFactor: number;
+
   private _showTaskHistoryDetails: boolean;
+
   private _currentPreviewTasks: Task[];
+
   private _lastAddedTasks: Task[];
+
   private eventListenerChange;
+
   private eventListenerConfirm;
+
   private cohortAppNode: HTMLDivElement;
+
   private _elementsAsJSON: IElementProvJSON[];
+
   public graph: ProvenanceGraph;
+
   public readonly ref: IObjectRef<CohortOverview>;
+
   public readonly appRef: IObjectRef<CohortApp>;
+
   private refName = 'CohortApp-Overview';
+
   private _reference: Cohort;
 
-
-  constructor(private parent: HTMLDivElement, graph: ProvenanceGraph, ref: IObjectRef<CohortApp>, layout: IOverviewLayout, root: Cohort, viewDescr: IDatabaseViewDesc) {
+  constructor(
+    private parent: HTMLDivElement,
+    graph: ProvenanceGraph,
+    ref: IObjectRef<CohortApp>,
+    layout: IOverviewLayout,
+    root: Cohort,
+    viewDescr: IDatabaseViewDesc,
+  ) {
     this.root = root;
     this.rootDBid = root.dbId;
     this._reference = root;
@@ -74,7 +108,6 @@ export class CohortOverview {
     this.cohortAppNode.addEventListener(OVERVIEW_PREVIEW_CHANGE_EVENT_TYPE, this.eventListenerChange);
     // event listener to confirm the preview
     this.cohortAppNode.addEventListener(OVERVIEW_PREVIEW_CONFIRM_EVENT_TYPE, this.eventListenerConfirm);
-
   }
 
   // private static generate_hash(desc: IPluginDesc, selection: ISelection) {
@@ -178,9 +211,8 @@ export class CohortOverview {
     if (elem !== null) {
       const eleId = elem.id;
       return this.getElementWithId(eleId);
-    } else {
-      return null;
     }
+    return null;
   }
 
   // maybe remove, and only keep getElements
@@ -188,9 +220,8 @@ export class CohortOverview {
     if (this.elements !== null) {
       const target = this.elements.filter((e) => e.id === eleId);
       return target.length === 1 ? target[0] : null;
-    } else {
-      return null;
     }
+    return null;
   }
 
   public getLastAddedTasks() {
@@ -201,7 +232,7 @@ export class CohortOverview {
     this._lastAddedTasks = [];
   }
 
-  public executeTask(taskParam: ITaskParams, attributes: IAttribute[], addToTaskHistory: boolean = true): Task {
+  public executeTask(taskParam: ITaskParams, attributes: IAttribute[], addToTaskHistory = true): Task {
     log.debug('executeTask: ', taskParam);
     let validType = false;
     const parentCohort: Cohort = taskParam.inputCohorts[0] as Cohort;
@@ -217,7 +248,6 @@ export class CohortOverview {
     }
 
     if (validType) {
-
       parentCohort.children.push(task);
       task.parents = [parentCohort];
       const selectedOutChts = taskParam.outputCohorts.filter((cht) => cht.selected);
@@ -226,7 +256,7 @@ export class CohortOverview {
       }
 
       task.children = selectedOutChts;
-      log.debug('execute task: ', {task, selectedOutChts});
+      log.debug('execute task: ', { task, selectedOutChts });
       this.addElement(task);
       this.addElements(selectedOutChts);
       if (addToTaskHistory) {
@@ -251,11 +281,10 @@ export class CohortOverview {
         // change preview
         this.previewChange(taskParams, taskAttributes);
       }
-    } else {
-      if (!(this._currentPreviewTasks.length === 0 && taskParams.length === 0)) { // avoid clearing if there is nothing to clear
-        this.clearPreview();
-        this.generateOverview();
-      }
+    } else if (!(this._currentPreviewTasks.length === 0 && taskParams.length === 0)) {
+      // avoid clearing if there is nothing to clear
+      this.clearPreview();
+      this.generateOverview();
     }
   }
 
@@ -343,7 +372,6 @@ export class CohortOverview {
     // set current tasks of preview to empty
     this._currentPreviewTasks = [];
 
-
     const oldElements = deepCopy(this._elementsAsJSON);
     this.updateJSONElements();
     const newElements = deepCopy(this._elementsAsJSON);
@@ -360,7 +388,7 @@ export class CohortOverview {
     // const copyElem = this.elements !== null ? this.elements : [];
     const elemIDs = this.elements !== null ? this.elements.map((elem) => elem.id) : [];
 
-    const sizeEquals = elemIDs.length === porvElemIDs.length ? true : false;
+    const sizeEquals = elemIDs.length === porvElemIDs.length;
     const containsAll = elemIDs.every((e) => porvElemIDs.includes(e));
     // console.log('check all Elements exist: ', {porvElemIDs, elemIDs, sizeEquals, containsAll});
     // reduced double loading when the no switch the the cohort evolution tree state has been made
@@ -393,7 +421,7 @@ export class CohortOverview {
       // get cohort DB data
       const chtSizes = [];
       if (cohortIDs.length > 0) {
-        const dbCohortInfos = await getDBCohortData({cohortIds: cohortIDs});
+        const dbCohortInfos = await getDBCohortData({ cohortIds: cohortIDs });
         for (const cInfo of dbCohortInfos) {
           const chtId = cInfo.id;
           const jsonCht = jsonCohorts.filter((elem) => elem.id === String(chtId))[0];
@@ -456,7 +484,6 @@ export class CohortOverview {
             currC.parents.push(currentElement);
           }
         }
-
       }
 
       // console.log('elements from JSON - provElements: ', {provElements, rootDBid: this.rootDBid});
@@ -512,9 +539,7 @@ export class CohortOverview {
     this.generateOverview();
   }
 
-
-
-  //maybe add a updateOverview function
+  // maybe add a updateOverview function
   public generateOverview() {
     // console.log('current elements in generateOverview function', this.elements);
     // remove old graph
@@ -533,7 +558,7 @@ export class CohortOverview {
     this.parent.appendChild(chtOverviewGraphWrapper);
     tippy(chtOverviewGraphWrapper, {
       content: 'Click a cohort to toggle its selection. To directly select only a single cohort, double-click it.',
-      delay: [5000, 0]
+      delay: [5000, 0],
     });
     this.container = chtOverviewGraphWrapper;
     // div container for grid layout and svg paths
@@ -548,7 +573,7 @@ export class CohortOverview {
 
     // add wheel event to the Overview container
     chtOverviewGraphWrapper.addEventListener('wheel', (event) => {
-      const deltaY = (event as WheelEvent).deltaY;
+      const { deltaY } = event as WheelEvent;
       // only if CTRL-key is pressend in combination with wheel action
       if ((event as WheelEvent).ctrlKey || (event as WheelEvent).altKey) {
         event.preventDefault();
@@ -559,10 +584,10 @@ export class CohortOverview {
         }
       }
     });
-    //create the placement of the elements
+    // create the placement of the elements
     this._generatePlacement(chtGraph);
 
-    //generate the path between the elements
+    // generate the path between the elements
     this._generatePaths(chtGraph);
 
     // always apply current zoom factor
@@ -580,9 +605,8 @@ export class CohortOverview {
     // this.setupTaskHistory();
   }
 
-
   private getAllChildren(elementsToRemove: IElement[], elem: IElement): IElement[] {
-    const children = elem.children;
+    const { children } = elem;
     for (const c of children) {
       if (elementsToRemove.map((a) => a.id).indexOf(c.id) === -1) {
         elementsToRemove.push(c);
@@ -602,7 +626,7 @@ export class CohortOverview {
 
   // function to handle the remove cohort event
   private handleRemoveTask(event: TaskRemoveEvent) {
-    const task = event.detail.task;
+    const { task } = event.detail;
 
     // remove all child elements
     const elementsToRemove = [];
@@ -612,9 +636,8 @@ export class CohortOverview {
     const elemRemoveSelected = elementsToRemove.filter((elem) => {
       if (elem instanceof Cohort) {
         return elem.selected;
-      } else {
-        return false;
       }
+      return false;
     });
     // deselect selected children
     for (const elemRS of elemRemoveSelected) {
@@ -629,14 +652,13 @@ export class CohortOverview {
     this.removeElement(task);
 
     // get all parents (cohorts) of the task
-    const parents = task.parents;
+    const { parents } = task;
 
     for (const p of parents) {
       // get index of the task in the children of the parent
       const childIndex = p.children.findIndex((a) => a.id === task.id);
       // remove task from the children of parent (cohort)
       p.children.splice(childIndex, 1);
-
     }
 
     const oldElements = deepCopy(this._elementsAsJSON);
@@ -649,7 +671,7 @@ export class CohortOverview {
 
   // function to handle the remove cohort event
   private handleRemoveCohort(event: CohortRemoveEvent) {
-    const cohort = event.detail.cohort;
+    const { cohort } = event.detail;
     // log.debug('cohort to remove: ', cohort);
     // remove clone from taskview if selected
     if (cohort.selected) {
@@ -669,9 +691,8 @@ export class CohortOverview {
     const elemRemoveSelected = elementsToRemove.filter((elem) => {
       if (elem instanceof Cohort) {
         return elem.selected;
-      } else {
-        return false;
       }
+      return false;
     });
     // deselect selected children
     for (const elemRS of elemRemoveSelected) {
@@ -686,7 +707,7 @@ export class CohortOverview {
     this.removeElement(cohort);
 
     // get all parents (task) of the cohort
-    const parents = cohort.parents;
+    const { parents } = cohort;
 
     for (const p of parents) {
       // get index of the cohort in the children of the parent
@@ -723,14 +744,12 @@ export class CohortOverview {
     // this.generateOverview();
   }
 
-
   private _generatePlacement(containerCSSGrid: HTMLDivElement) {
     if (this.elements && this.elements.length > 0) {
       // generate the layout assignment of the elements
       this._arrangements = this.layout.createLayout(this.root);
-      log.debug('Layout for placement finished: ', {root: this.root, elements: this.elements, arrangement: this._arrangements});
+      log.debug('Layout for placement finished: ', { root: this.root, elements: this.elements, arrangement: this._arrangements });
       // console.log('Layout for placement finished: ', {root: this.root, elements: this.elements, arrangement: this._arrangements});
-
 
       while (containerCSSGrid.firstChild) {
         containerCSSGrid.removeChild(containerCSSGrid.firstChild);
@@ -740,7 +759,7 @@ export class CohortOverview {
 
       // define CSS grid for the container
       this.layout.setContainerGrid(containerCSSGrid, numCol, numRow);
-      const rowHeight = this.layout.rowHeight;
+      const { rowHeight } = this.layout;
       const chtWidth = this.layout.cohortWidth;
       const opWidth = this.layout.taskWidth;
 
@@ -794,8 +813,8 @@ export class CohortOverview {
     const gridDimension = document.getElementById(containerCSSGrid.id).getBoundingClientRect();
     const svgElement: SVGElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svgElement.setAttribute('id', 'svg-path-container');
-    svgElement.setAttribute('width', '' + gridDimension.width);
-    svgElement.setAttribute('height', '' + gridDimension.height);
+    svgElement.setAttribute('width', `${gridDimension.width}`);
+    svgElement.setAttribute('height', `${gridDimension.height}`);
     containerCSSGrid.appendChild(svgElement);
 
     const chtOverviewGraph = document.getElementById('chtOverviewGraph').getBoundingClientRect();
@@ -810,27 +829,29 @@ export class CohortOverview {
           log.debug('svg-line: parent: ', parent, ' | child: ', child);
 
           // get cohort bars size
-          const cohort = ceParent instanceof Cohort ? document.getElementById(ceParent.id).querySelector('.rectCohort-sizeBar') : document.getElementById(ceChild.id).querySelector('.rectCohort-sizeBar');
+          const cohort =
+            ceParent instanceof Cohort
+              ? document.getElementById(ceParent.id).querySelector('.rectCohort-sizeBar')
+              : document.getElementById(ceChild.id).querySelector('.rectCohort-sizeBar');
           const barHeight = cohort.getBoundingClientRect().height;
 
-          const x1 = parent.left + (parent.width) - chtOverviewGraph.left;
-          let y1 = parent.top + (parent.height / 2) - chtOverviewGraph.top;
+          const x1 = parent.left + parent.width - chtOverviewGraph.left;
+          let y1 = parent.top + parent.height / 2 - chtOverviewGraph.top;
           const x2 = child.left - chtOverviewGraph.left;
-          let y2 = child.top + (child.height / 2) - chtOverviewGraph.top;
+          let y2 = child.top + child.height / 2 - chtOverviewGraph.top;
 
           // 2px because of the upper border
-          y1 = y1 + 1;
-          y2 = y2 + 1;
+          y1 += 1;
+          y2 += 1;
 
           const mx1 = (x2 - x1) / 2 + x1;
           const my1 = y1;
           const mx2 = (x2 - x1) / 2 + x1;
           const my2 = y2;
-          const d = 'M ' + x1 + ' ' + y1 +
-            ' C ' + mx1 + ' ' + my1 + ', ' + mx2 + ' ' + my2 + ', ' + x2 + ' ' + y2;
+          const d = `M ${x1} ${y1} C ${mx1} ${my1}, ${mx2} ${my2}, ${x2} ${y2}`;
 
           const currPath: SVGPathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-          currPath.setAttribute('id', 'path-' + ceParent.id + '-to-' + ceChild.id);
+          currPath.setAttribute('id', `path-${ceParent.id}-to-${ceChild.id}`);
           // currPath.setAttribute('class', 'svg-path');
           currPath.classList.add('svg-path', `path-ep-out-${ceParent.id}`, `path-ep-in-${ceChild.id}`);
           currPath.setAttribute('d', d);
@@ -876,7 +897,6 @@ export class CohortOverview {
     taskDetailsStack.id = 'taskDetailsStack';
     taskDetailsStack.classList.add('task-history-stack');
     taskDetailsStackWrapper.appendChild(taskDetailsStack);
-
 
     // -- History of tasks
     // div container for the tasks
@@ -986,7 +1006,6 @@ export class CohortOverview {
       // paths from task to cohorts
       this.removeHighligthingFromPaths(pathsTask);
     });
-
   }
 
   private addHighligthingToPaths(paths: SVGPathElement[]) {
@@ -1046,15 +1065,13 @@ export class CohortOverview {
     // divDetails.appendChild(pOutput);
     // return divDetails;
 
-
     divDetails.classList.add('task-details');
     const inputs = task.parents as Cohort[];
     const outputs = task.children as Cohort[];
     const divAttribute = document.createElement('div');
     divAttribute.classList.add('task-detail-attribute');
-    divAttribute.innerHTML = '<span>Attribute:</span> ' + task.label;
+    divAttribute.innerHTML = `<span>Attribute:</span> ${task.label}`;
     divDetails.appendChild(divAttribute);
-
 
     const divInput = document.createElement('div');
     divInput.classList.add('task-detail-cohort');
@@ -1070,7 +1087,6 @@ export class CohortOverview {
       divInput.appendChild(currIn);
     }
     divDetails.appendChild(divInput);
-
 
     const divOutput = document.createElement('div');
     divOutput.classList.add('task-detail-cohort');
@@ -1090,8 +1106,6 @@ export class CohortOverview {
     return divDetails;
   }
 
-
-
   public zoomIn() {
     this._zoomFactor = Math.min(this._zoomFactor + 0.1, 3.0);
     this._zoom();
@@ -1107,5 +1121,4 @@ export class CohortOverview {
     cssGrid.style.transform = `scale(${this._zoomFactor})`;
     cssGrid.style.transformOrigin = '0% 0% 0px';
   }
-
 }
