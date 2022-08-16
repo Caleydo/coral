@@ -5,7 +5,7 @@ import { IEntitySourceConfig } from '../utilIdTypes';
 /******************************
  ---------- GENERAL ----------
 *******************************/
-export declare function setDatasetAction(provider: IObjectRef<CohortApp>, newDataset: IDatasetDesc, oldDataset: IDatasetDesc): import("tdp_core").IAction;
+export declare function setDatasetAction(provider: IObjectRef<CohortApp>, newDataset: IDatasetDesc, oldDataset: IDatasetDesc): any;
 export declare function setDatasetImpl(inputs: IObjectRef<CohortApp>[], parameter: any): Promise<ICmdResult>;
 export interface IPanelDesc {
     id: string;

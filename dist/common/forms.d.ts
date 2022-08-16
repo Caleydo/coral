@@ -1,9 +1,8 @@
 /**
  * Created by sam on 06.03.2017.
  */
-import { FormElementType } from 'tdp_core';
-import { IDataSourceConfig } from './config';
-import { GeneUtils } from './GeneUtils';
+import { IDataSourceConfig } from "./config";
+import { GeneUtils } from "./GeneUtils";
 /**
  * List of ids for parameter form elements
  * Reuse this ids and activate the `useSession` option for form elements to have the same selectedIndex between different views
@@ -17,8 +16,8 @@ export declare class ParameterFormIds {
     static SCREEN_TYPE: string;
     static DATA_SUBTYPE: string;
     static DATA_HIERARCHICAL_SUBTYPE: string;
-    static COPYNUMBER_SUBTYPE: string;
-    static EXPRESSION_SUBTYPE: string;
+    static COPYNUMBER_SUBTYPE: any;
+    static EXPRESSION_SUBTYPE: any;
     static AGGREGATION: string;
     static COMPARISON_OPERATOR: string;
     static COMPARISON_VALUE: string;
@@ -42,7 +41,7 @@ export declare const NUMERIC_AGGREGATION: {
     data: string;
 }[];
 export declare const FORM_GENE_NAME: {
-    type: FormElementType;
+    type: any;
     label: string;
     id: string;
     attributes: {
@@ -59,7 +58,7 @@ export declare const FORM_GENE_NAME: {
     useSession: boolean;
 };
 export declare const FORM_DRUG_NAME: {
-    type: FormElementType;
+    type: any;
     label: string;
     id: string;
     attributes: {
@@ -76,7 +75,7 @@ export declare const FORM_DRUG_NAME: {
     useSession: boolean;
 };
 export declare const FORM_TISSUE_NAME: {
-    type: FormElementType;
+    type: any;
     label: string;
     id: string;
     attributes: {
@@ -88,9 +87,9 @@ export declare const FORM_TISSUE_NAME: {
         optionsData: any[];
         search: (query: any, page: any, pageSize: any) => Promise<{
             more: boolean;
-            items: Readonly<import("tdp_core").IdTextPair>[];
+            items: IdTextPair[];
         }>;
-        validate: (query: any) => Promise<Readonly<import("tdp_core").IdTextPair>[]>;
+        validate: (query: any) => Promise<IdTextPair[]>;
         format: typeof GeneUtils.format;
         tokenSeparators: RegExp;
         defaultTokenSeparator: string;
@@ -98,7 +97,7 @@ export declare const FORM_TISSUE_NAME: {
     useSession: boolean;
 };
 export declare const FORM_CELLLINE_NAME: {
-    type: FormElementType;
+    type: any;
     label: string;
     id: string;
     attributes: {
@@ -110,9 +109,9 @@ export declare const FORM_CELLLINE_NAME: {
         optionsData: any[];
         search: (query: any, page: any, pageSize: any) => Promise<{
             more: boolean;
-            items: Readonly<import("tdp_core").IdTextPair>[];
+            items: IdTextPair[];
         }>;
-        validate: (query: any) => Promise<Readonly<import("tdp_core").IdTextPair>[]>;
+        validate: (query: any) => Promise<IdTextPair[]>;
         format: typeof GeneUtils.format;
         tokenSeparators: RegExp;
         defaultTokenSeparator: string;
@@ -120,7 +119,7 @@ export declare const FORM_CELLLINE_NAME: {
     useSession: boolean;
 };
 export declare const FORM_GENE_FILTER: {
-    type: FormElementType;
+    type: any;
     label: string;
     id: string;
     useSession: boolean;
@@ -128,14 +127,14 @@ export declare const FORM_GENE_FILTER: {
         sessionKeySuffix: string;
         defaultSelection: boolean;
         uniqueKeys: boolean;
-        badgeProvider: (rows: import("tdp_core").IFormRow[]) => Promise<string>;
+        badgeProvider: any;
         entries: ({
             name: string;
             value: string;
-            type: FormElementType;
+            type: any;
             multiple: boolean;
             return: string;
-            optionsData: () => Promise<string[]>;
+            optionsData: any;
             options: {
                 placeholder: string;
             };
@@ -145,23 +144,7 @@ export declare const FORM_GENE_FILTER: {
         } | {
             name: string;
             value: string;
-            type: FormElementType;
-            multiple: boolean;
-            return: string;
-            optionsData: () => Promise<{
-                name: string;
-                value: string | number;
-            }[]>;
-            options: {
-                placeholder: string;
-            };
-            search?: undefined;
-            validate?: undefined;
-            format?: undefined;
-        } | {
-            name: string;
-            value: string;
-            type: FormElementType;
+            type: any;
             multiple: boolean;
             optionsData: any;
             options: {
@@ -174,7 +157,7 @@ export declare const FORM_GENE_FILTER: {
         } | {
             name: string;
             value: string;
-            type: FormElementType;
+            type: any;
             multiple: boolean;
             search: typeof GeneUtils.searchGene;
             validate: typeof GeneUtils.validateGene;
@@ -188,7 +171,7 @@ export declare const FORM_GENE_FILTER: {
     };
 };
 export declare const FORM_DATA_SOURCE: {
-    type: FormElementType;
+    type: any;
     label: string;
     id: string;
     required: boolean;
@@ -202,33 +185,33 @@ export declare const FORM_DATA_SOURCE: {
     useSession: boolean;
 };
 export declare const FORM_TISSUE_FILTER: {
-    type: FormElementType;
+    type: any;
     label: string;
     id: string;
     useSession: boolean;
     options: {
         sessionKeySuffix: string;
-        badgeProvider: (rows: import("tdp_core").IFormRow[]) => Promise<string>;
+        badgeProvider: any;
         defaultSelection: boolean;
         uniqueKeys: boolean;
         entries: any[];
     };
 };
 export declare const FORM_CELLLINE_FILTER: {
-    type: FormElementType;
+    type: any;
     label: string;
     id: string;
     useSession: boolean;
     options: {
         sessionKeySuffix: string;
-        badgeProvider: (rows: import("tdp_core").IFormRow[]) => Promise<string>;
+        badgeProvider: any;
         defaultSelection: boolean;
         uniqueKeys: boolean;
         entries: any[];
     };
 };
 export declare const FORM_TISSUE_OR_CELLLINE_FILTER: {
-    type: FormElementType;
+    type: any;
     label: string;
     id: string;
     useSession: boolean;
@@ -236,7 +219,7 @@ export declare const FORM_TISSUE_OR_CELLLINE_FILTER: {
     options: any;
 };
 export declare const FORM_COLOR_CODING: {
-    type: FormElementType;
+    type: any;
     label: string;
     id: string;
     dependsOn: string[];
@@ -250,7 +233,7 @@ export declare const FORM_COLOR_CODING: {
     useSession: boolean;
 };
 export declare const FORM_DATA_HIERARCHICAL_SUBTYPE: {
-    type: FormElementType;
+    type: any;
     label: string;
     id: string;
     attributes: {
@@ -270,7 +253,7 @@ export declare const FORM_DATA_HIERARCHICAL_SUBTYPE: {
     useSession: boolean;
 };
 export declare const FORM_DATA_HIERARCHICAL_SUBTYPE_AGGREGATED_SELECTION: {
-    type: FormElementType;
+    type: any;
     label: string;
     id: string;
     attributes: {
@@ -290,7 +273,7 @@ export declare const FORM_DATA_HIERARCHICAL_SUBTYPE_AGGREGATED_SELECTION: {
     useSession: boolean;
 };
 export declare const FORM_DATA_HIERARCHICAL_SUBTYPE_DEPLETION: {
-    type: FormElementType;
+    type: any;
     label: string;
     id: string;
     attributes: {
@@ -307,7 +290,7 @@ export declare const FORM_DATA_HIERARCHICAL_SUBTYPE_DEPLETION: {
     useSession: boolean;
 };
 export declare const FORM_DATA_HIERARCHICAL_SUBTYPE_AGGREGATED_SELECTION_DEPLETION: {
-    type: FormElementType;
+    type: any;
     label: string;
     id: string;
     attributes: {
@@ -324,7 +307,7 @@ export declare const FORM_DATA_HIERARCHICAL_SUBTYPE_AGGREGATED_SELECTION_DEPLETI
     useSession: boolean;
 };
 export declare const FORM_DATA_HIERARCHICAL_SUBTYPE_DRUG: {
-    type: FormElementType;
+    type: any;
     label: string;
     id: string;
     attributes: {
@@ -341,7 +324,7 @@ export declare const FORM_DATA_HIERARCHICAL_SUBTYPE_DRUG: {
     useSession: boolean;
 };
 export declare const DRUG_SCREEN_SCORE_FORM_ELEMENT: {
-    type: FormElementType;
+    type: any;
     label: string;
     id: string;
     attributes: {

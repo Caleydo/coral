@@ -1,7 +1,7 @@
-import { Categories, SpeciesUtils } from 'tdp_gene';
-import { Select3Utils } from 'tdp_core';
-import { gene, drug } from './config';
-import { RestBaseUtils } from 'tdp_core';
+import { Categories, SpeciesUtils } from "tdp_publicdb";
+import { Select3Utils } from "tdp_core";
+import { gene, drug } from "./config";
+import { RestBaseUtils } from "tdp_core";
 // Gene
 export class GeneUtils {
     /**
@@ -14,11 +14,11 @@ export class GeneUtils {
      */
     static searchGene(query, page, pageSize) {
         return RestBaseUtils.getTDPLookup(gene.db, `${gene.base}_gene_items`, {
-            column: 'symbol',
+            column: "symbol",
             species: SpeciesUtils.getSelectedSpecies(),
             query,
             page,
-            limit: pageSize
+            limit: pageSize,
         });
     }
     /**
@@ -29,7 +29,7 @@ export class GeneUtils {
      */
     static validateGene(query) {
         return RestBaseUtils.getTDPData(gene.db, `${gene.base}_gene_items_verify/filter`, {
-            column: 'symbol',
+            column: "symbol",
             species: SpeciesUtils.getSelectedSpecies(),
             filter_symbol: query,
         });
@@ -44,7 +44,7 @@ export class GeneUtils {
      * @returns {string} The string how the gene is actually rendered.
      */
     static formatGene(item, node, mode, currentSearchQuery) {
-        if (mode === 'result') {
+        if (mode === "result") {
             //highlight match
             return `${item.text.replace(currentSearchQuery, Select3Utils.highlightMatch)} <span class="ensg">${item.id}</span>`;
         }
@@ -57,7 +57,7 @@ export class GeneUtils {
             species: SpeciesUtils.getSelectedSpecies(),
             query,
             page,
-            limit: pageSize
+            limit: pageSize,
         });
     }
     static validate(config, query) {
@@ -68,7 +68,7 @@ export class GeneUtils {
         });
     }
     static format(item, node, mode, currentSearchQuery) {
-        if (mode === 'result' && currentSearchQuery) {
+        if (mode === "result" && currentSearchQuery) {
             //highlight match
             return `${item.text.replace(currentSearchQuery, Select3Utils.highlightMatch)}`;
         }
@@ -84,11 +84,11 @@ export class GeneUtils {
      */
     static searchDrug(query, page, pageSize) {
         return RestBaseUtils.getTDPLookup(drug.db, `${drug.base}_drug_items`, {
-            column: 'drugid',
+            column: "drugid",
             species: SpeciesUtils.getSelectedSpecies(),
             query,
             page,
-            limit: pageSize
+            limit: pageSize,
         });
     }
     /**
@@ -101,11 +101,15 @@ export class GeneUtils {
      * @returns {string} The string how the drug is actually rendered.
      */
     static formatDrug(item, node, mode, currentSearchQuery) {
-        if (mode === 'result') {
+        if (mode === "result") {
             //highlight match
             return `${item.id.replace(currentSearchQuery, Select3Utils.highlightMatch)}<br>
-      <span class="drug-moa">MoA: ${item.data.moa ? item.data.moa.replace(currentSearchQuery, Select3Utils.highlightMatch) : item.data.moa}</span><br>
-      <span class="drug-target">Target: ${item.data.target ? item.data.target.replace(currentSearchQuery, Select3Utils.highlightMatch) : item.data.target}</span>`;
+      <span class="drug-moa">MoA: ${item.data.moa
+                ? item.data.moa.replace(currentSearchQuery, Select3Utils.highlightMatch)
+                : item.data.moa}</span><br>
+      <span class="drug-target">Target: ${item.data.target
+                ? item.data.target.replace(currentSearchQuery, Select3Utils.highlightMatch)
+                : item.data.target}</span>`;
         }
         return item.id;
     }
@@ -117,7 +121,7 @@ export class GeneUtils {
      */
     static validateDrug(query) {
         return RestBaseUtils.getTDPData(drug.db, `${drug.base}_drug_items_verify/filter`, {
-            column: 'drugid',
+            column: "drugid",
             filter_drug: query,
         });
     }
@@ -131,10 +135,10 @@ export class GeneUtils {
      */
     static searchDrugScreen(query, page, pageSize) {
         const rows = RestBaseUtils.getTDPLookup(drug.db, `drug_screen_items`, {
-            column: 'campaign',
+            column: "campaign",
             query,
             page,
-            limit: pageSize
+            limit: pageSize,
         });
         return rows;
     }
@@ -146,7 +150,7 @@ export class GeneUtils {
      */
     static validateDrugScreen(query) {
         return RestBaseUtils.getTDPData(drug.db, `drug_screen_items_verify/filter`, {
-            column: 'campaign',
+            column: "campaign",
             filter_drug_screen: query,
         });
     }
@@ -160,7 +164,7 @@ export class GeneUtils {
      * @returns {string} The string how the drugscreen is actually rendered.
      */
     static formatDrugScreen(item, node, mode, currentSearchQuery) {
-        if (mode === 'result') {
+        if (mode === "result") {
             //highlight match
             return `${item.id.replace(currentSearchQuery, Select3Utils.highlightMatch)} (${item.text})`;
         }

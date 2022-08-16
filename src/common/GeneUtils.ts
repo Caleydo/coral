@@ -1,8 +1,7 @@
-import {Categories, SpeciesUtils} from 'tdp_gene';
+import {Categories, SpeciesUtils, ICommonDBConfig} from 'tdp_publicdb';
 import {Select3Utils, ISelect3Item, IdTextPair} from 'tdp_core';
 import {gene, IDataSourceConfig, drug} from './config';
 import {RestBaseUtils} from 'tdp_core';
-import {ICommonDBConfig} from 'tdp_gene';
 
 interface IDrugData extends IdTextPair {
   target?: string;

@@ -2,8 +2,7 @@
  * Created by sam on 06.03.2017.
  */
 
-import {SpeciesUtils} from 'tdp_gene';
-import {FormSubtype} from 'tdp_gene';
+import {SpeciesUtils, FormSubtype} from 'tdp_publicdb';
 import {FormElementType, IFormElement, IFormSelectOption} from 'tdp_core';
 import {ValueCache} from 'tdp_core';
 import {gene, IDataSourceConfig, tissue, cellline, dataSources, dataTypes, dataSubtypes, depletion, drugScreen} from './config';

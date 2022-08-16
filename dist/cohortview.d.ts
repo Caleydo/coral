@@ -1,5 +1,4 @@
 import { IObjectRef, ProvenanceGraph } from 'tdp_core';
-import { IDatabaseViewDesc } from 'tdp_core';
 import { CohortApp } from './app';
 import { Cohort } from './Cohort';
 import { CohortOverview } from './Overview/CohortOverview';

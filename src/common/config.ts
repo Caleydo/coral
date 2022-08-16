@@ -2,7 +2,7 @@
  * Created by sam on 06.03.2017.
  */
 
-import {Categories} from 'tdp_gene';
+import {Categories} from 'tdp_publicdb';
 import {IServerColumn} from 'tdp_core';
 import {ColumnDescUtils} from 'tdp_core';
 import {IAdditionalColumnDesc} from 'tdp_core';

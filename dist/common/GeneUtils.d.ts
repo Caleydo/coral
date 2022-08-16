@@ -1,6 +1,6 @@
-import { ISelect3Item, IdTextPair } from 'tdp_core';
-import { IDataSourceConfig } from './config';
-import { ICommonDBConfig } from 'tdp_gene';
+import { ICommonDBConfig } from "tdp_publicdb";
+import { ISelect3Item, IdTextPair } from "tdp_core";
+import { IDataSourceConfig } from "./config";
 interface IDrugData extends IdTextPair {
     target?: string;
     moa?: string;
@@ -34,13 +34,13 @@ export declare class GeneUtils {
      * @param {RegExp} currentSearchQuery The actual search query input.
      * @returns {string} The string how the gene is actually rendered.
      */
-    static formatGene(item: ISelect3Item<IdTextPair>, node: HTMLElement, mode: 'result' | 'selection', currentSearchQuery?: RegExp): string;
+    static formatGene(item: ISelect3Item<IdTextPair>, node: HTMLElement, mode: "result" | "selection", currentSearchQuery?: RegExp): any;
     static search(config: IDataSourceConfig | ICommonDBConfig, query: string, page: number, pageSize: number): Promise<{
         more: boolean;
         items: Readonly<IdTextPair>[];
     }>;
     static validate(config: IDataSourceConfig | ICommonDBConfig, query: string[]): Promise<Readonly<IdTextPair>[]>;
-    static format(item: ISelect3Item<IdTextPair>, node: HTMLElement, mode: 'result' | 'selection', currentSearchQuery?: RegExp): string;
+    static format(item: ISelect3Item<IdTextPair>, node: HTMLElement, mode: "result" | "selection", currentSearchQuery?: RegExp): any;
     /**
      * Search and autocomplete of the input string for Select3
      *
@@ -62,7 +62,7 @@ export declare class GeneUtils {
      * @param {RegExp} currentSearchQuery The actual search query input.
      * @returns {string} The string how the drug is actually rendered.
      */
-    static formatDrug(item: ISelect3Item<IDrugData>, node: HTMLElement, mode: 'result' | 'selection', currentSearchQuery?: RegExp): string;
+    static formatDrug(item: ISelect3Item<IDrugData>, node: HTMLElement, mode: "result" | "selection", currentSearchQuery?: RegExp): any;
     /**
      * Validation of a query input via paste or filedrop against the database for Select3
      *
@@ -98,7 +98,7 @@ export declare class GeneUtils {
      * @param {RegExp} currentSearchQuery The actual search query input.
      * @returns {string} The string how the drugscreen is actually rendered.
      */
-    static formatDrugScreen(item: ISelect3Item<IdTextPair>, node: HTMLElement, mode: 'result' | 'selection', currentSearchQuery?: RegExp): string;
+    static formatDrugScreen(item: ISelect3Item<IdTextPair>, node: HTMLElement, mode: "result" | "selection", currentSearchQuery?: RegExp): any;
     /**
      * Chooses which validation function to use depending on the dataSource provided.
      * @param dataSource
