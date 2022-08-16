@@ -2,7 +2,7 @@
  * Created by sam on 06.03.2017.
  */
 
-import { SpeciesUtils, FormSubtype } from 'tdp_gene';
+import { SpeciesUtils, FormSubtype } from 'tdp_publicdb';
 import { FormElementType, IFormElement, IFormSelectOption, ValueCache, RestStorageUtils, LineupUtils, RestBaseUtils, IServerColumn } from 'tdp_core';
 import { gene, IDataSourceConfig, tissue, cellline, dataSources, dataTypes, dataSubtypes, depletion, drugScreen } from './config';
 import { GeneUtils } from './GeneUtils';

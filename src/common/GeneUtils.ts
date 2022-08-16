@@ -1,4 +1,4 @@
-import { Categories, SpeciesUtils, ICommonDBConfig } from 'tdp_gene';
+import { Categories, SpeciesUtils, ICommonDBConfig } from 'tdp_publicdb';
 import { Select3Utils, ISelect3Item, IdTextPair, RestBaseUtils } from 'tdp_core';
 import { gene, IDataSourceConfig, drug } from './config';
 

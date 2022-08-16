@@ -187,7 +187,7 @@ interface IDataBaseToDisplay {
   name: string;
 }
 
-// copy from tdp_gene/src/constants.ts
+// copy from tdp_publicdb/src/constants.ts
 // for 'Copy Number Class'
 // table: copynumber, attribtue: copynumberclass
 const mapCopyNumberCat: IDataBaseToDisplay[] = [
