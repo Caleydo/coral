@@ -26,6 +26,7 @@ node_modules/
 /.cache-loader
 package-lock.json
 *:Zone.Identifier/dist/
+/dist
 
 
 # yarn
