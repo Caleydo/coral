@@ -1,16 +1,18 @@
-import {select} from 'd3-selection';
-import {Cohort, EMPTY_COHORT_ID, LOADER_COHORT_ID} from '../../Cohort';
-import {colors} from '../../colors';
-import {createSearchBarTooltip} from '../../Tooltip';
-import {getAnimatedLoadingBars, log} from '../../util';
-import {ColumnCloseEvent} from '../../utilCustomEvents';
-import Taskview, {InputCohort, OutputCohort} from '../Taskview';
-
+import { select } from 'd3-selection';
+import { Cohort, EMPTY_COHORT_ID, LOADER_COHORT_ID } from '../../Cohort';
+import { colors } from '../../colors';
+import { createSearchBarTooltip } from '../../Tooltip';
+import { getAnimatedLoadingBars, log } from '../../util';
+import { ColumnCloseEvent } from '../../utilCustomEvents';
+import Taskview, { InputCohort, OutputCohort } from '../Taskview';
 
 export abstract class AColumn {
   $column: HTMLDivElement;
+
   $header: HTMLDivElement;
+
   $headerTitle: HTMLDivElement;
+
   $headerOptions: HTMLDivElement;
 
   constructor(protected title: string, protected $container: HTMLDivElement, closeable = true) {
@@ -19,10 +21,11 @@ export abstract class AColumn {
     this.$headerOptions = select(this.$header).append('div').classed('header-option', true).node() as HTMLDivElement;
     this.$headerTitle = select(this.$header).append('div').classed('header-title', true).node() as HTMLDivElement;
 
-    this.$headerTitle.innerHTML = title ? title : '&#x200b;'; //zero width space if empty
+    this.$headerTitle.innerHTML = title || '&#x200b;'; // zero width space if empty
     this.$headerTitle.classList.add('text');
 
-    if (title) { // only when column has a title then set the title property
+    if (title) {
+      // only when column has a title then set the title property
       this.$headerTitle.title = title;
     }
     if (closeable) {
@@ -50,23 +53,27 @@ export abstract class AColumn {
  */
 export abstract class ADataColumn extends AColumn {
   protected showLoadingAnimation = true;
+
   private dataCells;
 
   public setCohorts(cohorts: Cohort[]) {
-    this.dataCells = select(this.$column).selectAll<HTMLDivElement, Cohort>('div.data').data(cohorts, (d) => d.id);
+    this.dataCells = select(this.$column)
+      .selectAll<HTMLDivElement, Cohort>('div.data')
+      .data(cohorts, (d) => d.id);
     const _thisColumn = this;
 
-    //Update
+    // Update
     this.dataCells.each(function (d, i) {
       _thisColumn.setCellStyle(select(this).node() as HTMLDivElement, d, i);
     });
 
-    //Enter
+    // Enter
     const enterSelection = this.dataCells.enter();
     enterSelection
       .append('div')
       .classed('data', true)
-      .each(function (d, i) { // function so we can refer to the html element with 'this'
+      .each(function (d, i) {
+        // function so we can refer to the html element with 'this'
         _thisColumn.setCell(select(this).node() as HTMLDivElement, d, i);
       });
 
@@ -94,12 +101,13 @@ export abstract class ADataColumn extends AColumn {
   }
 
   async setCellStyle(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void> {
-    let cellHeight = 56; //Cohort Representation + Padding + Border Top = 52px + 2*2px + 1px = 57px
+    let cellHeight = 56; // Cohort Representation + Padding + Border Top = 52px + 2*2px + 1px = 57px
 
-    if ((cht as InputCohort).outputCohorts) { // check chohort type -> InputCohort always has a outputCohorts array
+    if ((cht as InputCohort).outputCohorts) {
+      // check chohort type -> InputCohort always has a outputCohorts array
       const rows = (cht as InputCohort).outputCohorts.length; // one row for each output cohort
       cellHeight *= Math.max(rows, 1); // at least one row
-      cellHeight += (10 - 2); // extra padding - default padding
+      cellHeight += 10 - 2; // extra padding - default padding
       cellHeight += 1; // border
       cell.dataset.inputCohort = `${cht.dbId}`;
     } else {
@@ -110,7 +118,7 @@ export abstract class ADataColumn extends AColumn {
       cell.classList.remove('first-output-cohort');
       if ((cht as OutputCohort).isLastOutputCohort) {
         cell.classList.add('last-output-cohort');
-        cellHeight += (10 - 2); // extra padding - default padding
+        cellHeight += 10 - 2; // extra padding - default padding
         cellHeight += 1; // border
       }
       if ((cht as OutputCohort).isFirstOutputCohort) {
@@ -120,7 +128,7 @@ export abstract class ADataColumn extends AColumn {
     }
 
     cell.style.height = `${cellHeight}px`;
-    const selected = cht.selected;
+    const { selected } = cht;
     cell.classList.toggle('deselected', !selected);
   }
 
@@ -132,7 +140,6 @@ export abstract class ADataColumn extends AColumn {
  * Shrinks down to 0px for the content, the border remains, and currently is 2px left, seperating the last input column from the task search and the last output column from the output cohorts
  */
 export class EmptyColumn extends ADataColumn {
-
   constructor($container: HTMLDivElement) {
     super(undefined, $container, false);
     this.$column.classList.add('empty');
@@ -140,12 +147,11 @@ export class EmptyColumn extends ADataColumn {
   }
 
   async setCellContent(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void> {
-    //Empty
+    // Empty
   }
 }
 
 export default class AddColumnColumn extends ADataColumn {
-
   constructor($container: HTMLDivElement, taskview: Taskview, database: string, view: string, private onInputCohortSide = true) {
     super(undefined, $container, false);
     this.$column.classList.add('first', 'add-column');
@@ -167,7 +173,7 @@ export default class AddColumnColumn extends ADataColumn {
     <span class="icon-custom-layers">
       <i class="fa fa-columns"></i>
       <span class="icon-layer icon-layer-shrink">
-        <i class="fas fa-plus fa-fw icon-top-left" style="color: ${colors.backgroundColor}; background: ${colors.barColor + 'cc'};"></i>
+        <i class="fas fa-plus fa-fw icon-top-left" style="color: ${colors.backgroundColor}; background: ${`${colors.barColor}cc`};"></i>
       </span>
     </span>
     `;
@@ -177,6 +183,6 @@ export default class AddColumnColumn extends ADataColumn {
   }
 
   async setCellContent(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void> {
-    //Empty
+    // Empty
   }
 }

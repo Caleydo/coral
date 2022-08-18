@@ -1,30 +1,33 @@
 import * as aq from 'arquero';
-import {format} from 'd3-format';
-import {select} from 'd3-selection';
+import { format } from 'd3-format';
+import { select } from 'd3-selection';
 import tippy from 'tippy.js';
 import vegaEmbed from 'vega-embed';
-import {TopLevelSpec as VegaLiteSpec} from 'vega-lite';
-import {Cohort, getCohortLabel} from '../../Cohort';
-import {ICohort} from '../../CohortInterfaces';
-import {IAttribute, IdValuePair} from '../../data/Attribute';
-import {log, selectLast} from '../../util';
-import {AVegaVisualization} from './AVegaVisualization';
-import {DATA_LABEL} from './constants';
+import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
+import { Cohort, getCohortLabel } from '../../Cohort';
+import { ICohort } from '../../CohortInterfaces';
+import { IAttribute, IdValuePair } from '../../data/Attribute';
+import { log, selectLast } from '../../util';
+import { AVegaVisualization } from './AVegaVisualization';
+import { DATA_LABEL } from './constants';
 
 export abstract class MultiAttributeVisualization extends AVegaVisualization {
   /**
    * The displayed attribute
    */
   protected attributes: IAttribute[];
+
   /**
    * Vega name of the displayed attribute, might be different to attribute.datakey due to transformation (e.g. density transform)
    */
   protected fields: string[];
+
   protected colorPalette: string[];
+
   protected nullValueMap: Map<string, Map<Cohort, number>>;
 
   async show(container: HTMLDivElement, attributes: IAttribute[], cohorts: Cohort[]) {
-    log.debug('show: ', {container, attributes, cohorts});
+    log.debug('show: ', { container, attributes, cohorts });
     if (attributes.length <= 1) {
       throw new Error('Number of attributes must be at least 2');
     } else if (cohorts.length <= 0) {
@@ -32,35 +35,37 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
     }
     this.cohorts = cohorts;
     this.attributes = attributes;
-    //Create an array, with on entry per cohort, which contains an array with one entry per attribute, i.e. for 2 cohorts and 2 attributes (A1,A2) we get [[A1, A2], [A1, A2]]
-    const dataPromises = cohorts
-      .map((cht, chtIndex) => {
-        const promise = new Promise(async (resolve, reject) => {
-          const chtDataPromises = this.attributes.map((attr) => attr.getData(cht.dbId));
-          try {
-            const chtData = await Promise.all(chtDataPromises); // array with one entry per attribute, which contains an array with one value for every item in the cohort
-            let joinedData = aq.from(chtData[0]);
-            for (let i = 1; i < chtData.length; i++) {
-              joinedData = joinedData.join_full(aq.from(chtData[i]));
-            }
-            const labelTable = aq.table({[DATA_LABEL]: [getCohortLabel(cht)]});
-            joinedData = joinedData.join_left(labelTable, (data, label) => true);
-            resolve(joinedData.objects());
-          } catch (e) {
-            reject(e);
+    // Create an array, with on entry per cohort, which contains an array with one entry per attribute, i.e. for 2 cohorts and 2 attributes (A1,A2) we get [[A1, A2], [A1, A2]]
+    const dataPromises = cohorts.map((cht, chtIndex) => {
+      const promise = new Promise(async (resolve, reject) => {
+        const chtDataPromises = this.attributes.map((attr) => attr.getData(cht.dbId));
+        try {
+          const chtData = await Promise.all(chtDataPromises); // array with one entry per attribute, which contains an array with one value for every item in the cohort
+          let joinedData = aq.from(chtData[0]);
+          for (let i = 1; i < chtData.length; i++) {
+            joinedData = joinedData.join_full(aq.from(chtData[i]));
           }
-        });
-        return promise;
+          const labelTable = aq.table({ [DATA_LABEL]: [getCohortLabel(cht)] });
+          joinedData = joinedData.join_left(labelTable, (data, label) => true);
+          resolve(joinedData.objects());
+        } catch (e) {
+          reject(e);
+        }
       });
+      return promise;
+    });
     const data = await Promise.all(dataPromises);
     this.container = container;
-    this.container.insertAdjacentHTML(`afterbegin`, `
+    this.container.insertAdjacentHTML(
+      `afterbegin`,
+      `
       <div class="vega-container"></div>
       <div class="controls">
         <div class="sticky" style="position: sticky; top: 0;"></div>
       </div>
-    `);
-    this.chart = this.container.getElementsByTagName('div')[0]; //first-child was not the right type of object and vega-embed failed
+    `,
+    );
+    this.chart = this.container.getElementsByTagName('div')[0]; // first-child was not the right type of object and vega-embed failed
     this.controls = this.container.querySelector('.controls .sticky');
     const notZeroCohorts = this.cohorts.filter((a) => {
       const currSize = a.getRetrievedSize();
@@ -106,10 +111,11 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
     }
   }
 
-
   // may be overwritten (e.g. for tsne plot where the attribtues are different)
   protected addControls() {
-    this.controls.insertAdjacentHTML('afterbegin', `
+    this.controls.insertAdjacentHTML(
+      'afterbegin',
+      `
     <div>
       <!-- Nav tabs -->
       <ul class="nav nav-tabs nav-justified" role="tablist">
@@ -130,7 +136,8 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
     <div class="d-grid gap-2">
       <button type="button" class="btn btn-coral-prime btn-block applyBtn">Apply</button>
     </div>
-    `);
+    `,
+    );
     // for each attribute type, add the respective controls:
     for (const [i, attr] of this.attributes.entries()) {
       if (attr.type === 'number') {
@@ -138,25 +145,29 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
         this.addIntervalControls(attr, axis);
       }
     }
-    select(this.controls).select('button.applyBtn').on('click', () => {
-      const activeTask = select(this.controls).select('.tab-pane.active').attr('id');
-      switch (activeTask) {
-        case 'filter':
-          this.filter();
-          break;
-        case 'split':
-          this.split();
-          break;
-        default:
-          log.error('Unknown task: ', activeTask);
-      }
-    });
-    const that = this; //helper varible to access this instance in the d3 event handler function
-    select(this.controls).selectAll('a[role="tab"]').on('click', function () {
-      const d3Event = this; // because we use a function this is overwritten by d3, asssign to variable for clarity
-      const newTask = (d3Event as HTMLAnchorElement).hash.replace('#', '') as 'filter' | 'split';
-      that.toggleFilterSplitMarks(newTask);
-    });
+    select(this.controls)
+      .select('button.applyBtn')
+      .on('click', () => {
+        const activeTask = select(this.controls).select('.tab-pane.active').attr('id');
+        switch (activeTask) {
+          case 'filter':
+            this.filter();
+            break;
+          case 'split':
+            this.split();
+            break;
+          default:
+            log.error('Unknown task: ', activeTask);
+        }
+      });
+    const that = this; // helper varible to access this instance in the d3 event handler function
+    select(this.controls)
+      .selectAll('a[role="tab"]')
+      .on('click', function () {
+        const d3Event = this; // because we use a function this is overwritten by d3, asssign to variable for clarity
+        const newTask = (d3Event as HTMLAnchorElement).hash.replace('#', '') as 'filter' | 'split';
+        that.toggleFilterSplitMarks(newTask);
+      });
   }
 
   /**
@@ -168,20 +179,24 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
       return tabPane?.attr('id') as 'filter' | 'split';
     }
 
-    return 'filter'; //no task open yet, but we always start with filter
+    return 'filter'; // no task open yet, but we always start with filter
   }
 
   protected toggleFilterSplitMarks(newTask: 'filter' | 'split') {
     switch (newTask) {
       case 'split': // switch to split -> remove interval
         this.showBrush = false;
-        select(this.chart).selectAll('.mark-rect.role-mark.selected_brush_bg, .mark-rect.role-mark.selected_brush, .mark-rect.role-mark.selected_brush_facethelper').style('display', 'none');
+        select(this.chart)
+          .selectAll('.mark-rect.role-mark.selected_brush_bg, .mark-rect.role-mark.selected_brush, .mark-rect.role-mark.selected_brush_facethelper')
+          .style('display', 'none');
         select(this.chart).selectAll('g.splitmarks, g.splitmarks_x, g.splitmarks_y').style('display', null);
         // this.clearSelection();
         break;
       case 'filter': // switch to filter --> remove split rulers
         this.showBrush = true;
-        select(this.chart).selectAll('.mark-rect.role-mark.selected_brush_bg, .mark-rect.role-mark.selected_brush, .mark-rect.role-mark.selected_brush_facethelper').style('display', null); // these elements have no opacity set from the spec which makes it safe to revert back to a hardcoded 1
+        select(this.chart)
+          .selectAll('.mark-rect.role-mark.selected_brush_bg, .mark-rect.role-mark.selected_brush, .mark-rect.role-mark.selected_brush_facethelper')
+          .style('display', null); // these elements have no opacity set from the spec which makes it safe to revert back to a hardcoded 1
         select(this.chart).selectAll('g.splitmarks, g.splitmarks_x, g.splitmarks_y').style('display', 'none');
         break;
       default:
@@ -196,7 +211,9 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
     const attrLabel = (attribute as any).label ?? attribute;
 
     const [min, max] = this.vegaView.scale(axis).domain();
-    this.controls.querySelector('#filter').insertAdjacentHTML(`beforeend`, `
+    this.controls.querySelector('#filter').insertAdjacentHTML(
+      `beforeend`,
+      `
     <div class="flex-wrapper" data-attr="${attrKey}">
       <label>Filter ${attrLabel} from</label>
       <input type="number" class="interval minimum" step="any" min="${min}" max="${max}" data-axis="${axis}"/>
@@ -207,8 +224,11 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
         <label class="form-check-label" for="null_value_checkbox_3">Include <span class="hint">missing values</span></label>
       </div>
     </div>
-    `);
-    this.controls.querySelector('#split').insertAdjacentHTML(`beforeend`, `
+    `,
+    );
+    this.controls.querySelector('#split').insertAdjacentHTML(
+      `beforeend`,
+      `
     <div class="flex-wrapper" data-attr="${attrKey}">
       <label>Split ${attrLabel} into</label>
       <input type="number" class="bins" step="any" min="1" max="99" value="2" data-axis="${axis}"/>
@@ -222,11 +242,12 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
         <label class="form-check-label" for"null_value_checkbox_4">Add a <span class="hint">missing values</span> bin</label>
       </div>
     </div>
-    `);
+    `,
+    );
 
     this.addNullCheckbox(attrKey);
 
-    const that = this; //helper varible to access this instance in the d3 event handler function
+    const that = this; // helper varible to access this instance in the d3 event handler function
 
     const brushInputs = select(this.controls).selectAll(`input.interval[data-axis="${axis}"]`);
     brushInputs.on('change', function () {
@@ -255,14 +276,15 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
       nullValueTooltip += `<i class="fas fa-square" aria-hidden="true" style="color: ${cht.colorTaskView} "></i>&nbsp;${nullValues}<br>`;
     }
     const selector = `[data-attr="${attribute}"] .hint`;
-    tippy(this.controls.querySelectorAll(selector), {content: nullValueTooltip});
+    tippy(this.controls.querySelectorAll(selector), { content: nullValueTooltip });
   }
 
   protected splitValuesX = [];
+
   protected splitValuesY = [];
 
   handleBinChangeEvent(event) {
-    this.vegaView.removeDataListener(`splitvalues_${event.dataset.axis}`, this.vegaSplitListener); //remove listener temporarily
+    this.vegaView.removeDataListener(`splitvalues_${event.dataset.axis}`, this.vegaSplitListener); // remove listener temporarily
     const binCount = parseFloat(event.value);
     const splitValCount = binCount - 1;
     const [min, max] = this.vegaView.scale(event.dataset.axis).domain();
@@ -272,16 +294,18 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
     const binType = this.controls.querySelector(`#split select.binType[data-axis="${event.dataset.axis}"]`) as HTMLSelectElement;
     const splitValues = event.dataset.axis === 'x' ? this.splitValuesX : this.splitValuesY;
 
-    if (binType?.selectedIndex === 1) { // custom width
+    if (binType?.selectedIndex === 1) {
+      // custom width
       if (splitValues.length > splitValCount) {
-        splitValues.sort((a, b) => a - b); //sort em
-        splitValues.length = splitValCount; //drop largest split values
+        splitValues.sort((a, b) => a - b); // sort em
+        splitValues.length = splitValCount; // drop largest split values
       } else {
         while (splitValues.length < splitValCount) {
           splitValues.push(max); // add maximum until there are enough rulers
         }
       }
-    } else { // equal width
+    } else {
+      // equal width
       splitValues.length = 0;
 
       for (let i = 1; i < binCount; i++) {
@@ -290,26 +314,29 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
       }
     }
 
-    this.vegaView.data(`splitvalues_${event.dataset.axis}`, splitValues.slice()); //set a defensive copy
-    this.vegaView.runAsync().then((vegaView) => //defer adding signallistener until the new data is set internally
-      vegaView.addDataListener(`splitvalues_${event.dataset.axis}`, this.vegaSplitListener) //add listener again
+    this.vegaView.data(`splitvalues_${event.dataset.axis}`, splitValues.slice()); // set a defensive copy
+    this.vegaView.runAsync().then(
+      (
+        vegaView, // defer adding signallistener until the new data is set internally
+      ) => vegaView.addDataListener(`splitvalues_${event.dataset.axis}`, this.vegaSplitListener), // add listener again
     );
   }
 
   protected vegaBrushListener = (name, value) => this.handleVegaIntervalEvent(name, value);
+
   protected vegaSplitListener = (name, value) => this.handleSplitDragEvent(name, value);
 
   protected axes: Array<AxisType> = ['x', 'y'];
 
   handleInputIntervalEvent(event) {
     for (const axis of this.axes) {
-      this.vegaView.removeSignalListener(`${AVegaVisualization.SELECTION_SIGNAL_NAME}_${axis}`, this.vegaBrushListener); //remove listener temporarily
+      this.vegaView.removeSignalListener(`${AVegaVisualization.SELECTION_SIGNAL_NAME}_${axis}`, this.vegaBrushListener); // remove listener temporarily
       const range = this.getInterval(axis);
       log.debug('range', range);
 
       const scaledMin = axis === 'x' ? 0 : this.vegaView.height();
       const scaledMax = axis === 'x' ? this.vegaView.width() : 0; // y has zero in the top and maximum scren cooridinates at the bottom
-      const scaledRange = [scaledMin, scaledMax]; //use min and max as default for range
+      const scaledRange = [scaledMin, scaledMax]; // use min and max as default for range
       const scale = this.vegaView.scale(axis);
 
       // if one or both ranges are set, replace with values
@@ -319,13 +346,13 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
       if (range[1] !== undefined && !isNaN(range[1])) {
         scaledRange[1] = scale(range[1]); // get max value from input
         if (range[0] === range[1]) {
-          scaledRange[1] = scale(range[1]) + Math.pow(10, -10); // the 10^(-10) are independent of the attribute domain (i.e. values of 0 to 1 or in millions) because we add it after scaling (its a fraction of a pixel)
+          scaledRange[1] = scale(range[1]) + 10 ** -10; // the 10^(-10) are independent of the attribute domain (i.e. values of 0 to 1 or in millions) because we add it after scaling (its a fraction of a pixel)
         }
       }
       log.info('scaledRange', scaledRange);
 
       this.vegaView.signal(`${AVegaVisualization.SELECTION_SIGNAL_NAME}_${axis}`, scaledRange);
-      this.vegaView.addSignalListener(`${AVegaVisualization.SELECTION_SIGNAL_NAME}_${axis}`, this.vegaBrushListener);  //add listener again
+      this.vegaView.addSignalListener(`${AVegaVisualization.SELECTION_SIGNAL_NAME}_${axis}`, this.vegaBrushListener); // add listener again
     }
 
     this.vegaView.runAsync(); // update the chart
@@ -334,7 +361,7 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
   getInterval(axis: AxisType) {
     const range = [
       parseFloat((select(this.controls).select(`input.minimum[data-axis="${axis}"]`).node() as HTMLInputElement).value), // get value, not the value attribute
-      parseFloat((select(this.controls).select(`input.maximum[data-axis="${axis}"]`).node() as HTMLInputElement).value)
+      parseFloat((select(this.controls).select(`input.maximum[data-axis="${axis}"]`).node() as HTMLInputElement).value),
     ];
 
     if (range.some((rangeNum) => rangeNum === undefined || isNaN(rangeNum))) {
@@ -363,28 +390,32 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
         const lowerBound = attrValues[0];
         const upperBound = attrValues[1];
         const inputs = select(this.controls).selectAll(`input.interval[data-axis="${axis}"]`);
-        inputs.on('change', null); //remove listeners temporarily
+        inputs.on('change', null); // remove listeners temporarily
 
         const formatter = format('.4~f');
         (select(this.controls).selectAll(`input.minimum[data-axis="${axis}"]`).node() as HTMLInputElement).value = formatter(lowerBound);
         (select(this.controls).selectAll(`input.maximum[data-axis="${axis}"]`).node() as HTMLInputElement).value = formatter(upperBound);
 
-        //add listener again:
-        const that = this; //helper varible to access this instance in the d3 event handler function
+        // add listener again:
+        const that = this; // helper varible to access this instance in the d3 event handler function
         inputs.on('change', function () {
           const d3Event = this; // because we use a function this is overwritten by d3, asssign to variable for clarity
           that.handleInputIntervalEvent.bind(that)(d3Event); // voodoo magic (👺) to set this back to the current instance
         });
       }
     } else {
-      select(this.controls).selectAll(`input.minimum, input.maximum`).nodes().forEach((node) => (node as HTMLInputElement).value = '');
+      select(this.controls)
+        .selectAll(`input.minimum, input.maximum`)
+        .nodes()
+        .forEach((node) => ((node as HTMLInputElement).value = ''));
     }
   }
 
   handleSplitDragEvent(name, value) {
     const axis = name.replace('splitvalues_', ''); // e.g., splitvalues_x -> x
 
-    const splitValues = this.vegaView.data(`splitvalues_${axis}`)
+    const splitValues = this.vegaView
+      .data(`splitvalues_${axis}`)
       .map((val) => val.data)
       .sort((a, b) => a - b);
 
@@ -428,7 +459,7 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
       select(chart).selectAll('*').remove();
       chart.className = '';
     }
-    const result = await vegaEmbed(chart, spec, {actions: false, renderer: 'svg'});
+    const result = await vegaEmbed(chart, spec, { actions: false, renderer: 'svg' });
     this.vegaLiteSpec = result.spec;
     this.vegaSpec = result.vgSpec;
     this.vegaView = result.view;
@@ -439,10 +470,10 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
 
     log.info('vega', this.vegaSpec);
     log.info('vegalite', this.vegaLiteSpec);
-    window.dispatchEvent(new Event('resize')); //update vega chart sizes in case the columns became narrower
+    window.dispatchEvent(new Event('resize')); // update vega chart sizes in case the columns became narrower
   }
 
-  getSelectedData(): {from: string | number; to: string | number; cohort: ICohort}[] {
+  getSelectedData(): { from: string | number; to: string | number; cohort: ICohort }[] {
     throw new Error('use getSelectedDatas for multi attribute');
   }
 }

@@ -1,10 +1,10 @@
 import log from 'loglevel';
-import {TopLevelSpec as VegaLiteSpec} from 'vega-lite';
-import {getCohortLabels} from '../../Cohort';
-import {ICohort} from '../../CohortInterfaces';
-import {IdValuePair} from '../../data/Attribute';
-import {DATA_LABEL} from './constants';
-import {MultiAttributeVisualization} from './MultiAttributeVisualization';
+import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
+import { getCohortLabels } from '../../Cohort';
+import { ICohort } from '../../CohortInterfaces';
+import { IdValuePair } from '../../data/Attribute';
+import { DATA_LABEL } from './constants';
+import { MultiAttributeVisualization } from './MultiAttributeVisualization';
 
 export class AreaChart extends MultiAttributeVisualization {
   static readonly NAME = 'Area Chart';
@@ -13,18 +13,16 @@ export class AreaChart extends MultiAttributeVisualization {
     super(vegaLiteOptions);
   }
 
-
   getSpec(data: IdValuePair[]): VegaLiteSpec {
-
     if (!(this.attributes.length === 2 && this.attributes.every((attr) => ['categorical', 'string'].includes(attr.type)))) {
       throw new Error(`Area chart requires attributes of type categorical`); // TODO generalize, could also be used for binned numerical
     }
 
     const scatterSpec: VegaLiteSpec = {
       $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
-      data: {values: data},
-      padding: {left: 5, top: 0, right: 5, bottom: 5},
-      mark: {type: 'square', tooltip: true},
+      data: { values: data },
+      padding: { left: 5, top: 0, right: 5, bottom: 5 },
+      mark: { type: 'square', tooltip: true },
       encoding: {
         row: {
           field: this.attributes[0].dataKey,
@@ -33,18 +31,18 @@ export class AreaChart extends MultiAttributeVisualization {
           header: {
             labelAngle: 0,
             labelAlign: 'left',
-            title: null // We will set a descriptive title for the whole plot
-          }
+            title: null, // We will set a descriptive title for the whole plot
+          },
         },
         x: {
           field: this.attributes[1].dataKey,
           type: 'nominal',
-          title: null
+          title: null,
         },
         y: {
           field: DATA_LABEL,
           type: 'nominal',
-          axis: null // hide cohort names
+          axis: null, // hide cohort names
         },
         color: {
           // bars will only change color on selection if the type is ordinal/nominal
@@ -52,16 +50,16 @@ export class AreaChart extends MultiAttributeVisualization {
           // which leads to errors on select/hovering selected data (data in the interval)
           field: DATA_LABEL,
           type: 'nominal',
-          scale: {domain: getCohortLabels(this.cohorts)},
-          legend: null  // custom legend
+          scale: { domain: getCohortLabels(this.cohorts) },
+          legend: null, // custom legend
         },
         size: {
           aggregate: 'count',
           type: 'quantitative',
-          scale: {type: 'linear'}
-        }
+          scale: { type: 'linear' },
+        },
       },
-      view: {cursor: 'pointer'}
+      view: { cursor: 'pointer' },
     };
 
     // Get base spec, merge with above
@@ -77,7 +75,7 @@ export class AreaChart extends MultiAttributeVisualization {
    * From == To for categorical data, e.g. FROM: male, TO: male
    * From is inclusive (>=) and TO exclusive (<) for numerical data, e.g. FROM 50 TO 60 = [50,60)
    */
-  getSelectedData(): {cohort: ICohort, from: string | number, to: string | number}[] {
+  getSelectedData(): { cohort: ICohort; from: string | number; to: string | number }[] {
     return [];
   }
 

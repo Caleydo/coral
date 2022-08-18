@@ -1,19 +1,20 @@
 import * as Comlink from 'comlink';
-import {select} from 'd3-selection';
-import {Spec as VegaSpec} from 'vega';
-import {TopLevelSpec as VegaLiteSpec} from 'vega-lite';
-import {Cohort} from '../../Cohort';
-import {AttributeType, IAttribute, IdValuePair, ServerColumnAttribute} from '../../data/Attribute';
-import {NumRangeOperators} from '../../rest';
-import {IFilterDesc, inRange} from '../../util';
-import {FilterEvent} from '../../utilCustomEvents';
-import {DATA_LABEL} from './constants';
-import {AxisType, MultiAttributeVisualization} from './MultiAttributeVisualization';
-import {TopLevel, LayerSpec} from 'vega-lite/build/src/spec';
-import {Field} from 'vega-lite/build/src/channeldef';
+import { select } from 'd3-selection';
+import { Spec as VegaSpec } from 'vega';
+import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
+import { TopLevel, LayerSpec } from 'vega-lite/build/src/spec';
+import { Field } from 'vega-lite/build/src/channeldef';
+import { Cohort } from '../../Cohort';
+import { AttributeType, IAttribute, IdValuePair, ServerColumnAttribute } from '../../data/Attribute';
+import { NumRangeOperators } from '../../rest';
+import { IFilterDesc, inRange } from '../../util';
+import { FilterEvent } from '../../utilCustomEvents';
+import { DATA_LABEL } from './constants';
+import { AxisType, MultiAttributeVisualization } from './MultiAttributeVisualization';
 
 export class Scatterplot extends MultiAttributeVisualization {
   static readonly NAME: string = 'Scatterplot';
+
   protected checkAttributeType = false;
 
   constructor(vegaLiteOptions: Object = {}) {
@@ -21,21 +22,18 @@ export class Scatterplot extends MultiAttributeVisualization {
   }
 
   getSpec(data: IdValuePair[]): VegaLiteSpec {
-    if (
-      this.checkAttributeType &&
-      this.attributes.some((attr) => attr.type !== `number`)
-    ) {
+    if (this.checkAttributeType && this.attributes.some((attr) => attr.type !== `number`)) {
       throw new Error(`Scatterplot requires attributes of type number`);
     }
 
     const vegaSpec: VegaSpec = {
       $schema: `https://vega.github.io/schema/vega/v5.json`,
-      autosize: {type: `fit`, contains: `padding`},
+      autosize: { type: `fit`, contains: `padding` },
       background: `white`,
-      padding: {left: 5, top: 5, right: 5, bottom: 5}, // top and right padding are necessary for split rulers
+      padding: { left: 5, top: 5, right: 5, bottom: 5 }, // top and right padding are necessary for split rulers
       height: 300,
       style: `cell`,
-      encode: {update: {cursor: {value: `crosshair`}}},
+      encode: { update: { cursor: { value: `crosshair` } } },
       data: [
         {
           name: `selected_store`,
@@ -43,16 +41,16 @@ export class Scatterplot extends MultiAttributeVisualization {
             {
               unit: `layer_0`,
               fields: [
-                {field: `${this.attributes[0].dataKey}`, channel: `x`, type: `R`},
-                {field: `${this.attributes[1].dataKey}`, channel: `y`, type: `R`}
+                { field: `${this.attributes[0].dataKey}`, channel: `x`, type: `R` },
+                { field: `${this.attributes[1].dataKey}`, channel: `y`, type: `R` },
               ],
-              values: [[], []]
-            }
-          ]
+              values: [[], []],
+            },
+          ],
         },
         {
           name: `source_0`,
-          values: data
+          values: data,
         },
         {
           name: `splitvalues_x`,
@@ -61,11 +59,11 @@ export class Scatterplot extends MultiAttributeVisualization {
             {
               trigger: `draggedMark_x`,
               modify: `draggedMark_x`,
-              values: `dragTo_x`
+              values: `dragTo_x`,
             },
-            {trigger: `addMark_x`, insert: `addMark_x`},
-            {trigger: `remMark_x`, remove: `remMark_x`}
-          ]
+            { trigger: `addMark_x`, insert: `addMark_x` },
+            { trigger: `remMark_x`, remove: `remMark_x` },
+          ],
         },
         {
           name: `splitvalues_y`,
@@ -74,10 +72,10 @@ export class Scatterplot extends MultiAttributeVisualization {
             {
               trigger: `draggedMark_y`,
               modify: `draggedMark_y`,
-              values: `dragTo_y`
+              values: `dragTo_y`,
             },
-            {trigger: `remMark_y`, remove: `remMark_y`}
-          ]
+            { trigger: `remMark_y`, remove: `remMark_y` },
+          ],
         },
         {
           name: `data_0`,
@@ -85,9 +83,9 @@ export class Scatterplot extends MultiAttributeVisualization {
           transform: [
             {
               type: `filter`,
-              expr: `isValid(datum['${this.attributes[0].dataKey}']) && isFinite(+datum['${this.attributes[0].dataKey}']) && isValid(datum['${this.attributes[1].dataKey}']) && isFinite(+datum['${this.attributes[1].dataKey}'])`
-            }
-          ]
+              expr: `isValid(datum['${this.attributes[0].dataKey}']) && isFinite(+datum['${this.attributes[0].dataKey}']) && isValid(datum['${this.attributes[1].dataKey}']) && isFinite(+datum['${this.attributes[1].dataKey}'])`,
+            },
+          ],
         },
         {
           name: `data_1`,
@@ -95,9 +93,9 @@ export class Scatterplot extends MultiAttributeVisualization {
           transform: [
             {
               type: `filter`,
-              expr: `isValid(datum['data']) && isFinite(+datum['data'])`
-            }
-          ]
+              expr: `isValid(datum['data']) && isFinite(+datum['data'])`,
+            },
+          ],
         },
         {
           name: `data_2`,
@@ -105,10 +103,10 @@ export class Scatterplot extends MultiAttributeVisualization {
           transform: [
             {
               type: `filter`,
-              expr: `isValid(datum['data']) && isFinite(+datum['data'])`
-            }
-          ]
-        }
+              expr: `isValid(datum['data']) && isFinite(+datum['data'])`,
+            },
+          ],
+        },
       ],
       signals: [
         {
@@ -117,18 +115,18 @@ export class Scatterplot extends MultiAttributeVisualization {
           on: [
             {
               update: `isFinite(containerSize()[0]) ? containerSize()[0] : 200`,
-              events: `window:resize`
-            }
-          ]
+              events: `window:resize`,
+            },
+          ],
         },
         {
           name: `dragTo_x`,
           on: [
             {
               events: `[@grabber_x:mousedown, window:mouseup] > window:mousemove`,
-              update: `{data: invert('x',x())}`
-            }
-          ]
+              update: `{data: invert('x',x())}`,
+            },
+          ],
         },
         {
           name: `draggedMark_x`,
@@ -138,12 +136,12 @@ export class Scatterplot extends MultiAttributeVisualization {
                 {
                   markname: `grabber_x`,
                   type: `mousedown`,
-                  filter: [`!event.ctrlKey`]
-                }
+                  filter: [`!event.ctrlKey`],
+                },
               ],
-              update: `group().datum`
-            }
-          ]
+              update: `group().datum`,
+            },
+          ],
         },
         {
           name: `addMark_x`,
@@ -153,12 +151,12 @@ export class Scatterplot extends MultiAttributeVisualization {
                 {
                   source: `view`,
                   type: `click`,
-                  filter: [`event.ctrlKey`, `item().mark.name === 'root'`]
-                }
+                  filter: [`event.ctrlKey`, `item().mark.name === 'root'`],
+                },
               ],
-              update: `{data: invert('x',x())}`
-            }
-          ]
+              update: `{data: invert('x',x())}`,
+            },
+          ],
         },
         {
           name: `remMark_x`,
@@ -168,26 +166,26 @@ export class Scatterplot extends MultiAttributeVisualization {
                 {
                   markname: `grabber_x`,
                   type: `click`,
-                  filter: `event.ctrlKey`
+                  filter: `event.ctrlKey`,
                 },
                 {
                   markname: `splitrule_x`,
                   type: `click`,
-                  filter: `event.ctrlKey`
-                }
+                  filter: `event.ctrlKey`,
+                },
               ],
-              update: `group().datum`
-            }
-          ]
+              update: `group().datum`,
+            },
+          ],
         },
         {
           name: `dragTo_y`,
           on: [
             {
               events: `[@grabber_y:mousedown, window:mouseup] > window:mousemove`,
-              update: `{data: invert('y',y())}`
-            }
-          ]
+              update: `{data: invert('y',y())}`,
+            },
+          ],
         },
         {
           name: `draggedMark_y`,
@@ -197,12 +195,12 @@ export class Scatterplot extends MultiAttributeVisualization {
                 {
                   markname: `grabber_y`,
                   type: `mousedown`,
-                  filter: [`!event.ctrlKey`]
-                }
+                  filter: [`!event.ctrlKey`],
+                },
               ],
-              update: `group().datum`
-            }
-          ]
+              update: `group().datum`,
+            },
+          ],
         },
         {
           name: `remMark_y`,
@@ -212,28 +210,26 @@ export class Scatterplot extends MultiAttributeVisualization {
                 {
                   markname: `grabber_y`,
                   type: `click`,
-                  filter: `event.ctrlKey`
+                  filter: `event.ctrlKey`,
                 },
                 {
                   markname: `splitrule_y`,
                   type: `click`,
-                  filter: `event.ctrlKey`
-                }
+                  filter: `event.ctrlKey`,
+                },
               ],
-              update: `group().datum`
-            }
-          ]
+              update: `group().datum`,
+            },
+          ],
         },
         {
           name: `unit`,
           value: {},
-          on: [
-            {events: `mousemove`, update: `isTuple(group()) ? group() : unit`}
-          ]
+          on: [{ events: `mousemove`, update: `isTuple(group()) ? group() : unit` }],
         },
         {
           name: `selected`,
-          update: `vlSelectionResolve('selected_store', 'union')`
+          update: `vlSelectionResolve('selected_store', 'union')`,
         },
         {
           name: `selected_x`,
@@ -246,10 +242,10 @@ export class Scatterplot extends MultiAttributeVisualization {
                 filter: [
                   `!event.item || event.item.mark.name !== 'selected_brush'`,
                   `event.item.mark.name !== 'grabber_x'`,
-                  `event.item.mark.name !== 'grabber_y'`
-                ]
+                  `event.item.mark.name !== 'grabber_y'`,
+                ],
               },
-              update: `[x(unit), x(unit)]`
+              update: `[x(unit), x(unit)]`,
             },
             {
               events: {
@@ -263,41 +259,41 @@ export class Scatterplot extends MultiAttributeVisualization {
                     filter: [
                       `!event.item || event.item.mark.name !== 'selected_brush'`,
                       `event.item.mark.name !== 'grabber_x'`,
-                      `event.item.mark.name !== 'grabber_y'`
-                    ]
+                      `event.item.mark.name !== 'grabber_y'`,
+                    ],
                   },
-                  {source: `window`, type: `mouseup`}
-                ]
+                  { source: `window`, type: `mouseup` },
+                ],
               },
-              update: `[selected_x[0], clamp(x(unit), 0, width)]`
+              update: `[selected_x[0], clamp(x(unit), 0, width)]`,
             },
             {
-              events: {signal: `selected_scale_trigger`},
-              update: `[scale('x', selected_attr0[0]), scale('x', selected_attr0[1])]`
+              events: { signal: `selected_scale_trigger` },
+              update: `[scale('x', selected_attr0[0]), scale('x', selected_attr0[1])]`,
             },
             {
-              events: [{source: `view`, type: `dblclick`}],
-              update: `[0, 0]`
+              events: [{ source: `view`, type: `dblclick` }],
+              update: `[0, 0]`,
             },
             {
-              events: {signal: `selected_translate_delta`},
-              update: `clampRange(panLinear(selected_translate_anchor.extent_x, selected_translate_delta.x / span(selected_translate_anchor.extent_x)), 0, width)`
+              events: { signal: `selected_translate_delta` },
+              update: `clampRange(panLinear(selected_translate_anchor.extent_x, selected_translate_delta.x / span(selected_translate_anchor.extent_x)), 0, width)`,
             },
             {
-              events: {signal: `selected_zoom_delta`},
-              update: `clampRange(zoomLinear(selected_x, selected_zoom_anchor.x, selected_zoom_delta), 0, width)`
-            }
-          ]
+              events: { signal: `selected_zoom_delta` },
+              update: `clampRange(zoomLinear(selected_x, selected_zoom_anchor.x, selected_zoom_delta), 0, width)`,
+            },
+          ],
         },
         {
           name: `selected_attr0`,
           init: `[]`,
           on: [
             {
-              events: {signal: `selected_x`},
-              update: `selected_x[0] === selected_x[1] ? null : invert('x', selected_x)`
-            }
-          ]
+              events: { signal: `selected_x` },
+              update: `selected_x[0] === selected_x[1] ? null : invert('x', selected_x)`,
+            },
+          ],
         },
         {
           name: `selected_y`,
@@ -307,11 +303,9 @@ export class Scatterplot extends MultiAttributeVisualization {
               events: {
                 source: `scope`,
                 type: `mousedown`,
-                filter: [
-                  `!event.item || event.item.mark.name !== 'selected_brush'`
-                ]
+                filter: [`!event.item || event.item.mark.name !== 'selected_brush'`],
               },
-              update: `[y(unit), y(unit)]`
+              update: `[y(unit), y(unit)]`,
             },
             {
               events: {
@@ -322,69 +316,67 @@ export class Scatterplot extends MultiAttributeVisualization {
                   {
                     source: `scope`,
                     type: `mousedown`,
-                    filter: [
-                      `!event.item || event.item.mark.name !== 'selected_brush'`
-                    ]
+                    filter: [`!event.item || event.item.mark.name !== 'selected_brush'`],
                   },
-                  {source: `window`, type: `mouseup`}
-                ]
+                  { source: `window`, type: `mouseup` },
+                ],
               },
-              update: `[selected_y[0], clamp(y(unit), 0, height)]`
+              update: `[selected_y[0], clamp(y(unit), 0, height)]`,
             },
             {
-              events: {signal: `selected_scale_trigger`},
-              update: `[scale('y', selected_attr1[0]), scale('y', selected_attr1[1])]`
+              events: { signal: `selected_scale_trigger` },
+              update: `[scale('y', selected_attr1[0]), scale('y', selected_attr1[1])]`,
             },
             {
-              events: [{source: `view`, type: `dblclick`}],
-              update: `[0, 0]`
+              events: [{ source: `view`, type: `dblclick` }],
+              update: `[0, 0]`,
             },
             {
-              events: {signal: `selected_translate_delta`},
-              update: `clampRange(panLinear(selected_translate_anchor.extent_y, selected_translate_delta.y / span(selected_translate_anchor.extent_y)), 0, height)`
+              events: { signal: `selected_translate_delta` },
+              update: `clampRange(panLinear(selected_translate_anchor.extent_y, selected_translate_delta.y / span(selected_translate_anchor.extent_y)), 0, height)`,
             },
             {
-              events: {signal: `selected_zoom_delta`},
-              update: `clampRange(zoomLinear(selected_y, selected_zoom_anchor.y, selected_zoom_delta), 0, height)`
-            }
-          ]
+              events: { signal: `selected_zoom_delta` },
+              update: `clampRange(zoomLinear(selected_y, selected_zoom_anchor.y, selected_zoom_delta), 0, height)`,
+            },
+          ],
         },
         {
           name: `selected_attr1`,
           init: `[]`,
           on: [
             {
-              events: {signal: `selected_y`},
-              update: `selected_y[0] === selected_y[1] ? null : invert('y', selected_y)`
-            }
-          ]
+              events: { signal: `selected_y` },
+              update: `selected_y[0] === selected_y[1] ? null : invert('y', selected_y)`,
+            },
+          ],
         },
         {
           name: `selected_scale_trigger`,
           value: {},
           on: [
             {
-              events: [{scale: `x`}, {scale: `y`}],
-              update: `(!isArray(selected_attr0) || (+invert('x', selected_x)[0] === +selected_attr0[0] && +invert('x', selected_x)[1] === +selected_attr0[1])) && (!isArray(selected_attr1) || (+invert('y', selected_y)[0] === +selected_attr1[0] && +invert('y', selected_y)[1] === +selected_attr1[1])) ? selected_scale_trigger : {}`
-            }
-          ]
+              events: [{ scale: `x` }, { scale: `y` }],
+              update: `(!isArray(selected_attr0) || (+invert('x', selected_x)[0] === +selected_attr0[0] && +invert('x', selected_x)[1] === +selected_attr0[1])) && (!isArray(selected_attr1) || (+invert('y', selected_y)[0] === +selected_attr1[0] && +invert('y', selected_y)[1] === +selected_attr1[1])) ? selected_scale_trigger : {}`,
+            },
+          ],
         },
         {
           name: `selected_tuple`,
           init: `{unit: 'layer_0', fields: selected_tuple_fields, values: [[], []]}`,
           on: [
             {
-              events: [{signal: `selected_attr0 || selected_attr1`}],
-              update: `selected_attr0 && selected_attr1 ? {unit: 'layer_0', fields: selected_tuple_fields, values: [selected_attr0,selected_attr1]} : null`
-            }
-          ]
+              events: [{ signal: `selected_attr0 || selected_attr1` }],
+              update: `selected_attr0 && selected_attr1 ? {unit: 'layer_0', fields: selected_tuple_fields, values: [selected_attr0,selected_attr1]} : null`,
+            },
+          ],
         },
         {
           name: `selected_tuple_fields`,
           value: [
-            {field: `${this.attributes[0].dataKey}`, channel: `x`, type: `R`},
-            {field: `${this.attributes[1].dataKey}`, channel: `y`, type: `R`}
-          ]
+            { field: `${this.attributes[0].dataKey}`, channel: `x`, type: `R` },
+            { field: `${this.attributes[1].dataKey}`, channel: `y`, type: `R` },
+          ],
         },
         {
           name: `selected_translate_anchor`,
@@ -395,12 +387,12 @@ export class Scatterplot extends MultiAttributeVisualization {
                 {
                   source: `scope`,
                   type: `mousedown`,
-                  markname: `selected_brush`
-                }
+                  markname: `selected_brush`,
+                },
               ],
-              update: `{x: x(unit), y: y(unit), extent_x: slice(selected_x), extent_y: slice(selected_y)}`
-            }
-          ]
+              update: `{x: x(unit), y: y(unit), extent_x: slice(selected_x), extent_y: slice(selected_y)}`,
+            },
+          ],
         },
         {
           name: `selected_translate_delta`,
@@ -416,15 +408,15 @@ export class Scatterplot extends MultiAttributeVisualization {
                     {
                       source: `scope`,
                       type: `mousedown`,
-                      markname: `selected_brush`
+                      markname: `selected_brush`,
                     },
-                    {source: `window`, type: `mouseup`}
-                  ]
-                }
+                    { source: `window`, type: `mouseup` },
+                  ],
+                },
               ],
-              update: `{x: selected_translate_anchor.x - x(unit), y: selected_translate_anchor.y - y(unit)}`
-            }
-          ]
+              update: `{x: selected_translate_anchor.x - x(unit), y: selected_translate_anchor.y - y(unit)}`,
+            },
+          ],
         },
         {
           name: `selected_zoom_anchor`,
@@ -435,12 +427,12 @@ export class Scatterplot extends MultiAttributeVisualization {
                   source: `scope`,
                   type: `wheel`,
                   consume: true,
-                  markname: `selected_brush`
-                }
+                  markname: `selected_brush`,
+                },
               ],
-              update: `{x: x(unit), y: y(unit)}`
-            }
-          ]
+              update: `{x: x(unit), y: y(unit)}`,
+            },
+          ],
         },
         {
           name: `selected_zoom_delta`,
@@ -451,23 +443,23 @@ export class Scatterplot extends MultiAttributeVisualization {
                   source: `scope`,
                   type: `wheel`,
                   consume: true,
-                  markname: `selected_brush`
-                }
+                  markname: `selected_brush`,
+                },
               ],
               force: true,
-              update: `pow(1.001, event.deltaY * pow(16, event.deltaMode))`
-            }
-          ]
+              update: `pow(1.001, event.deltaY * pow(16, event.deltaMode))`,
+            },
+          ],
         },
         {
           name: `selected_modify`,
           on: [
             {
-              events: {signal: `selected_tuple`},
-              update: `modify('selected_store', selected_tuple, true)`
-            }
-          ]
-        }
+              events: { signal: `selected_tuple` },
+              update: `modify('selected_store', selected_tuple, true)`,
+            },
+          ],
+        },
       ],
       marks: [
         {
@@ -475,91 +467,91 @@ export class Scatterplot extends MultiAttributeVisualization {
           type: `rect`,
           clip: true,
           encode: {
-            enter: {fill: {value: `#333`}, fillOpacity: {value: 0.125}},
+            enter: { fill: { value: `#333` }, fillOpacity: { value: 0.125 } },
             update: {
               x: [
                 {
                   test: `data('selected_store').length && data('selected_store')[0].unit === 'layer_0'`,
-                  signal: `selected_x[0]`
+                  signal: `selected_x[0]`,
                 },
-                {value: 0}
+                { value: 0 },
               ],
               y: [
                 {
                   test: `data('selected_store').length && data('selected_store')[0].unit === 'layer_0'`,
-                  signal: `selected_y[0]`
+                  signal: `selected_y[0]`,
                 },
-                {value: 0}
+                { value: 0 },
               ],
               x2: [
                 {
                   test: `data('selected_store').length && data('selected_store')[0].unit === 'layer_0'`,
-                  signal: `selected_x[1]`
+                  signal: `selected_x[1]`,
                 },
-                {value: 0}
+                { value: 0 },
               ],
               y2: [
                 {
                   test: `data('selected_store').length && data('selected_store')[0].unit === 'layer_0'`,
-                  signal: `selected_y[1]`
+                  signal: `selected_y[1]`,
                 },
-                {value: 0}
-              ]
-            }
-          }
+                { value: 0 },
+              ],
+            },
+          },
         },
         {
           name: `layer_0_marks`,
           type: `symbol`,
           style: [`circle`],
           interactive: true,
-          from: {data: `data_0`},
+          from: { data: `data_0` },
           encode: {
             update: {
-              opacity: {value: 0.9},
-              size: {value: 15},
-              cursor: {value: `crosshair`},
+              opacity: { value: 0.9 },
+              size: { value: 15 },
+              cursor: { value: `crosshair` },
               tooltip: {
-                signal: `{'${this.attributes[0].label}': format(datum['${this.attributes[0].dataKey}'], ''), '${this.attributes[1].label}': format(datum['${this.attributes[1].dataKey}'], ''), '${DATA_LABEL}': isValid(datum['${DATA_LABEL}']) ? datum['${DATA_LABEL}'] : ''+datum['${DATA_LABEL}']}`
+                signal: `{'${this.attributes[0].label}': format(datum['${this.attributes[0].dataKey}'], ''), '${this.attributes[1].label}': format(datum['${this.attributes[1].dataKey}'], ''), '${DATA_LABEL}': isValid(datum['${DATA_LABEL}']) ? datum['${DATA_LABEL}'] : ''+datum['${DATA_LABEL}']}`,
               },
-              fill: {scale: `color`, field: `${DATA_LABEL}`},
-              ariaRoleDescription: {value: `circle`},
+              fill: { scale: `color`, field: `${DATA_LABEL}` },
+              ariaRoleDescription: { value: `circle` },
               description: {
-                signal: `'${this.attributes[0].label}: ' + (format(datum['${this.attributes[0].dataKey}'], '')) + '; ${this.attributes[1].label}: ' + (format(datum['${this.attributes[1].dataKey}'], '')) + '; ${DATA_LABEL}: ' + (isValid(datum['${DATA_LABEL}']) ? datum['${DATA_LABEL}'] : ''+datum['${DATA_LABEL}'])`
+                signal: `'${this.attributes[0].label}: ' + (format(datum['${this.attributes[0].dataKey}'], '')) + '; ${this.attributes[1].label}: ' + (format(datum['${this.attributes[1].dataKey}'], '')) + '; ${DATA_LABEL}: ' + (isValid(datum['${DATA_LABEL}']) ? datum['${DATA_LABEL}'] : ''+datum['${DATA_LABEL}'])`,
               },
               x: [
                 {
                   test: `!isValid(datum['${this.attributes[0].dataKey}']) || !isFinite(+datum['${this.attributes[0].dataKey}'])`,
-                  value: 0
+                  value: 0,
                 },
-                {scale: `x`, field: `${this.attributes[0].dataKey}`}
+                { scale: `x`, field: `${this.attributes[0].dataKey}` },
               ],
               y: [
                 {
                   test: `!isValid(datum['${this.attributes[1].dataKey}']) || !isFinite(+datum['${this.attributes[1].dataKey}'])`,
-                  field: {group: `height`}
+                  field: { group: `height` },
                 },
-                {scale: `y`, field: `${this.attributes[1].dataKey}`}
+                { scale: `y`, field: `${this.attributes[1].dataKey}` },
               ],
-              shape: {value: `circle`}
-            }
-          }
+              shape: { value: `circle` },
+            },
+          },
         },
         {
           name: `splitmarks_x`,
           type: `group`,
-          from: {data: `data_1`},
+          from: { data: `data_1` },
           encode: {
-            enter: {height: {field: {group: `height`}}},
+            enter: { height: { field: { group: `height` } } },
             update: {
               x: [
                 {
                   test: `!isValid(datum['data']) || !isFinite(+datum['data'])`,
-                  value: 0
+                  value: 0,
                 },
-                {scale: `x`, field: `data`}
-              ]
-            }
+                { scale: `x`, field: `data` },
+              ],
+            },
           },
           marks: [
             {
@@ -568,48 +560,48 @@ export class Scatterplot extends MultiAttributeVisualization {
               style: [`rule`],
               encode: {
                 update: {
-                  strokeDash: {value: [4, 6]},
-                  stroke: {value: `black`},
-                  y: {value: 0},
-                  y2: {field: {group: `height`}}
-                }
-              }
+                  strokeDash: { value: [4, 6] },
+                  stroke: { value: `black` },
+                  y: { value: 0 },
+                  y2: { field: { group: `height` } },
+                },
+              },
             },
             {
               type: `path`,
               name: `grabber_x`,
               encode: {
                 enter: {
-                  y: {field: {group: `height`}, mult: 0.5, offset: -80},
-                  fill: {value: `#fff`},
-                  stroke: {value: `#666`},
-                  cursor: {value: `ew-resize`}
+                  y: { field: { group: `height` }, mult: 0.5, offset: -80 },
+                  fill: { value: `#fff` },
+                  stroke: { value: `#666` },
+                  cursor: { value: `ew-resize` },
                 },
                 update: {
                   path: {
-                    signal: `'M0.5,33.333A6,6 0 0 1 6.5,39.333V60.666A6,6 0 0 1 0.5,66.666ZM2.5,41.333V58.666M4.5,41.333V58.666'`
-                  }
-                }
-              }
-            }
-          ]
+                    signal: `'M0.5,33.333A6,6 0 0 1 6.5,39.333V60.666A6,6 0 0 1 0.5,66.666ZM2.5,41.333V58.666M4.5,41.333V58.666'`,
+                  },
+                },
+              },
+            },
+          ],
         },
         {
           name: `splitmarks_y`,
           type: `group`,
-          from: {data: `data_2`},
+          from: { data: `data_2` },
           encode: {
             update: {
-              x: {field: {group: `width`}},
-              x2: {value: 0},
+              x: { field: { group: `width` } },
+              x2: { value: 0 },
               y: [
                 {
                   test: `!isValid(datum['data']) || !isFinite(+datum['data'])`,
-                  value: 0
+                  value: 0,
                 },
-                {scale: `y`, field: `data`}
-              ]
-            }
+                { scale: `y`, field: `data` },
+              ],
+            },
           },
           marks: [
             {
@@ -618,48 +610,48 @@ export class Scatterplot extends MultiAttributeVisualization {
               style: [`rule`],
               encode: {
                 update: {
-                  strokeDash: {value: [4, 6]},
-                  stroke: {value: `black`},
+                  strokeDash: { value: [4, 6] },
+                  stroke: { value: `black` },
                   description: {
-                    signal: `'data: ' + (format(datum['data'], ''))`
+                    signal: `'data: ' + (format(datum['data'], ''))`,
                   },
-                  x: {field: {group: `width`}},
-                  x2: {value: 0},
+                  x: { field: { group: `width` } },
+                  x2: { value: 0 },
                   y: [
                     {
                       test: `!isValid(datum['data']) || !isFinite(+datum['data'])`,
-                      field: {group: `height`}
+                      field: { group: `height` },
                     },
-                    {scale: `y`, field: `data`}
-                  ]
-                }
-              }
+                    { scale: `y`, field: `data` },
+                  ],
+                },
+              },
             },
             {
               type: `path`,
               name: `grabber_y`,
               encode: {
                 enter: {
-                  x: {field: {group: `width`}, mult: 0.5, offset: 15},
+                  x: { field: { group: `width` }, mult: 0.5, offset: 15 },
                   y: [
                     {
                       test: `!isValid(datum['data']) || !isFinite(+datum['data'])`,
-                      field: {group: `height`}
+                      field: { group: `height` },
                     },
-                    {scale: `y`, field: `data`}
+                    { scale: `y`, field: `data` },
                   ],
-                  fill: {value: `#fff`},
-                  stroke: {value: `#666`},
-                  cursor: {value: `ns-resize`}
+                  fill: { value: `#fff` },
+                  stroke: { value: `#666` },
+                  cursor: { value: `ns-resize` },
                 },
                 update: {
                   path: {
-                    signal: `'M33.333,0a6,6 0 0 0 -6,-6H6A6,6 0 0 0 0,0Zm-8,-2 H8M25.333,-4H8'`
-                  }
-                }
-              }
-            }
-          ]
+                    signal: `'M33.333,0a6,6 0 0 0 -6,-6H6A6,6 0 0 0 0,0Zm-8,-2 H8M25.333,-4H8'`,
+                  },
+                },
+              },
+            },
+          ],
         },
         {
           name: `selected_brush`,
@@ -667,84 +659,84 @@ export class Scatterplot extends MultiAttributeVisualization {
           clip: true,
           encode: {
             enter: {
-              cursor: {value: `pointer`},
-              fill: {value: `transparent`}
+              cursor: { value: `pointer` },
+              fill: { value: `transparent` },
             },
             update: {
               x: [
                 {
                   test: `data('selected_store').length && data('selected_store')[0].unit === 'layer_0'`,
-                  signal: `selected_x[0]`
+                  signal: `selected_x[0]`,
                 },
-                {value: 0}
+                { value: 0 },
               ],
               y: [
                 {
                   test: `data('selected_store').length && data('selected_store')[0].unit === 'layer_0'`,
-                  signal: `selected_y[0]`
+                  signal: `selected_y[0]`,
                 },
-                {value: 0}
+                { value: 0 },
               ],
               x2: [
                 {
                   test: `data('selected_store').length && data('selected_store')[0].unit === 'layer_0'`,
-                  signal: `selected_x[1]`
+                  signal: `selected_x[1]`,
                 },
-                {value: 0}
+                { value: 0 },
               ],
               y2: [
                 {
                   test: `data('selected_store').length && data('selected_store')[0].unit === 'layer_0'`,
-                  signal: `selected_y[1]`
+                  signal: `selected_y[1]`,
                 },
-                {value: 0}
+                { value: 0 },
               ],
               stroke: [
                 {
                   test: `selected_x[0] !== selected_x[1] && selected_y[0] !== selected_y[1]`,
-                  value: `white`
+                  value: `white`,
                 },
-                {value: null}
-              ]
-            }
-          }
-        }
+                { value: null },
+              ],
+            },
+          },
+        },
       ],
       scales: [
         {
           name: `x`,
-          ... this.attributes[0].preferLog ? {type: 'log', base: 10} : {type: 'linear', zero: false},
+          ...(this.attributes[0].preferLog ? { type: 'log', base: 10 } : { type: 'linear', zero: false }),
           domain: {
             fields: [
-              {data: `data_0`, field: `${this.attributes[0].dataKey}`},
-              {data: `data_1`, field: `data`}
-            ]
+              { data: `data_0`, field: `${this.attributes[0].dataKey}` },
+              { data: `data_1`, field: `data` },
+            ],
           },
-          range: [0, {signal: `width`}],
+          range: [0, { signal: `width` }],
           clamp: true,
           nice: false,
-          zero: false
+          zero: false,
         },
         {
           name: `y`,
-          ... this.attributes[1].preferLog ? {type: 'log', base: 10} : {type: 'linear', zero: false},
+          ...(this.attributes[1].preferLog ? { type: 'log', base: 10 } : { type: 'linear', zero: false }),
           domain: {
             fields: [
-              {data: `data_0`, field: `${this.attributes[1].dataKey}`},
-              {data: `data_2`, field: `data`}
-            ]
+              { data: `data_0`, field: `${this.attributes[1].dataKey}` },
+              { data: `data_2`, field: `data` },
+            ],
           },
-          range: [{signal: `height`}, 0],
+          range: [{ signal: `height` }, 0],
           clamp: true,
           nice: false,
-          zero: false
+          zero: false,
         },
         {
           name: `color`,
           type: `ordinal`,
-          domain: {data: 'data_0', field: DATA_LABEL, sort: true},
-          range: `category`
-        }
+          domain: { data: 'data_0', field: DATA_LABEL, sort: true },
+          range: `category`,
+        },
       ],
       axes: [
         {
@@ -752,28 +744,28 @@ export class Scatterplot extends MultiAttributeVisualization {
           orient: `bottom`,
           gridScale: `y`,
           grid: true,
-          tickCount: {signal: `ceil(width/40)`},
+          tickCount: { signal: `ceil(width/40)` },
           domain: false,
           labels: false,
           aria: false,
           maxExtent: 0,
           minExtent: 0,
           ticks: false,
-          zindex: 0
+          zindex: 0,
         },
         {
           scale: `y`,
           orient: `left`,
           gridScale: `x`,
           grid: true,
-          tickCount: {signal: `ceil(height/40)`},
+          tickCount: { signal: `ceil(height/40)` },
           domain: false,
           labels: false,
           aria: false,
           maxExtent: 0,
           minExtent: 0,
           ticks: false,
-          zindex: 0
+          zindex: 0,
         },
         {
           scale: `x`,
@@ -781,20 +773,20 @@ export class Scatterplot extends MultiAttributeVisualization {
           grid: false,
           title: `${this.attributes[0].label}`,
           labelFlush: true,
-          tickCount: {signal: `ceil(width/40)`},
-          zindex: 0
+          tickCount: { signal: `ceil(width/40)` },
+          zindex: 0,
         },
         {
           scale: `y`,
           orient: `left`,
           grid: false,
           title: `${this.attributes[1].label}`,
-          tickCount: {signal: `ceil(height/40)`},
-          zindex: 0
-        }
+          tickCount: { signal: `ceil(height/40)` },
+          zindex: 0,
+        },
       ],
       config: {
-        range: {category: this.colorPalette},
+        range: { category: this.colorPalette },
         axis: {
           titleFontSize: 16,
           titleFontWeight: 500,
@@ -804,7 +796,7 @@ export class Scatterplot extends MultiAttributeVisualization {
           labelFont: `Roboto`,
           labelOverlap: `parity`,
           labelSeparation: 5,
-          labelBound: true
+          labelBound: true,
         },
         legend: {
           titleFontSize: 16,
@@ -813,9 +805,9 @@ export class Scatterplot extends MultiAttributeVisualization {
           labelFontSize: 12,
           labelLimit: 150,
           labelFont: `Roboto`,
-          labelOverlap: `parity`
-        }
-      }
+          labelOverlap: `parity`,
+        },
+      },
     };
 
     return vegaSpec as unknown as VegaLiteSpec;
@@ -845,28 +837,30 @@ export class Scatterplot extends MultiAttributeVisualization {
       const filter = [];
       for (const [i, axis] of this.axes.entries()) {
         const interval = this.getInterval(axis);
-        const range = [{
-          operatorOne: NumRangeOperators.gte,
-          valueOne: interval[0],
-          operatorTwo: NumRangeOperators.lte,
-          valueTwo: interval[1]
-        }];
+        const range = [
+          {
+            operatorOne: NumRangeOperators.gte,
+            valueOne: interval[0],
+            operatorTwo: NumRangeOperators.lte,
+            valueTwo: interval[1],
+          },
+        ];
         if (this.getNullCheckboxState(this.attributes[i])) {
           range.push({
             operatorOne: NumRangeOperators.gte,
             valueOne: null,
             operatorTwo: NumRangeOperators.lte,
-            valueTwo: null
+            valueTwo: null,
           });
         }
         filter.push({
           attr: this.attributes[i],
-          range
+          range,
         });
       }
       filterDescs.push({
         cohort: cht,
-        filter
+        filter,
       });
     }
 
@@ -888,82 +882,102 @@ export class Scatterplot extends MultiAttributeVisualization {
           const desc = {
             cohort: cht,
             filter: [
-              { //x
+              {
+                // x
                 attr: this.attributes[0],
-                range: [this.getGeneralNumericalFilter(
-                  ix >= 1 ? this.splitValuesX[ix - 1] : minX,
-                  splitX,
-                  NumRangeOperators.gte,
-                  splitX === maxX ? NumRangeOperators.lte : NumRangeOperators.lt)
-                ]
+                range: [
+                  this.getGeneralNumericalFilter(
+                    ix >= 1 ? this.splitValuesX[ix - 1] : minX,
+                    splitX,
+                    NumRangeOperators.gte,
+                    splitX === maxX ? NumRangeOperators.lte : NumRangeOperators.lt,
+                  ),
+                ],
               },
-              { //y
+              {
+                // y
                 attr: this.attributes[1],
-                range: [this.getGeneralNumericalFilter(
-                  iy >= 1 ? this.splitValuesY[iy - 1] : minY,
-                  splitY,
-                  NumRangeOperators.gte,
-                  splitY === maxY ? NumRangeOperators.lte : NumRangeOperators.lt)
-                ]
-              }
-            ]
+                range: [
+                  this.getGeneralNumericalFilter(
+                    iy >= 1 ? this.splitValuesY[iy - 1] : minY,
+                    splitY,
+                    NumRangeOperators.gte,
+                    splitY === maxY ? NumRangeOperators.lte : NumRangeOperators.lt,
+                  ),
+                ],
+              },
+            ],
           };
 
           filterDescs.push(desc);
         }
       }
 
-      if (this.getNullCheckboxState(this.attributes[0])) { //x =  null
+      if (this.getNullCheckboxState(this.attributes[0])) {
+        // x =  null
         for (const [iy, splitY] of [...this.splitValuesY, maxY].entries()) {
           filterDescs.push({
             cohort: cht,
             filter: [
-              { //x
+              {
+                // x
                 attr: this.attributes[0],
-                range: [{
-                  operatorOne: NumRangeOperators.gte,
-                  valueOne: null,
-                  operatorTwo: NumRangeOperators.lte,
-                  valueTwo: null
-                }]
+                range: [
+                  {
+                    operatorOne: NumRangeOperators.gte,
+                    valueOne: null,
+                    operatorTwo: NumRangeOperators.lte,
+                    valueTwo: null,
+                  },
+                ],
               },
-              {  //y
+              {
+                // y
                 attr: this.attributes[1],
-                range: [this.getGeneralNumericalFilter(
-                  iy >= 1 ? this.splitValuesY[iy - 1] : minY,
-                  splitY,
-                  NumRangeOperators.gte,
-                  splitY === maxY ? NumRangeOperators.lte : NumRangeOperators.lt)
-                ]
-              }
-            ]
+                range: [
+                  this.getGeneralNumericalFilter(
+                    iy >= 1 ? this.splitValuesY[iy - 1] : minY,
+                    splitY,
+                    NumRangeOperators.gte,
+                    splitY === maxY ? NumRangeOperators.lte : NumRangeOperators.lt,
+                  ),
+                ],
+              },
+            ],
           });
         }
       }
-      if (this.getNullCheckboxState(this.attributes[1])) { // y= null
+      if (this.getNullCheckboxState(this.attributes[1])) {
+        // y= null
         for (const [ix, splitX] of [...this.splitValuesX, maxX].entries()) {
           filterDescs.push({
             cohort: cht,
             filter: [
-              { //x
+              {
+                // x
                 attr: this.attributes[0],
-                range: [this.getGeneralNumericalFilter(
-                  ix >= 1 ? this.splitValuesX[ix - 1] : minX,
-                  splitX,
-                  NumRangeOperators.gte,
-                  splitX === maxX ? NumRangeOperators.lte : NumRangeOperators.lt)
-                ]
+                range: [
+                  this.getGeneralNumericalFilter(
+                    ix >= 1 ? this.splitValuesX[ix - 1] : minX,
+                    splitX,
+                    NumRangeOperators.gte,
+                    splitX === maxX ? NumRangeOperators.lte : NumRangeOperators.lt,
+                  ),
+                ],
               },
-              {  //y
+              {
+                // y
                 attr: this.attributes[1],
-                range: [{
-                  operatorOne: NumRangeOperators.gte,
-                  valueOne: null,
-                  operatorTwo: NumRangeOperators.lte,
-                  valueTwo: null
-                }]
-              }
-            ]
+                range: [
+                  {
+                    operatorOne: NumRangeOperators.gte,
+                    valueOne: null,
+                    operatorTwo: NumRangeOperators.lte,
+                    valueTwo: null,
+                  },
+                ],
+              },
+            ],
           });
         }
       }
@@ -971,25 +985,31 @@ export class Scatterplot extends MultiAttributeVisualization {
         filterDescs.push({
           cohort: cht,
           filter: [
-            { //x
+            {
+              // x
               attr: this.attributes[0],
-              range: [{
-                operatorOne: NumRangeOperators.gte,
-                valueOne: null,
-                operatorTwo: NumRangeOperators.lte,
-                valueTwo: null
-              }]
+              range: [
+                {
+                  operatorOne: NumRangeOperators.gte,
+                  valueOne: null,
+                  operatorTwo: NumRangeOperators.lte,
+                  valueTwo: null,
+                },
+              ],
             },
-            { //y
+            {
+              // y
               attr: this.attributes[1],
-              range: [{
-                operatorOne: NumRangeOperators.gte,
-                valueOne: null,
-                operatorTwo: NumRangeOperators.lte,
-                valueTwo: null
-              }]
-            }
-          ]
+              range: [
+                {
+                  operatorOne: NumRangeOperators.gte,
+                  valueOne: null,
+                  operatorTwo: NumRangeOperators.lte,
+                  valueTwo: null,
+                },
+              ],
+            },
+          ],
         });
       }
     }
@@ -999,16 +1019,27 @@ export class Scatterplot extends MultiAttributeVisualization {
 
 export class TsneScatterplot extends Scatterplot {
   static readonly NAME = 't-SNE Scatterplot';
+
   public readonly ITERATIONS = 100;
+
   iteration = 0;
+
   progressBar: HTMLDivElement;
+
   running: boolean;
+
   playBtn: any;
+
   inputData: number[][];
+
   tsne: any;
+
   progressWrapper: any;
+
   tsneClass: any;
+
   projData: any[];
+
   originalAttributes: IAttribute[];
 
   constructor(vegaLiteOptions: Object = {}) {
@@ -1018,11 +1049,15 @@ export class TsneScatterplot extends Scatterplot {
 
   getSpec(data: IdValuePair[]): TopLevel<LayerSpec<Field>> {
     const scatterSpec = super.getSpec(data) as TopLevel<LayerSpec<Field>>;
-    (scatterSpec.layer[0].encoding.x as any).field = 'x_embed'; //cast to any because I couldnt find out the right type...
+    (scatterSpec.layer[0].encoding.x as any).field = 'x_embed'; // cast to any because I couldnt find out the right type...
     (scatterSpec.layer[0].encoding.y as any).field = 'y_embed';
-    scatterSpec.layer[0].encoding.tooltip = this.originalAttributes.map((attr) => ({field: attr.dataKey, type: attr.type === 'number' ? 'ordinal' : 'nominal'}));
+    scatterSpec.layer[0].encoding.tooltip = this.originalAttributes.map((attr) => ({
+      field: attr.dataKey,
+      type: attr.type === 'number' ? 'ordinal' : 'nominal',
+    }));
     return scatterSpec;
   }
+
   async show(container: HTMLDivElement, attributes: IAttribute[], cohorts: Cohort[]) {
     super.show(container, attributes, cohorts);
   }
@@ -1040,21 +1075,23 @@ export class TsneScatterplot extends Scatterplot {
     const opt = {
       epsilon: 10, // epsilon is learning rate (10 = default)
       perplexity: data.length ** 0.5, // roughly how many neighbors each point influences (30 = default)
-      dim: 2 // dimensionality of the embedding (2 = default)
+      dim: 2, // dimensionality of the embedding (2 = default)
     };
-
 
     const tsneWorker = new (<any>require('worker-loader?name=tsne.worker.js!./dimreduce/tsne.worker'))();
     this.tsneClass = Comlink.wrap(tsneWorker) as any;
     this.tsne = await new this.tsneClass(opt);
     this.tsne.initDataRaw(oneHotData);
 
-    this.originalAttributes = this.attributes; //backup for tooltip
-    this.attributes = ['x', 'y'].map((axis) => ({
-      id: `${axis}_embed`,
-      label: axis,
-      type: 'number' as AttributeType
-    } as unknown as IAttribute)); // workaround to glory
+    this.originalAttributes = this.attributes; // backup for tooltip
+    this.attributes = ['x', 'y'].map(
+      (axis) =>
+        ({
+          id: `${axis}_embed`,
+          label: axis,
+          type: 'number' as AttributeType,
+        } as unknown as IAttribute),
+    ); // workaround to glory
 
     this.run(true);
   }
@@ -1062,17 +1099,14 @@ export class TsneScatterplot extends Scatterplot {
   async embeddStep() {
     this.progressBar.classList.toggle('active', true);
     this.progressBar.classList.toggle('progress-bar-striped', true);
-    this.playBtn.select('i')
-      .classed('fa-circle-notch fa-spin', false)
-      .classed('fa-play-circle', false)
-      .classed('fa-pause-circle', true);
+    this.playBtn.select('i').classed('fa-circle-notch fa-spin', false).classed('fa-play-circle', false).classed('fa-pause-circle', true);
 
     await this.tsne.step(); // every time you call this, solution gets better
     this.iteration++;
     this.setProgress(this.iteration);
 
     if (this.iteration % 10 === 0 || this.iteration === this.ITERATIONS || !this.running) {
-      const projCoords = await this.tsne.getSolution() as Array<Array<number>>;
+      const projCoords = (await this.tsne.getSolution()) as Array<Array<number>>;
       super.showImpl(this.chart, this.embeddArrToJson(projCoords)).then(() => {
         if (this.iteration === this.ITERATIONS) {
           super.addControls();
@@ -1090,24 +1124,24 @@ export class TsneScatterplot extends Scatterplot {
     } else {
       this.progressBar.classList.toggle('active', false);
       this.progressBar.classList.toggle('progress-bar-striped', false);
-      this.playBtn.select('i')
-        .classed('fa-circle-notch fa-spin', false)
-        .classed('fa-play-circle', true)
-        .classed('fa-pause-circle', false);
+      this.playBtn.select('i').classed('fa-circle-notch fa-spin', false).classed('fa-play-circle', true).classed('fa-pause-circle', false);
     }
   }
 
   embeddArrToJson(projCoords: Array<Array<number>>): IdValuePair[] {
-    const projCoordsObjArr = projCoords.map((item, index) => Object.assign({
+    const projCoordsObjArr = projCoords.map((item, index) => ({
       x_embed: item[0] * 1000,
       y_embed: item[1] * 1000,
-    }, this.data[index]));
+      ...this.data[index],
+    }));
     this.projData = projCoordsObjArr;
     return projCoordsObjArr;
   }
 
   addProgressBar() {
-    this.container.insertAdjacentHTML('beforeend', `
+    this.container.insertAdjacentHTML(
+      'beforeend',
+      `
     <div class="progress-wrapper"">
       <div class="progress-ctrl">
         <a class="run" role="button"><i class="fas fa-fw fa-circle-notch"></i></a>
@@ -1118,7 +1152,8 @@ export class TsneScatterplot extends Scatterplot {
         </div>
       </div>
     </div>
-    `);
+    `,
+    );
     this.progressWrapper = select(this.container).select('.progress-wrapper');
     this.progressBar = select(this.container).select('.progress .progress-bar').node() as HTMLDivElement;
     this.playBtn = select(this.container).select('a.run');
@@ -1127,15 +1162,12 @@ export class TsneScatterplot extends Scatterplot {
 
   setProgress(iteration: number) {
     this.progressBar.textContent = `${iteration}/${this.ITERATIONS}`;
-    this.progressBar.style.width = `${100 * iteration / this.ITERATIONS}%`;
+    this.progressBar.style.width = `${(100 * iteration) / this.ITERATIONS}%`;
   }
 
   run(run: boolean) {
     this.running = run;
-    this.playBtn.select('i')
-      .classed('fa-circle-notch fa-spin', true)
-      .classed('fa-play-circle', false)
-      .classed('fa-pause-circle', false);
+    this.playBtn.select('i').classed('fa-circle-notch fa-spin', true).classed('fa-play-circle', false).classed('fa-pause-circle', false);
 
     if (run) {
       this.embeddStep();
@@ -1150,12 +1182,14 @@ export class TsneScatterplot extends Scatterplot {
     super.addIntervalControls(axis, axis);
   }
 
-  addNullCheckbox(attribute: string) { /** noop */}
+  addNullCheckbox(attribute: string) {
+    /** noop */
+  }
 
   filter() {
     const intervals = {
       x: this.getInterval('x'),
-      y: this.getInterval('y')
+      y: this.getInterval('y'),
     };
 
     const selectedItems = this.projData.filter((item) => {
@@ -1170,17 +1204,18 @@ export class TsneScatterplot extends Scatterplot {
     for (const cohort of this.cohorts) {
       filterDescs.push({
         cohort,
-        filter: [{
-          attr: new ServerColumnAttribute(cohort.idColumn.column, cohort.view, cohort.database, cohort.idColumn),
-          range: {values: selectedItems.filter((item) => item.Cohort.indexOf(cohort.label) >= 0).map((item) => item[cohort.idColumn.column])}
-        }]
+        filter: [
+          {
+            attr: new ServerColumnAttribute(cohort.idColumn.column, cohort.view, cohort.database, cohort.idColumn),
+            range: { values: selectedItems.filter((item) => item.Cohort.indexOf(cohort.label) >= 0).map((item) => item[cohort.idColumn.column]) },
+          },
+        ],
       });
     }
     this.container.dispatchEvent(new FilterEvent(filterDescs));
   }
 
   split() {
-
     const filterDescs: IFilterDesc[] = [];
     for (const cohort of this.cohorts) {
       const chtItems = this.projData.filter((item) => item.Cohort.indexOf(cohort.label) >= 0);
@@ -1190,28 +1225,30 @@ export class TsneScatterplot extends Scatterplot {
 
       for (const [ix, splitX] of [...this.splitValuesX, maxX].entries()) {
         for (const [iy, splitY] of [...this.splitValuesY, maxY].entries()) {
-
           const chtSplitItems = chtItems.filter((item) => {
-            const x = item[`x_embed`];
-            const selectedX = splitX === maxX ?
-              x >= (ix >= 1 ? this.splitValuesX[ix - 1] : minX) && x <= splitX : // splitX is maxX -> include max
-              x >= (ix >= 1 ? this.splitValuesX[ix - 1] : minX) && x < splitX; // splitX is something else
+            const x = item.x_embed;
+            const selectedX =
+              splitX === maxX
+                ? x >= (ix >= 1 ? this.splitValuesX[ix - 1] : minX) && x <= splitX // splitX is maxX -> include max
+                : x >= (ix >= 1 ? this.splitValuesX[ix - 1] : minX) && x < splitX; // splitX is something else
 
-            const y = item[`y_embed`];
-            const selectedY = splitY === maxY ?
-              y >= (iy >= 1 ? this.splitValuesY[iy - 1] : minY) && y <= splitY :
-              y >= (iy >= 1 ? this.splitValuesY[iy - 1] : minY) && y < splitY;
-
+            const y = item.y_embed;
+            const selectedY =
+              splitY === maxY
+                ? y >= (iy >= 1 ? this.splitValuesY[iy - 1] : minY) && y <= splitY
+                : y >= (iy >= 1 ? this.splitValuesY[iy - 1] : minY) && y < splitY;
 
             return selectedX && selectedY;
           });
 
           filterDescs.push({
             cohort,
-            filter: [{
-              range: {values: chtSplitItems.map((item) => item[cohort.idColumn.column])},
-              attr: new ServerColumnAttribute(cohort.idColumn.column, cohort.view, cohort.database, cohort.idColumn),
-            }]
+            filter: [
+              {
+                range: { values: chtSplitItems.map((item) => item[cohort.idColumn.column]) },
+                attr: new ServerColumnAttribute(cohort.idColumn.column, cohort.view, cohort.database, cohort.idColumn),
+              },
+            ],
           });
         }
       }

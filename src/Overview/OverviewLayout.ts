@@ -1,16 +1,19 @@
-import {ICohort, IElement, IOverviewLayout, IRectLayout, ITask} from '../CohortInterfaces';
-import {Task} from '../Tasks';
-import {deepCopy, log} from '../util';
+import { ICohort, IElement, IOverviewLayout, IRectLayout, ITask } from '../CohortInterfaces';
+import { Task } from '../Tasks';
+import { deepCopy, log } from '../util';
 
 export class RectangleLayout implements IOverviewLayout {
   private _layout: Array<any>;
 
   public cohortWidth: number;
+
   public pathWidth: number;
+
   public taskWidth: number;
+
   public rowHeight: number;
 
-  constructor(cohortWidth: number = 150, pathWidth: number = 50, taskWidth: number = 50, rowHeight: number = 50) {
+  constructor(cohortWidth = 150, pathWidth = 50, taskWidth = 50, rowHeight = 50) {
     this.cohortWidth = cohortWidth;
     this.pathWidth = pathWidth;
     this.taskWidth = taskWidth;
@@ -34,31 +37,33 @@ export class RectangleLayout implements IOverviewLayout {
     // calculate width
     const gridSizeString: string = gridStyleColumns.replace(/px/g, '');
     const gridSizeArray: Array<number> = gridSizeString.split(' ').map(Number);
-    const width = gridSizeArray.reduce((a, b) => {return a + b;}, 0);
+    const width = gridSizeArray.reduce((a, b) => {
+      return a + b;
+    }, 0);
     // calcualte heigth
     const height = rows * this.rowHeight;
 
     // style container
-    container.style.width = width + 'px';
-    container.style.height = height + 'px';
+    container.style.width = `${width}px`;
+    container.style.height = `${height}px`;
     container.style.setProperty('grid-template-columns', gridStyleColumns);
     container.style.setProperty('grid-template-rows', gridStyleRows);
   }
 
   setPositionInGrid(element: HTMLDivElement, column: number, row: number) {
-    element.style.setProperty('grid-column', '' + this._getGridColumn(column));
-    element.style.setProperty('grid-row', '' + row);
+    element.style.setProperty('grid-column', `${this._getGridColumn(column)}`);
+    element.style.setProperty('grid-row', `${row}`);
   }
 
   private _createGridStyleColumns(columns: number): string {
     let style = '';
     for (let i = 1; i <= columns; i++) {
       if (i % 2 === 1) {
-        style = style + this.cohortWidth + 'px ';
+        style = `${style + this.cohortWidth}px `;
       } else {
-        style = style + this.pathWidth + 'px ' + this.taskWidth + 'px ';
+        style = `${style + this.pathWidth}px ${this.taskWidth}px `;
         if (i < columns) {
-          style = style + this.pathWidth + 'px ';
+          style = `${style + this.pathWidth}px `;
         }
       }
     }
@@ -68,7 +73,7 @@ export class RectangleLayout implements IOverviewLayout {
   private _createGridStyleRows(rows: number): string {
     let style = '';
     for (let i = 1; i <= rows; i++) {
-      style = style + this.rowHeight + 'px ';
+      style = `${style + this.rowHeight}px `;
     }
     return style;
   }
@@ -86,7 +91,7 @@ export class RectangleLayout implements IOverviewLayout {
       // get all elements of current column
       const currColElem = this._layout.filter((elem) => elem.column === i);
       // get all elements of previous column
-      const prevColElem = this._layout.filter((elem) => elem.column === (i - 1));
+      const prevColElem = this._layout.filter((elem) => elem.column === i - 1);
       // get all the different parentIDs of current column
       let currParentIDs = currColElem.map((elem) => elem.parentID);
       currParentIDs = [...new Set(currParentIDs)];
@@ -137,7 +142,7 @@ export class RectangleLayout implements IOverviewLayout {
         // only if
         //   the current element is an operation and
         //   the calculate row position is higher than the current one use the calculated one
-        calcRow = (currElement instanceof Task && calcRow > row) ? calcRow : row;
+        calcRow = currElement instanceof Task && calcRow > row ? calcRow : row;
 
         // add current element to layout
         const parentElementID = parentElement === null ? 'null' : parentElement.id;
@@ -147,22 +152,20 @@ export class RectangleLayout implements IOverviewLayout {
           // set column and row for the children
           const childrenColumn = column + 1;
           const childrenRow = calcRow + i;
-          //const childfirstChild = i === 0;
+          // const childfirstChild = i === 0;
 
           layout.concat(this._assignRowAndColumn(layout, eleChildren[i], currElement, childrenColumn, childrenRow));
         }
 
         return layout;
-      } else {
-        // current element has no children
-        // add current element to layout
-        const parentElementID = parentElement === null || parentElement === undefined ? 'null' : parentElement.id;
-        layout.push(this._createLayoutElement(currElement.id, parentElementID, column, row));
-        return layout;
       }
-    } else {
-      return [];
+      // current element has no children
+      // add current element to layout
+      const parentElementID = parentElement === null || parentElement === undefined ? 'null' : parentElement.id;
+      layout.push(this._createLayoutElement(currElement.id, parentElementID, column, row));
+      return layout;
     }
+    return [];
   }
 
   private _createLayoutElement(elemID: string, parentID: string, column: number, row: number): IRectLayout {
@@ -170,7 +173,7 @@ export class RectangleLayout implements IOverviewLayout {
       elemID,
       parentID,
       column,
-      row
+      row,
     };
   }
 
@@ -178,10 +181,9 @@ export class RectangleLayout implements IOverviewLayout {
     if (elements.length > 0) {
       if (elements[0] instanceof Task) {
         return elements.sort(this._sortTasks);
-      } else {
-        return elements;
-        // return elements.sort(this._sortCohorts); // TODO make sort dependent on the sorting of the output cohort
       }
+      return elements;
+      // return elements.sort(this._sortCohorts); // TODO make sort dependent on the sorting of the output cohort
     }
     return elements;
   }
@@ -207,5 +209,4 @@ export class RectangleLayout implements IOverviewLayout {
     }
     return 0;
   }
-
 }
