@@ -4,7 +4,7 @@
  * Licensed under the new BSD license, available at http://caleydo.org/license
  **************************************************************************** */
 
-import * as d3 from 'd3';
+import * as d3 from 'd3v3';
 import { select, Selection } from 'd3-selection';
 import { IMeasureResult, IMeasureVisualization, ISetParameters, ISimilarityMeasure, MethodManager, SCOPE, Type, WorkerManager } from 'tourdino';
 import { Cohort } from '../../Cohort';

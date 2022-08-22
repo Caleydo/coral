@@ -1,0 +1,37 @@
+// Import custom theme variables and bootstrap variables overrides
+@import "~tdp_core/dist/scss/themes/phovea";
+@import "./src/scss/themes/coral";
+// @import "~tdp_core/dist/scss/themes/datavisyn";
+
+// Include remainder of required Bootstrap stylesheets
+@import "~tdp_core/dist/scss/vendors/bootstrap/1_variables_mixins_utilities";
+
+// map-merge my theme-colors
+// @import "./src/dist/scss/vendors/bootstrap_modify_maps";
+@import "~ordino/dist/scss/vendors/bootstrap_modify_maps";
+
+// Include all Bootstrap components as needed
+@import "~tdp_core/dist/scss/vendors/bootstrap/2_components";
+
+// import all variables scss
+// first default app
+@import "./src/scss/abstracts/variables";
+// then going up in the dependency tree from the default app
+@import "~ordino/dist/scss/abstracts/variables";
+@import "~tdp_core/dist/scss/abstracts/variables";
+
+// then all other plugins in this workspace (excluding other apps)
+@import "~tdp_publicdb/dist/scss/abstracts/variables";
+@import "~tourdino/dist/scss/abstracts/variables";
+@import "~tdp_core/dist/scss/fontawesome";
+
+// import mixins
+@import "~tdp_core/dist/scss/abstracts/mixins";
+
+@debug('import plugin main scss');
+// all main scss (in opposite order of the variables scss
+@import "~tourdino/dist/scss/main";
+@import "~tdp_publicdb/dist/scss/main";
+@import "~tdp_core/dist/scss/main";
+@import "~ordino/dist/scss/main";
+@import "./src/scss/main";

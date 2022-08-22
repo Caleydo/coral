@@ -1,4 +1,4 @@
-import d3 from 'd3';
+import * as d3v3 from 'd3v3';
 import tippy from 'tippy.js';
 import { Cohort } from './Cohort';
 import { IElement, IRectCohortRep } from './CohortInterfaces';
@@ -300,7 +300,7 @@ export class RectCohortRep implements IRectCohortRep {
       this._representation.style.backgroundColor = color;
       this._repClone.style.backgroundColor = color;
       // font color = white if color is too dark
-      if (color !== null && color !== 'transparent' && d3.hsl(color).l < 0.6) {
+      if (color !== null && color !== 'transparent' && d3v3.hsl(color).l < 0.6) {
         // transparent has lightness of zero
         this._representation.style.color = 'white';
         this._repClone.style.color = 'white';

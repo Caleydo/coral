@@ -73,10 +73,12 @@
     "lodash.merge": "^4.x",
     "lodash.pick": "^4.4.0",
     "loglevel": "^1.6.4",
+    "ordino": "git+ssh://git@github.com:Caleydo/ordino#develop",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "react-router-dom": "^5.2.0",
     "split-grid": "^1.0.9",
+    "tdp_core": "git+ssh://git@github.com:datavisyn/tdp_core#develop",
     "tdp_publicdb": "git+ssh://git@github.com:caleydo/tdp_publicdb#develop",
     "tippy.js": "^6.2.6",
     "tourdino": "git+ssh://git@github.com:caleydo/tourdino#develop",
@@ -105,16 +107,14 @@
   "visyn": {
     "entries": {
       "app": {
-        "js": "dist/initialize.app.js",
-        "template": "dist/app.template.ejs",
+        "js": "src/initialize.app.ts",
+        "template": "src/app.template.ejs",
         "html": "app/index.html",
         "chunkName": "app",
         "excludeChunks": []
       }
     },
-    "copyFiles": [
-      "dist/clientConfig.json"
-    ]
+    "copyFiles": []
   },
   "packageManager": "yarn@3.2.2"
 }

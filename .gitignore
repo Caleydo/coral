@@ -26,8 +26,10 @@ node_modules/
 /.cache-loader
 package-lock.json
 *:Zone.Identifier/dist/
-/dist
+/dist/
 
+# env
+/env/
 
 # yarn
 .pnp.*
