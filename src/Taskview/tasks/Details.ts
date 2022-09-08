@@ -1,5 +1,5 @@
 import * as aq from 'arquero';
-import { select } from 'd3-selection';
+import {select} from 'd3v7';
 import * as LineUpJS from 'lineupjs';
 import { Cohort } from '../../Cohort';
 import { ICohort } from '../../CohortInterfaces';

@@ -1,4 +1,4 @@
-import { select, Selection } from 'd3-selection';
+import {select, Selection} from 'd3v7';
 import SplitGrid from 'split-grid';
 import {
   AppContext,
