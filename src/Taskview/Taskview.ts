@@ -1,17 +1,31 @@
-import {Cohort, EMPTY_COHORT_ID, getEmptyCohort, getLoaderCohort, LOADER_COHORT_ID} from '../Cohort';
-import {ITaskParams, TaskType} from '../CohortInterfaces';
-import {RectCohortRep} from '../CohortRepresentations';
-import {IAttribute, multiAttributeFilter} from '../data/Attribute';
-import {RectangleLayout} from '../Overview/OverviewLayout';
-import {CohortColorSchema, log, removeFromArray, ScrollLinker, SortType} from '../util';
-import {CohortSelectionEvent, COHORT_SELECTION_EVENT_TYPE, ColumnCloseEvent, ColumnSortEvent, COLUMN_CLOSE_EVENT_TYPE, COLUMN_SORT_EVENT_TYPE, ConfirmOutputEvent, ConfirmTaskEvent, CONFIRM_OUTPUT_EVENT_TYPE, FilterEvent, FILTER_EVENT_TYPE, PreviewChangeEvent, SplitEvent, SPLIT_EVENT_TYPE} from '../utilCustomEvents';
-import AddColumnColumn, {AColumn, ADataColumn, EmptyColumn} from './columns/AColumn';
+import { Cohort, EMPTY_COHORT_ID, getEmptyCohort, getLoaderCohort, LOADER_COHORT_ID } from '../Cohort';
+import { ITaskParams, TaskType } from '../CohortInterfaces';
+import { RectCohortRep } from '../CohortRepresentations';
+import { IAttribute, multiAttributeFilter } from '../data/Attribute';
+import { RectangleLayout } from '../Overview/OverviewLayout';
+import { CohortColorSchema, log, removeFromArray, ScrollLinker, SortType } from '../util';
+import {
+  CohortSelectionEvent,
+  COHORT_SELECTION_EVENT_TYPE,
+  ColumnCloseEvent,
+  ColumnSortEvent,
+  COLUMN_CLOSE_EVENT_TYPE,
+  COLUMN_SORT_EVENT_TYPE,
+  ConfirmOutputEvent,
+  ConfirmTaskEvent,
+  CONFIRM_OUTPUT_EVENT_TYPE,
+  FilterEvent,
+  FILTER_EVENT_TYPE,
+  PreviewChangeEvent,
+  SplitEvent,
+  SPLIT_EVENT_TYPE,
+} from '../utilCustomEvents';
+import AddColumnColumn, { AColumn, ADataColumn, EmptyColumn } from './columns/AColumn';
 import AttributeColumn from './columns/AttributeColumn';
-import {InputCohortColumn, OutputCohortColumn} from './columns/CohortColumn';
+import { InputCohortColumn, OutputCohortColumn } from './columns/CohortColumn';
 import SearchColumn from './SearchColumn';
 
 export default class Taskview {
-
   public destroy() {
     this.$node.removeEventListener(FILTER_EVENT_TYPE, this.filterListener);
     this.$node.removeEventListener(SPLIT_EVENT_TYPE, this.splitListener);
@@ -35,15 +49,23 @@ export default class Taskview {
   }
 
   private input: TaskviewInput;
+
   private search: SearchColumn;
+
   private output: TaskviewOutput;
+
   private scrollLink: ScrollLinker;
+
   private taskParams: ITaskParams[];
+
   private taskAttributes: IAttribute[];
 
   private filterListener: EventListenerOrEventListenerObject = (ev) => this.handleFilterEvent(ev as FilterEvent);
+
   private splitListener: EventListenerOrEventListenerObject = (ev) => this.handleFilterEvent(ev as SplitEvent);
+
   private confirmListener: EventListenerOrEventListenerObject = (ev) => this.confirmTask(); // event data (cohorts) currently ignored
+
   private columnSortListener: EventListenerOrEventListenerObject = (ev) => this.handleColumnSortEvent(ev as ColumnSortEvent);
 
   constructor(public readonly $node: HTMLDivElement, private reference: Cohort) {
@@ -61,8 +83,7 @@ export default class Taskview {
     this.output = new TaskviewOutput(outNode, this.reference, this);
     this.$node.appendChild(outNode);
 
-    this.scrollLink = new ScrollLinker(inNode.querySelector('div.task-view-scroll-wrapper'),
-      outNode.querySelector('div.task-view-scroll-wrapper'));
+    this.scrollLink = new ScrollLinker(inNode.querySelector('div.task-view-scroll-wrapper'), outNode.querySelector('div.task-view-scroll-wrapper'));
 
     // Listen to cohort creation events fired by histograms in the input part
     this.$node.addEventListener(FILTER_EVENT_TYPE, this.filterListener);
@@ -96,9 +117,13 @@ export default class Taskview {
           currCht.isFirstOutputCohort = false;
           currCht.isLastOutputCohort = false;
           // first cohort
-          if (i === 0) {currCht.isFirstOutputCohort = true;}
+          if (i === 0) {
+            currCht.isFirstOutputCohort = true;
+          }
           // last cohort
-          if (i === (sizeOutCht - 1)) {currCht.isLastOutputCohort = true;}
+          if (i === sizeOutCht - 1) {
+            currCht.isLastOutputCohort = true;
+          }
         }
       }
     }
@@ -107,23 +132,21 @@ export default class Taskview {
   }
 
   private async sortCohorts(type: SortType, cohortsToSort: Cohort[], defaultOrder: number[]) {
-
-    if (type === SortType.Default) { // sort by default
+    if (type === SortType.Default) {
+      // sort by default
       const sortingArray = defaultOrder;
       cohortsToSort.sort((a, b) => this.sortWithDbIdArray(a.dbId, b.dbId, sortingArray)); // default
-
-    } else if (type === SortType.Alpha_AZ) { // sort by label name
+    } else if (type === SortType.Alpha_AZ) {
+      // sort by label name
       cohortsToSort.sort((a, b) => this.sortLabelAlpha(a, b)); // A -> Z
-
     } else if (type === SortType.Alpha_ZA) {
       cohortsToSort.sort((a, b) => this.sortLabelAlpha(b, a)); // Z -> A
-
-    } else if (type === SortType.Size_19) { // sort by cohort size
+    } else if (type === SortType.Size_19) {
+      // sort by cohort size
       await this.sortCohortsBySize(false, cohortsToSort);
-
-    } else if (type === SortType.Size_91) { // sort by cohort size
+    } else if (type === SortType.Size_91) {
+      // sort by cohort size
       await this.sortCohortsBySize(true, cohortsToSort);
-
     }
   }
 
@@ -132,21 +155,30 @@ export default class Taskview {
   }
 
   private sortLabelAlpha(a, b) {
-    if (a.label < b.label) {return -1;}
-    if (a.label > b.label) {return 1;}
+    if (a.label < b.label) {
+      return -1;
+    }
+    if (a.label > b.label) {
+      return 1;
+    }
     return 0;
   }
 
   private sortSizeNum(a, b) {
-    if (a.size > b.size) {return -1;}
-    if (a.size < b.size) {return 1;}
+    if (a.size > b.size) {
+      return -1;
+    }
+    if (a.size < b.size) {
+      return 1;
+    }
     return 0;
   }
+
   private async sortCohortsBySize(descending: boolean, cohortsToSort: Cohort[]) {
     const chtSizes = [];
     for (const cht of cohortsToSort) {
       const currSize = await cht.size;
-      chtSizes.push({id: cht.id, size: currSize});
+      chtSizes.push({ id: cht.id, size: currSize });
     }
 
     if (descending) {
@@ -193,7 +225,7 @@ export default class Taskview {
   }
 
   public updateInput() {
-    this.input.update(); //adjust height after removing output cohorts
+    this.input.update(); // adjust height after removing output cohorts
   }
 
   public getInputCohorts(): Cohort[] {
@@ -212,22 +244,22 @@ export default class Taskview {
     this.reference = reference;
   }
 
-  public addMultipleAttributeColumns(dArray: IAttribute[], allowDuplicates: boolean = false, pinned: boolean = false) {
+  public addMultipleAttributeColumns(dArray: IAttribute[], allowDuplicates = false, pinned = false) {
     dArray.forEach((d) => this.addAttributeColumn(d, allowDuplicates, pinned));
   }
 
-  public addAttributeColumn(d: IAttribute, allowDuplicates: boolean = false, pinned: boolean = false) {
+  public addAttributeColumn(d: IAttribute, allowDuplicates = false, pinned = false) {
     if (this.reference.idColumn.column !== d.id) {
       this.addAttributeColumnForInput(d, allowDuplicates, pinned);
       this.addAttributeColumnForOutput(d, allowDuplicates, pinned);
     }
   }
 
-  public addAttributeColumnForInput(d: IAttribute, allowDuplicates: boolean = false, pinned: boolean = false) {
+  public addAttributeColumnForInput(d: IAttribute, allowDuplicates = false, pinned = false) {
     this.input.addAttributeColumn(d, allowDuplicates, pinned); // function is overwritten in and does not need the onInputCohortSide = true variable
   }
 
-  public addAttributeColumnForOutput(d: IAttribute, allowDuplicates: boolean = false, pinned: boolean = false) {
+  public addAttributeColumnForOutput(d: IAttribute, allowDuplicates = false, pinned = false) {
     this.output.addAttributeColumn(d, allowDuplicates, false, false, pinned);
   }
 
@@ -245,9 +277,10 @@ export default class Taskview {
   }
 
   private currentEvent = 0;
+
   async handleFilterEvent(ev: FilterEvent | SplitEvent) {
     const currentEv = ++this.currentEvent;
-    let outputCohorts = []; //Stores the output cohorts in correct order, will replace the array currently used
+    let outputCohorts = []; // Stores the output cohorts in correct order, will replace the array currently used
     const taskWithSelectedOutput: ITaskParams[] = [];
     this.taskParams = [];
     this.taskAttributes = ev.detail.desc[0].filter.map((filter) => filter.attr);
@@ -283,7 +316,9 @@ export default class Taskview {
         }
 
         const newChts = await Promise.all(chtPromises);
-        if (currentEv !== this.currentEvent) {return;}
+        if (currentEv !== this.currentEvent) {
+          return;
+        }
 
         const chtSizes = [];
         newChts.sort((a, b) => this.sortLabelAlpha(a, b)); // sort output cohorts: A -> Z
@@ -309,8 +344,10 @@ export default class Taskview {
         cht.outputCohorts.push(getEmptyCohort(cht));
       }
 
-      //the async/time instensive stuff is done now, check if we should continue:
-      if (currentEv !== this.currentEvent) {return;}
+      // the async/time instensive stuff is done now, check if we should continue:
+      if (currentEv !== this.currentEvent) {
+        return;
+      }
 
       (cht.outputCohorts[cht.outputCohorts.length - 1] as OutputCohort).isLastOutputCohort = true;
       (cht.outputCohorts[0] as OutputCohort).isFirstOutputCohort = true;
@@ -322,7 +359,7 @@ export default class Taskview {
           inputCohorts: [cht],
           outputCohorts: cht.outputCohorts,
           type: ev instanceof FilterEvent ? TaskType.Filter : TaskType.Split,
-          label: ev.detail.desc[0].filter.map((filter) => filter.attr.label).join(', ')
+          label: ev.detail.desc[0].filter.map((filter) => filter.attr.label).join(', '),
         };
         // save all curertn possibel task params
         this.taskParams.push(currTaskParam);
@@ -337,7 +374,6 @@ export default class Taskview {
     // Update the input cohorts
     this.updateInput();
 
-
     // show the preview for the current task
     this.$node.dispatchEvent(new PreviewChangeEvent(taskWithSelectedOutput, this.taskAttributes));
 
@@ -345,7 +381,6 @@ export default class Taskview {
     this.setOutputCohorts(outputCohorts);
     ev.detail.desc[0].filter.forEach((filter) => this.addAttributeColumn(filter.attr));
   }
-
 
   showOutput(show: boolean) {
     const hide = !show;
@@ -356,36 +391,41 @@ export default class Taskview {
 }
 
 abstract class TaskviewTable {
-
   $node: HTMLDivElement;
+
   $floatingBtns: HTMLDivElement;
+
   columns: AColumn[] = [];
+
   cohorts: Cohort[] = [];
 
   constructor(private $wrapper: HTMLDivElement) {
     this.$wrapper.classList.add('task-view-table-button-wrapper');
 
     const tableWrapper = document.createElement('div');
-    tableWrapper.classList.add('task-view-scroll-wrapper');  // this div can only be around half the height of the browser (which would lead to column border ending to early for example) --> therefore this is a container holding scrollbars
+    tableWrapper.classList.add('task-view-scroll-wrapper'); // this div can only be around half the height of the browser (which would lead to column border ending to early for example) --> therefore this is a container holding scrollbars
     this.$wrapper.appendChild(tableWrapper);
 
-    this.$node = document.createElement('div'); //this div will contain the columns of our table that can be higher than half of the viewport
+    this.$node = document.createElement('div'); // this div will contain the columns of our table that can be higher than half of the viewport
     this.$node.classList.add('task-view-table');
     tableWrapper.appendChild(this.$node);
     $wrapper.appendChild(tableWrapper);
 
-    $wrapper.insertAdjacentHTML('beforeend', `
+    $wrapper.insertAdjacentHTML(
+      'beforeend',
+      `
       <div class="floating-confirm" hidden>
           <button type="button" class="btn btn-coral clearBtn">
             <i class="fas fa-times" aria-hidden="true"></i> Clear
           </button>
       </div>
-    `);
+    `,
+    );
 
     this.$floatingBtns = $wrapper.querySelector('div.floating-confirm');
     $wrapper.querySelector<HTMLButtonElement>('div.floating-confirm button.clearBtn').addEventListener('click', () => this.clear());
 
-    this.$node.addEventListener(COLUMN_CLOSE_EVENT_TYPE, (ev) => this.removeColumn((ev as ColumnCloseEvent).detail.column)); //arrow function to keep "this" working in eventhandler
+    this.$node.addEventListener(COLUMN_CLOSE_EVENT_TYPE, (ev) => this.removeColumn((ev as ColumnCloseEvent).detail.column)); // arrow function to keep "this" working in eventhandler
   }
 
   destroy() {
@@ -433,8 +473,11 @@ abstract class TaskviewTable {
     return attCol;
   }
 
-  public addAttributeColumn(attr: IAttribute, allowDuplicates: boolean = false, onInputCohortSide: boolean = true, color: boolean = false, pinned: boolean = false) {
-    if (allowDuplicates || !this.columns.find((column) => column instanceof AttributeColumn && (column as AttributeColumn).attribute.dataKey === attr.dataKey)) {
+  public addAttributeColumn(attr: IAttribute, allowDuplicates = false, onInputCohortSide = true, color = false, pinned = false) {
+    if (
+      allowDuplicates ||
+      !this.columns.find((column) => column instanceof AttributeColumn && (column as AttributeColumn).attribute.dataKey === attr.dataKey)
+    ) {
       // if duplicates are allowed or the column wasn't added yet
       const newCol = new AttributeColumn(attr, this.$node, onInputCohortSide, color, pinned);
       newCol.setCohorts(this.cohorts);
@@ -448,13 +491,13 @@ abstract class TaskviewTable {
           orderCnt++;
         }
       });
-      window.dispatchEvent(new Event('resize')); //update vega chart sizes in case the columns became narrower
+      window.dispatchEvent(new Event('resize')); // update vega chart sizes in case the columns became narrower
     }
   }
 
   public removeColumn(col: AColumn) {
     removeFromArray(this.columns, col);
-    window.dispatchEvent(new Event('resize')); //update vega chart sizes in case the columns became wider
+    window.dispatchEvent(new Event('resize')); // update vega chart sizes in case the columns became wider
   }
 
   clear() {
@@ -464,10 +507,14 @@ abstract class TaskviewTable {
 }
 
 class TaskviewInput extends TaskviewTable {
-
   cohortOrder: number[];
+
   cohorts: InputCohort[];
-  usedColorsForCohorts = CohortColorSchema.COLOR_SCHEME.map((elem) => {return {color: elem, cohorts: []};});
+
+  usedColorsForCohorts = CohortColorSchema.COLOR_SCHEME.map((elem) => {
+    return { color: elem, cohorts: [] };
+  });
+
   private inputCohortCol: InputCohortColumn;
 
   maxColors: number;
@@ -487,25 +534,29 @@ class TaskviewInput extends TaskviewTable {
 
   private clearColorCohorts() {
     // setup color options
-    this.usedColorsForCohorts = CohortColorSchema.COLOR_SCHEME.map((elem) => {return {color: elem, cohorts: []};});
+    this.usedColorsForCohorts = CohortColorSchema.COLOR_SCHEME.map((elem) => {
+      return { color: elem, cohorts: [] };
+    });
     this.maxColors = this.usedColorsForCohorts.length;
   }
 
   public setCohorts(cohorts: InputCohort[]) {
     this.clearColorCohorts();
-    cohorts.filter((cht) => !cht.outputCohorts).forEach((cht) => cht.outputCohorts = []); // handle undefined outputCohort array
+    cohorts.filter((cht) => !cht.outputCohorts).forEach((cht) => (cht.outputCohorts = [])); // handle undefined outputCohort array
 
     // set selction order of cohorts
     this.cohortOrder = cohorts.map((cht) => cht.dbId);
     this.inputCohortCol.setDefaultSort();
 
     // get all cohorts that have already a color
-    cohorts.filter((cht) => cht.colorTaskView).forEach((cht) => {
-      const colorIndex = this.usedColorsForCohorts.map((a) => a.color).indexOf(cht.colorTaskView);
-      if (colorIndex !== -1) {
-        this.usedColorsForCohorts[colorIndex].cohorts.push(cht.id);
-      }
-    });
+    cohorts
+      .filter((cht) => cht.colorTaskView)
+      .forEach((cht) => {
+        const colorIndex = this.usedColorsForCohorts.map((a) => a.color).indexOf(cht.colorTaskView);
+        if (colorIndex !== -1) {
+          this.usedColorsForCohorts[colorIndex].cohorts.push(cht.id);
+        }
+      });
 
     // assign color to cohort without one
     const maxCohortPerColor = Math.ceil(cohorts.length / this.maxColors);
@@ -517,7 +568,7 @@ class TaskviewInput extends TaskviewTable {
         // check if the color for the current cohort index is available
         if (this.usedColorsForCohorts[colorIndex].cohorts.length < maxCohortPerColor) {
           this.usedColorsForCohorts[colorIndex].cohorts.push(elem.id); // add cohort to the cohort array for the color
-          elem.colorTaskView = this.usedColorsForCohorts[colorIndex].color;  // set color for the cohort
+          elem.colorTaskView = this.usedColorsForCohorts[colorIndex].color; // set color for the cohort
         } else {
           // go through all possible color and use the first one not used
           for (const cc of this.usedColorsForCohorts) {
@@ -529,41 +580,42 @@ class TaskviewInput extends TaskviewTable {
           }
         }
       }
-
     });
     super.setCohorts(cohorts);
   }
 
-  public addAttributeColumn(attr: IAttribute, allowDuplicates: boolean = false, pinned: boolean = false) {
+  public addAttributeColumn(attr: IAttribute, allowDuplicates = false, pinned = false) {
     super.addAttributeColumn(attr, allowDuplicates, true, true, pinned);
   }
 
   clear() {
-    this.cohorts.slice() // duplicate because the cohort array will change through the event
-      .forEach((cht) => this.$node.dispatchEvent(new CohortSelectionEvent(cht))); //deselect each
+    this.cohorts
+      .slice() // duplicate because the cohort array will change through the event
+      .forEach((cht) => this.$node.dispatchEvent(new CohortSelectionEvent(cht))); // deselect each
     super.clear();
   }
 }
 
-
 class TaskviewOutput extends TaskviewTable {
-  cohortOrders: {inputCht: number, cohorts: number[]}[];
+  cohortOrders: { inputCht: number; cohorts: number[] }[];
+
   private outputCohortCol: OutputCohortColumn;
 
   constructor($wrapper: HTMLDivElement, reference: Cohort, private taskview: Taskview) {
     super($wrapper);
     $wrapper.classList.add('output');
 
-    this.$floatingBtns.insertAdjacentHTML(`beforeend`, `
+    this.$floatingBtns.insertAdjacentHTML(
+      `beforeend`,
+      `
       <button type="button" class="btn btn-coral-prime confirmBtn">
         <i class="fas fa-check" aria-hidden="true"></i> Add to Cohort Graph
       </button>
-    `);
-    $wrapper.querySelector<HTMLButtonElement>('div.floating-confirm button.confirmBtn').addEventListener(
-      'click',
-      (clickEv) => clickEv.target.dispatchEvent(new ConfirmOutputEvent(this.cohorts))
+    `,
     );
-
+    $wrapper
+      .querySelector<HTMLButtonElement>('div.floating-confirm button.confirmBtn')
+      .addEventListener('click', (clickEv) => clickEv.target.dispatchEvent(new ConfirmOutputEvent(this.cohorts)));
 
     this.columns.push(new EmptyColumn(this.$node)); // same flex order as outputcohort column -> ordered by position in DOM
     this.columns.push(new AddColumnColumn(this.$node, taskview, reference.database, reference.view, false));
@@ -583,7 +635,7 @@ class TaskviewOutput extends TaskviewTable {
             inputCohorts: tsk.inputCohorts,
             outputCohorts: selectedOutputCohorts,
             type: tsk.type,
-            label: tsk.label
+            label: tsk.label,
           });
         }
       }
@@ -596,7 +648,7 @@ class TaskviewOutput extends TaskviewTable {
   clear() {
     super.clear();
 
-    this.taskview.getInputCohorts().forEach((cht) => (cht as InputCohort).outputCohorts = []);
+    this.taskview.getInputCohorts().forEach((cht) => ((cht as InputCohort).outputCohorts = []));
     this.taskview.updateInput();
     // remove the preview by setting the taskParams to an empty array
     this.$node.dispatchEvent(new PreviewChangeEvent([], null));
@@ -614,7 +666,7 @@ class TaskviewOutput extends TaskviewTable {
       if (index === -1) {
         this.cohortOrders.push({
           inputCht: parentdbID,
-          cohorts: [cht.dbId]
+          cohorts: [cht.dbId],
         });
       } else {
         this.cohortOrders[index].cohorts.push(cht.dbId);
@@ -624,13 +676,12 @@ class TaskviewOutput extends TaskviewTable {
   }
 }
 
-
-
 export class InputCohort extends Cohort {
   outputCohorts: Cohort[] = [];
 }
 
 export class OutputCohort extends Cohort {
   public isLastOutputCohort = false; // used to add a paddding between outputcohorts of different input cohorts
+
   public isFirstOutputCohort = false; // used to add a paddding between outputcohorts of different input cohorts
 }

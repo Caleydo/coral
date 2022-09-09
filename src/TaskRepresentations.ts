@@ -1,16 +1,22 @@
-import {IRectTaskRep} from './CohortInterfaces';
-import {Task} from './Tasks';
-import {TaskRemoveEvent} from './utilCustomEvents';
+import { IRectTaskRep } from './CohortInterfaces';
+import { Task } from './Tasks';
+import { TaskRemoveEvent } from './utilCustomEvents';
 
 export class RectTaskRep implements IRectTaskRep {
   id: string;
+
   label: string;
 
   private _representation: HTMLDivElement;
+
   private _repClone: HTMLDivElement;
+
   private _height: number;
+
   private _width: number;
-  image: string; //url to the image for the representation
+
+  image: string; // url to the image for the representation
+
   private _removeButton: HTMLAnchorElement;
 
   constructor(private task: Task, height: number, width: number) {
@@ -31,9 +37,9 @@ export class RectTaskRep implements IRectTaskRep {
     const container: HTMLDivElement = document.createElement('div');
     container.className = 'rectTask';
     container.id = this.id;
-    container.style.width = '' + width;
+    container.style.width = `${width}`;
 
-    const labelHeight = Math.round((height * 0.4) * 100) / 100;
+    const labelHeight = Math.round(height * 0.4 * 100) / 100;
     const imgHeight = height - labelHeight;
     const fontSize = labelHeight < 15 ? labelHeight - 1 : 14;
 
@@ -47,20 +53,19 @@ export class RectTaskRep implements IRectTaskRep {
     // create image div
     const divImage: HTMLDivElement = document.createElement('div');
     divImage.className = 'rectTask-image';
-    divImage.style.height = imgHeight + 'px';
-    //create fontawesome icon
+    divImage.style.height = `${imgHeight}px`;
+    // create fontawesome icon
     const iIcon: HTMLElement = document.createElement('i');
     divImage.appendChild(iIcon);
-
 
     container.appendChild(divImage);
 
     // create label div
     const divLabel: HTMLDivElement = document.createElement('div');
     divLabel.className = 'rectTask-label';
-    divLabel.style.height = labelHeight + 'px';
-    divLabel.style.lineHeight = labelHeight + 'px';
-    divLabel.style.fontSize = fontSize + 'px';
+    divLabel.style.height = `${labelHeight}px`;
+    divLabel.style.lineHeight = `${labelHeight}px`;
+    divLabel.style.fontSize = `${fontSize}px`;
     container.appendChild(divLabel);
 
     // show remove icon on hover
@@ -111,7 +116,7 @@ export class RectTaskRep implements IRectTaskRep {
 
   private _createClone(original: HTMLDivElement): HTMLDivElement {
     const clone = original.cloneNode(true) as HTMLDivElement;
-    clone.id = 'clone_' + this.id;
+    clone.id = `clone_${this.id}`;
     clone.style.setProperty('grid-area', null);
 
     return clone;
@@ -140,11 +145,11 @@ export class RectTaskRep implements IRectTaskRep {
   public setImage(image: string) {
     this.image = image;
     // original
-    const divImage = (this._representation.querySelector('div.rectTask-image') as HTMLDivElement);
+    const divImage = this._representation.querySelector('div.rectTask-image') as HTMLDivElement;
     divImage.classList.add(image);
     (divImage.querySelector('i') as HTMLElement).classList.add(...this.getIconClass(image));
     // // clone
-    const divImageClone = (this._repClone.querySelector('div.rectTask-image') as HTMLDivElement);
+    const divImageClone = this._repClone.querySelector('div.rectTask-image') as HTMLDivElement;
     divImageClone.classList.add(image);
     (divImageClone.querySelector('i') as HTMLElement).classList.add(...this.getIconClass(image));
   }
@@ -152,10 +157,10 @@ export class RectTaskRep implements IRectTaskRep {
   private getIconClass(image: string): string[] {
     if (image === 'filter') {
       return ['fas', 'fa-filter'];
-    } else if (image === 'split') {
-      return ['fas', 'fa-share-alt'];
-    } else {
-      return [];
     }
+    if (image === 'split') {
+      return ['fas', 'fa-share-alt'];
+    }
+    return [];
   }
 }

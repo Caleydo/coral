@@ -1,5 +1,4 @@
-import {OptionGroup, Option, VisConfig} from './VisConfig';
-
+import { OptionGroup, Option, VisConfig } from './VisConfig';
 
 const confidence95 = new Option('95% Confidence Intervals', true);
 export const confidenceNone = new Option('Hide Confidence Intervals');

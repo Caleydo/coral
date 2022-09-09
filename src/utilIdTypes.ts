@@ -1,5 +1,5 @@
-import {cellline, tissue} from 'tdp_publicdb';
-import {Cohort} from './Cohort';
+import { cellline, tissue } from 'tdp_publicdb';
+import { Cohort } from './Cohort';
 
 export interface IEntitySourceConfig {
   idType: string;
@@ -23,7 +23,7 @@ export const idTissue: IEntitySourceConfig = {
   viewName: tissue.tableName,
   tableName: 'tdp_tissue',
   entityName: tissue.entityName,
-  base: tissue.base
+  base: tissue.base,
 };
 
 // cellline
@@ -36,7 +36,7 @@ export const idCellline: IEntitySourceConfig = {
   viewName: cellline.tableName,
   tableName: 'tdp_cellline',
   entityName: cellline.entityName,
-  base: cellline.base
+  base: cellline.base,
 };
 
 // student
@@ -49,7 +49,7 @@ export const idStudent: IEntitySourceConfig = {
   viewName: 'studentdb_view',
   tableName: 'student_view_anonym',
   entityName: 'id',
-  base: 'student'
+  base: 'student',
 };
 
 // corona / covid19
@@ -62,21 +62,24 @@ export const idCovid19: IEntitySourceConfig = {
   viewName: 'korea_view',
   tableName: 'korea',
   entityName: 'id',
-  base: 'covid19'
+  base: 'covid19',
 };
-
 
 export function getIdTypeFromCohort(cht: Cohort): IEntitySourceConfig {
   const entitiyTable = cht.table;
   if (entitiyTable === 'tdp_tissue') {
     return idTissue;
-  } else if (entitiyTable === 'tdp_tissue_2') {
+  }
+  if (entitiyTable === 'tdp_tissue_2') {
     return idTissue;
-  } else if (entitiyTable === 'tdp_cellline') {
+  }
+  if (entitiyTable === 'tdp_cellline') {
     return idCellline;
-  } else if (entitiyTable === 'student_view_anonym') {
+  }
+  if (entitiyTable === 'student_view_anonym') {
     return idStudent;
-  } else if (entitiyTable === 'korea') {
+  }
+  if (entitiyTable === 'korea') {
     return idCovid19;
   }
 

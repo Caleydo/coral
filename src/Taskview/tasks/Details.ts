@@ -1,23 +1,29 @@
 import * as aq from 'arquero';
-import {select} from 'd3-selection';
+import { select } from 'd3-selection';
 import * as LineUpJS from 'lineupjs';
-import {Cohort} from '../../Cohort';
-import {ICohort} from '../../CohortInterfaces';
-import {colors} from '../../colors';
-import {IAttribute} from '../../data/Attribute';
-import {getCohortData} from '../../rest';
-import {CohortColorSchema, getAnimatedLoadingText} from '../../util';
-import {getIdTypeFromCohort} from '../../utilIdTypes';
-import {DATA_LABEL} from '../visualizations';
-import {ATask} from './ATask';
+import { Cohort } from '../../Cohort';
+import { ICohort } from '../../CohortInterfaces';
+import { colors } from '../../colors';
+import { IAttribute } from '../../data/Attribute';
+import { getCohortData } from '../../rest';
+import { CohortColorSchema, getAnimatedLoadingText } from '../../util';
+import { getIdTypeFromCohort } from '../../utilIdTypes';
+import { DATA_LABEL } from '../visualizations';
+import { ATask } from './ATask';
 
 export class Details extends ATask {
   public label = `Inspect Items`;
+
   public id = `details`;
+
   public hasOutput = false;
+
   private eventID = 0;
+
   private _entityName: string = null;
+
   private $lineUpContainer: HTMLDivElement;
+
   private lineup: LineUpJS.LineUp;
 
   supports(attributes: IAttribute[], cohorts: ICohort[]) {
@@ -38,13 +44,18 @@ export class Details extends ATask {
       select(columnHeader).selectAll('.export').remove();
 
       const data = await this.getData(attributes, cohorts as Cohort[]);
-      if (eventId !== this.eventID) {return;}
-      select(columnHeader).append('button') // add button after the data is available
+      if (eventId !== this.eventID) {
+        return;
+      }
+      select(columnHeader)
+        .append('button') // add button after the data is available
         .text('Export Data')
         .attr('type', 'button')
         .attr('title', 'Export to CSV')
         .classed('btn btn-coral-prime export', true)
-        .style('width', '18rem').style('margin-left', '1rem').style('margin-right', '1rem')
+        .style('width', '18rem')
+        .style('margin-left', '1rem')
+        .style('margin-right', '1rem')
         .on('click', async () => this.download());
       columnHeader.insertAdjacentHTML('beforeend', `<a href="#" id="downloadHelper" class="export" target="_blank" rel="noopener"></a>`);
       this.createLineup(data, attributes, cohorts);
@@ -55,34 +66,34 @@ export class Details extends ATask {
     const idType = getIdTypeFromCohort(cohorts[0] as Cohort);
     this._entityName = idType.entityName;
 
-    const dataPromises = cohorts
-      .map((cht) => {
-        const promise = new Promise(async (resolve, reject) => {
-          const chtDataPromises = attributes.map((attr) => attr.getData(cht.dbId));
-          if (attributes.length === 0) { // If Lineup is empty, add entityName as single attribute to be able to show something
-            chtDataPromises.push(getCohortData({cohortId: cht.dbId, attribute: idType.entityName}));
+    const dataPromises = cohorts.map((cht) => {
+      const promise = new Promise(async (resolve, reject) => {
+        const chtDataPromises = attributes.map((attr) => attr.getData(cht.dbId));
+        if (attributes.length === 0) {
+          // If Lineup is empty, add entityName as single attribute to be able to show something
+          chtDataPromises.push(getCohortData({ cohortId: cht.dbId, attribute: idType.entityName }));
+        }
+        try {
+          const chtData = await Promise.all(chtDataPromises); // array with one entry per attribute, which contains an array with one value for every item in the cohort
+          let joinedData = aq.from(chtData[0]);
+          for (let i = 1; i < chtData.length; i++) {
+            joinedData = joinedData.join_full(aq.from(chtData[i]));
           }
-          try {
-            const chtData = await Promise.all(chtDataPromises); // array with one entry per attribute, which contains an array with one value for every item in the cohort
-            let joinedData = aq.from(chtData[0]);
-            for (let i = 1; i < chtData.length; i++) {
-              joinedData = joinedData.join_full(aq.from(chtData[i]));
-            }
-            const labelTable = aq.table({[DATA_LABEL]: [['' + cht.dbId]], ['id_' + cht.dbId]: ['true']});
-            joinedData = joinedData.join_left(labelTable, (data, label) => true);
-            resolve(joinedData.objects());
-          } catch (e) {
-            reject(e);
-          }
-        });
-        return promise;
+          const labelTable = aq.table({ [DATA_LABEL]: [[`${cht.dbId}`]], [`id_${cht.dbId}`]: ['true'] });
+          joinedData = joinedData.join_left(labelTable, (data, label) => true);
+          resolve(joinedData.objects());
+        } catch (e) {
+          reject(e);
+        }
       });
+      return promise;
+    });
     const longData: any[] = (await Promise.all(dataPromises)).flat();
-    const map = new Map<String, any>();
+    const map = new Map<string, any>();
     for (const item of longData) {
       let storedItem = map.get(item[this._entityName]);
       if (storedItem) {
-        (storedItem[DATA_LABEL] as Array<String>).push(...item[DATA_LABEL]);
+        (storedItem[DATA_LABEL] as Array<string>).push(...item[DATA_LABEL]);
         storedItem = Object.assign(item, storedItem);
       } else {
         storedItem = item;
@@ -98,23 +109,24 @@ export class Details extends ATask {
     const builder = LineUpJS.builder(data);
 
     // define id column
-    builder
-      .column(LineUpJS.buildStringColumn(this._entityName).label('Id').width(120))
-      .column(LineUpJS
-        .buildCategoricalColumn(DATA_LABEL, cohorts.map((cht) => ({name: '' + cht.dbId, label: cht.label, color: (cht as Cohort).colorTaskView})))
+    builder.column(LineUpJS.buildStringColumn(this._entityName).label('Id').width(120)).column(
+      LineUpJS.buildCategoricalColumn(
+        DATA_LABEL,
+        cohorts.map((cht) => ({ name: `${cht.dbId}`, label: cht.label, color: (cht as Cohort).colorTaskView })),
+      )
         .renderer('catheatmap', 'categorical')
-        .asSet()
-      );
+        .asSet(),
+    );
 
     // define attribute columns
     for (const attr of attributes) {
       attr.type = attr.dataKey === this._entityName ? 'string' : attr.type;
       if (attr.type === 'categorical') {
-        builder
-          .column(LineUpJS.buildCategoricalColumn(attr.dataKey).label(attr.label));
+        builder.column(LineUpJS.buildCategoricalColumn(attr.dataKey).label(attr.label));
       } else if (attr.type === 'number') {
         builder.column(LineUpJS.buildNumberColumn(attr.dataKey).label(attr.label).colorMapping(colors.barColor));
-      } else { // text
+      } else {
+        // text
         builder.column(LineUpJS.buildStringColumn(attr.dataKey).label(attr.label).width(100));
       }
     }
@@ -128,10 +140,11 @@ export class Details extends ATask {
     this.lineup = builder.build(this.$lineUpContainer);
   }
 
-
-  getCategoryColorsForColumn(mergedDataArray: any[], attr: IAttribute): {name: string, color: string}[] {
+  getCategoryColorsForColumn(mergedDataArray: any[], attr: IAttribute): { name: string; color: string }[] {
     const uniqueCat = Array.from(new Set(mergedDataArray.map((elem) => elem[attr.dataKey])));
-    const categoryColors = uniqueCat.map((cat, i) => {return {name: cat, color: CohortColorSchema.get(i)};});
+    const categoryColors = uniqueCat.map((cat, i) => {
+      return { name: cat, color: CohortColorSchema.get(i) };
+    });
     return categoryColors;
   }
 
@@ -141,13 +154,12 @@ export class Details extends ATask {
   }
 
   async download() {
-    const data = await this.lineup.data.exportTable(this.lineup!.data.getRankings()[0], {separator: ';'});
-    const b = new Blob([data], {type: 'text/csv'});
+    const data = await this.lineup.data.exportTable(this.lineup!.data.getRankings()[0], { separator: ';' });
+    const b = new Blob([data], { type: 'text/csv' });
 
     const downloadHelper = this.$columnHeader.querySelector('a#downloadHelper') as HTMLAnchorElement;
     downloadHelper.href = URL.createObjectURL(b);
     downloadHelper.download = 'coral-cohorts.csv';
     downloadHelper.click();
   }
-
 }
