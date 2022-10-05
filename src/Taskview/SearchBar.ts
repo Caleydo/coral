@@ -1,11 +1,11 @@
-import { select } from 'd3-selection';
-import { IdTextPair, IServerColumn, RestBaseUtils } from 'tdp_core';
-import { dataTypes, depletion, IDataSubtypeConfig, IDataTypeConfig } from 'tdp_publicdb';
-import { colors } from '../colors';
-import { ScoreType } from '../data/Attribute';
-import { checkSpecialAttribute, ISpecialAttribute } from '../data/SpecialAttribute';
-import { deepCopy, getAnimatedLoadingText, log } from '../util';
-import { niceName } from '../utilLabels';
+import {select} from 'd3v7';
+import {IdTextPair, IServerColumn, RestBaseUtils} from 'tdp_core';
+import {dataTypes, depletion, IDataSubtypeConfig, IDataTypeConfig} from 'tdp_publicdb';
+import {colors} from '../colors';
+import {ScoreType} from '../data/Attribute';
+import {checkSpecialAttribute, ISpecialAttribute} from '../data/SpecialAttribute';
+import {deepCopy, getAnimatedLoadingText, log} from '../util';
+import {niceName} from '../utilLabels';
 
 export class SearchBar {
   private _container: HTMLDivElement;

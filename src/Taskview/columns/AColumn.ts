@@ -1,10 +1,11 @@
-import { select } from 'd3-selection';
-import { Cohort, EMPTY_COHORT_ID, LOADER_COHORT_ID } from '../../Cohort';
-import { colors } from '../../colors';
-import { createSearchBarTooltip } from '../../Tooltip';
-import { getAnimatedLoadingBars, log } from '../../util';
-import { ColumnCloseEvent } from '../../utilCustomEvents';
-import Taskview, { InputCohort, OutputCohort } from '../Taskview';
+import {select} from 'd3v7';
+import {Cohort, EMPTY_COHORT_ID, LOADER_COHORT_ID} from '../../Cohort';
+import {colors} from '../../colors';
+import {createSearchBarTooltip} from '../../Tooltip';
+import {getAnimatedLoadingBars, log} from '../../util';
+import {ColumnCloseEvent} from '../../utilCustomEvents';
+import Taskview, {InputCohort, OutputCohort} from '../Taskview';
+
 
 export abstract class AColumn {
   $column: HTMLDivElement;

@@ -216,7 +216,7 @@ export const gene: IDataSourceConfig = {
       ColumnDescUtils.stringCol('symbol', { label: 'Symbol', width: 120 }),
       ColumnDescUtils.stringCol('id', { label: 'Ensembl' }),
       ColumnDescUtils.stringCol('name', { label: 'Name' }),
-      ColumnDescUtils.categoricalCol('chromosome', toChromosomes(find('chromosome').categories), { label: 'Chromosome' }),
+      ColumnDescUtils.categoricalCol('chromosome', toChromosomes(find('chromosome').categories as string[]), { label: 'Chromosome' }),
       ColumnDescUtils.categoricalCol('biotype', find('biotype').categories, { label: 'Biotype' }),
       ColumnDescUtils.categoricalCol(
         'strand',

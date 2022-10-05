@@ -1,16 +1,17 @@
-import { Selection } from 'd3-selection';
-import { ICohort } from '../../CohortInterfaces';
-import { IAttribute } from '../../data/Attribute';
-import { getAnimatedLoadingText, log } from '../../util';
-import { AreaChart } from '../visualizations/AreaChart';
-import { AVegaVisualization } from '../visualizations/AVegaVisualization';
-import { Option, OptionGroup, VisConfig } from '../visualizations/config/VisConfig';
-import { DensityPlot } from '../visualizations/DensityPlot';
-import { GroupedBoxplot } from '../visualizations/GroupedBoxplot';
-import { VegaGroupedHistogram } from '../visualizations/GroupedHistogram';
-import { KaplanMeierPlot } from '../visualizations/KaplanMeierPlot';
-import { Scatterplot } from '../visualizations/Scatterplot';
-import { ATask } from './ATask';
+
+import {Selection} from 'd3v7';
+import {ICohort} from '../../CohortInterfaces';
+import {IAttribute} from '../../data/Attribute';
+import {getAnimatedLoadingText, log} from '../../util';
+import {AreaChart} from '../visualizations/AreaChart';
+import {AVegaVisualization} from '../visualizations/AVegaVisualization';
+import {Option, OptionGroup, VisConfig} from '../visualizations/config/VisConfig';
+import {DensityPlot} from '../visualizations/DensityPlot';
+import {GroupedBoxplot} from '../visualizations/GroupedBoxplot';
+import {VegaGroupedHistogram} from '../visualizations/GroupedHistogram';
+import {KaplanMeierPlot} from '../visualizations/KaplanMeierPlot';
+import {Scatterplot} from '../visualizations/Scatterplot';
+import {ATask} from './ATask';
 
 export class Filter extends ATask {
   public label = `View, Filter & Split`;
