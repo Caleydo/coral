@@ -187,7 +187,7 @@ export class ServerColumnAttribute extends Attribute {
   constructor(public readonly id: string, public readonly view: string, public readonly database: string, readonly serverColumn: IServerColumn) {
     super(id, view, database, serverColumn.type);
     this.label = niceName(serverColumn.label);
-    this.categories = serverColumn.categories;
+    this.categories = serverColumn.categories as string[];
   }
 
   async filter(cht: Cohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort> {
