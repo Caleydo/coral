@@ -1124,7 +1124,7 @@ export class GroupedBoxplot extends MultiAttributeVisualization {
               scale: `x`,
               orient: `top`,
               gridScale: `y`,
-              grid: true,
+              grid: false,
               tickCount: { signal: `ceil(child_width/40)` },
               domain: false,
               labels: false,
