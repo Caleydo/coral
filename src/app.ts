@@ -1,4 +1,4 @@
-import {select, Selection} from 'd3v7';
+import { select, Selection } from 'd3v7';
 import SplitGrid from 'split-grid';
 import {
   AppContext,
@@ -431,6 +431,13 @@ export class CohortApp {
           // get Old elements
           if (dataset.chtOverviewElements !== null) {
             await this._cohortOverview.generateOverviewProv(dataset.chtOverviewElements);
+          } else {
+            // there are no old elements, just the initial cohort.
+            // check if user is currently onboarding - otherwise directly click the cohort
+            const tooltip = OnboardingManager.tooltips.get('rootCohort');
+            if (!tooltip?.props?.showOnCreate) {
+              CohortSelectionListener.get().handleSelectionEvent(new CohortSelectionEvent(rootCohort, true));
+            }
           }
         }
       }
