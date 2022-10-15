@@ -4,7 +4,7 @@ import { Cohort } from './Cohort';
 import { IElement, IRectCohortRep } from './CohortInterfaces';
 import { getRootCohort } from './cohortview';
 import { log } from './util';
-import { CohortRemoveEvent, CohortSelectionEvent } from './utilCustomEvents';
+import { CohortRemoveEvent, CohortSelectionEvent } from './base/events';
 import { labelFromFilter } from './utilLabels';
 
 export class RectCohortRep implements IRectCohortRep {

@@ -2,7 +2,7 @@ import { select } from 'd3v7';
 import { Cohort } from '../../Cohort';
 import { OnboardingManager } from '../../OnboardingManager';
 import { SortType } from '../../util';
-import { ColumnSortEvent } from '../../utilCustomEvents';
+import { ColumnSortEvent } from '../../base/events';
 import { ADataColumn } from './AColumn';
 
 /**

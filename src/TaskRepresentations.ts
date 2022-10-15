@@ -1,6 +1,6 @@
 import { IRectTaskRep } from './CohortInterfaces';
 import { Task } from './Tasks';
-import { TaskRemoveEvent } from './utilCustomEvents';
+import { TaskRemoveEvent } from './base/events';
 
 export class RectTaskRep implements IRectTaskRep {
   id: string;

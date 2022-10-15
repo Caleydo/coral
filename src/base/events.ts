@@ -1,9 +1,9 @@
-import { Cohort } from './Cohort';
-import { ITaskParams } from './CohortInterfaces';
-import { IAttribute } from './data/Attribute';
-import { Task } from './Tasks';
-import { AColumn } from './Taskview/columns/AColumn';
-import { IFilterDesc, SortType } from './util';
+import { Cohort } from '../Cohort';
+import { ITaskParams } from '../CohortInterfaces';
+import { IAttribute } from '../data/Attribute';
+import { Task } from '../Tasks';
+import { AColumn } from '../Taskview/columns/AColumn';
+import { IFilterDesc, SortType } from '../util';
 
 export const COHORT_REMOVE_EVENT_TYPE = 'cht:remove';
 export class CohortRemoveEvent extends CustomEvent<{ cohort: Cohort }> {

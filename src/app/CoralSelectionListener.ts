@@ -2,7 +2,7 @@ import { Cohort } from '../Cohort';
 import { CoralApp } from './CoralApp';
 import Taskview, { InputCohort } from '../Taskview/Taskview';
 import { log, removeFromArray } from '../util';
-import { CohortSelectionEvent, COHORT_SELECTION_EVENT_TYPE } from '../utilCustomEvents';
+import { CohortSelectionEvent, COHORT_SELECTION_EVENT_TYPE } from '../base/events';
 
 export class CohortSelectionListener {
   private static instance: CohortSelectionListener;

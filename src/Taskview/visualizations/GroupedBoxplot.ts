@@ -6,7 +6,7 @@ import { ICohort } from '../../CohortInterfaces';
 import { IAttribute, IdValuePair } from '../../data/Attribute';
 import { NumRangeOperators } from '../../base/rest';
 import { IAttributeFilter, IFilterDesc } from '../../util';
-import { FilterEvent, SplitEvent } from '../../utilCustomEvents';
+import { FilterEvent, SplitEvent } from '../../base/events';
 import { AVegaVisualization } from './AVegaVisualization';
 import { groupByConfig } from './config/GroupConfig';
 import { BRUSH_DATA_END, BRUSH_DATA_NAME, BRUSH_DATA_START, DATA_LABEL } from './constants';

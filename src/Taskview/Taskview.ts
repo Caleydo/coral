@@ -21,7 +21,7 @@ import {
   PreviewChangeEvent,
   SplitEvent,
   SPLIT_EVENT_TYPE,
-} from '../utilCustomEvents';
+} from '../base/events';
 import AddColumnColumn, { AColumn, ADataColumn, EmptyColumn } from './columns/AColumn';
 import AttributeColumn from './columns/AttributeColumn';
 import { InputCohortColumn, OutputCohortColumn } from './columns/CohortColumn';

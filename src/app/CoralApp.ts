@@ -27,7 +27,7 @@ import Taskview from '../Taskview/Taskview';
 import deleteModal from './templates/DeleteModal.html';
 import welcomeHtml from './templates/Welcome.html';
 import { getAnimatedLoadingText, handleDataLoadError, log } from '../util';
-import { CohortSelectionEvent, ConfirmTaskEvent, CONFIRM_TASK_EVENT_TYPE, PreviewConfirmEvent } from '../utilCustomEvents';
+import { CohortSelectionEvent, ConfirmTaskEvent, CONFIRM_TASK_EVENT_TYPE, PreviewConfirmEvent } from '../base/events';
 import { idCellline, idCovid19, idStudent, idTissue, IEntitySourceConfig } from '../utilIdTypes';
 import { niceName } from '../utilLabels';
 import { IDatasetDesc, IPanelDesc } from './interfaces';

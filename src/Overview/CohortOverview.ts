@@ -20,7 +20,7 @@ import {
   PreviewChangeEvent,
   TaskRemoveEvent,
   TASK_REMOVE_EVENT_TYPE,
-} from '../utilCustomEvents';
+} from '../base/events';
 import { niceName } from '../utilLabels';
 import { RectangleLayout } from './OverviewLayout';
 

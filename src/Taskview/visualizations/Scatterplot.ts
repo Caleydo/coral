@@ -8,7 +8,7 @@ import { Cohort } from '../../Cohort';
 import { AttributeType, IAttribute, IdValuePair, ServerColumnAttribute } from '../../data/Attribute';
 import { NumRangeOperators } from '../../base/rest';
 import { IFilterDesc, inRange } from '../../util';
-import { FilterEvent } from '../../utilCustomEvents';
+import { FilterEvent } from '../../base/events';
 import { DATA_LABEL } from './constants';
 import { AxisType, MultiAttributeVisualization } from './MultiAttributeVisualization';
 
