@@ -3,7 +3,8 @@ import { ITaskParams, TaskType } from '../CohortInterfaces';
 import { RectCohortRep } from '../CohortRepresentations';
 import { IAttribute, multiAttributeFilter } from '../data/Attribute';
 import { RectangleLayout } from '../Overview/OverviewLayout';
-import { CohortColorSchema, log, removeFromArray, ScrollLinker, SortType } from '../util';
+import { CohortColorSchema, log, removeFromArray, SortType } from '../util';
+import { ScrollLinker } from '../utils/ScrollLinker';
 import {
   CohortSelectionEvent,
   COHORT_SELECTION_EVENT_TYPE,

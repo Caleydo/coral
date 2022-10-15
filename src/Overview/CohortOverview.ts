@@ -9,7 +9,8 @@ import { addOverviewCohortAction, removeOverviewCohortAction } from '../Provenan
 import { getDBCohortData } from '../base/rest';
 import { RectTaskRep } from '../TaskRepresentations';
 import { createTaskFromProvJSON, Task, TaskFilter, TaskSplit } from '../Tasks';
-import { deepCopy, log, ScrollLinker } from '../util';
+import { deepCopy, log } from '../util';
+import { ScrollLinker } from '../utils/ScrollLinker';
 import {
   CohortRemoveEvent,
   CohortSelectionEvent,
