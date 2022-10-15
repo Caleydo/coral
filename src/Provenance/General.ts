@@ -2,7 +2,7 @@ import { ActionMetaData, ActionUtils, ICmdResult, IObjectRef, ObjectRefUtils } f
 import { CoralApp } from '../app/CoralApp';
 import { IElementProvJSON, IElementProvJSONCohort } from '../CohortInterfaces';
 import { log } from '../util';
-import { IEntitySourceConfig } from '../utilIdTypes';
+import { IEntitySourceConfig } from '../config/entities';
 
 /** ****************************
  ---------- GENERAL ----------

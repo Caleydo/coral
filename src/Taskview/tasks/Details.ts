@@ -8,7 +8,7 @@ import { IAttribute } from '../../data/Attribute';
 import { getCohortData } from '../../base/rest';
 import { getAnimatedLoadingText } from '../../util';
 import { CoralColorSchema } from '../../config/colors';
-import { getIdTypeFromCohort } from '../../utilIdTypes';
+import { getIdTypeFromCohort } from '../../config/entities';
 import { DATA_LABEL } from '../visualizations';
 import { ATask } from './ATask';
 

@@ -1,5 +1,5 @@
 import { IElementProvJSON, IElementProvJSONCohort } from '../CohortInterfaces';
-import { IEntitySourceConfig } from '../utilIdTypes';
+import { IEntitySourceConfig } from '../config/entities';
 
 export interface IPanelDesc {
   id: string;

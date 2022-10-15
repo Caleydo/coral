@@ -76,6 +76,7 @@ export interface IElement {
  * Interface for a cohort in the overview
  */
 export interface ICohort extends IElement {
+  table: string;
   representation: ICohortRep;
   dbId: number;
   values: Array<INumRange[] | IEqualsList>;

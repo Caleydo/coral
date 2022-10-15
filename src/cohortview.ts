@@ -7,7 +7,7 @@ import { CohortOverview } from './Overview/CohortOverview';
 import { RectangleLayout } from './Overview/OverviewLayout';
 import Taskview from './Taskview/Taskview';
 import { handleDataLoadError, log } from './util';
-import { IEntitySourceConfig } from './utilIdTypes';
+import { IEntitySourceConfig } from './config/entities';
 
 export let cohortOverview: CohortOverview;
 export let taskview: Taskview;
