@@ -1,4 +1,4 @@
-import {format, select} from 'd3v7';
+import { format, select } from 'd3v7';
 import log from 'loglevel';
 import { Spec as VegaSpec } from 'vega';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';

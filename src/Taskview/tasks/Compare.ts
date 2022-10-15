@@ -4,14 +4,13 @@
  * Licensed under the new BSD license, available at http://caleydo.org/license
  **************************************************************************** */
 
-
-import {hsl, scaleLinear, select, Selection} from 'd3v7';
+import { hsl, scaleLinear, select, Selection } from 'd3v7';
 import * as d3v3 from 'd3v3';
-import {IMeasureResult, IMeasureVisualization, ISetParameters, ISimilarityMeasure, MethodManager, SCOPE, Type, WorkerManager} from 'tourdino';
-import {Cohort} from '../../Cohort';
-import {Attribute, IAttribute} from '../../data/Attribute';
-import {log} from '../../util';
-import {ATask} from './ATask';
+import { IMeasureResult, IMeasureVisualization, ISetParameters, ISimilarityMeasure, MethodManager, SCOPE, Type, WorkerManager } from 'tourdino';
+import { Cohort } from '../../Cohort';
+import { Attribute, IAttribute } from '../../data/Attribute';
+import { log } from '../../util';
+import { ATask } from './ATask';
 
 export class Compare extends ATask {
   public label = `Compare`;
@@ -118,7 +117,8 @@ export class Compare extends ATask {
         const parent = select(this).node().parentNode as HTMLElement; // parent span-element
         select(parent).style('background-color', (d) => (d as Cohort).colorTaskView);
         let color = '#333333';
-        if (d && d.colorTaskView && 'transparent' !== d.colorTaskView && hsl(d.colorTaskView).l < 0.5) { //transparent has lightness of zero
+        if (d && d.colorTaskView && d.colorTaskView !== 'transparent' && hsl(d.colorTaskView).l < 0.5) {
+          // transparent has lightness of zero
           color = 'white';
         }
         select(parent.parentNode as HTMLElement)
@@ -744,7 +744,8 @@ interface IHighlightData {
 
 export function textColor4Background(backgroundColor: string) {
   let color = '#333333';
-  if ('transparent' !== backgroundColor && hsl(backgroundColor).l < 0.5) { //transparent has lightness of zero
+  if (backgroundColor !== 'transparent' && hsl(backgroundColor).l < 0.5) {
+    // transparent has lightness of zero
     color = 'white';
   }
 
@@ -757,7 +758,9 @@ export function score2color(score: number): { background: string; foreground: st
 
   if (score <= 0.05) {
     // log.debug('bg color cahnge')
-    const calcColor = scaleLinear().domain([0, 0.05]).range(<any[]>['#000000', '#FFFFFF']);
+    const calcColor = scaleLinear()
+      .domain([0, 0.05])
+      .range(<any[]>['#000000', '#FFFFFF']);
 
     background = calcColor(score).toString();
     foreground = textColor4Background(background);

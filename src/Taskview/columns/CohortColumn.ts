@@ -1,9 +1,9 @@
-import {select} from 'd3v7';
-import {Cohort} from '../../Cohort';
-import {OnboardingManager} from '../../OnboardingManager';
-import {SortType} from '../../util';
-import {ColumnSortEvent} from '../../utilCustomEvents';
-import {ADataColumn} from './AColumn';
+import { select } from 'd3v7';
+import { Cohort } from '../../Cohort';
+import { OnboardingManager } from '../../OnboardingManager';
+import { SortType } from '../../util';
+import { ColumnSortEvent } from '../../utilCustomEvents';
+import { ADataColumn } from './AColumn';
 
 /**
  * Displays cohorts with their given representation as a column

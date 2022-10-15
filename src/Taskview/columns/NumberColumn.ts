@@ -1,6 +1,6 @@
-import {format as d3Format} from 'd3v7';
-import {Cohort} from '../../Cohort';
-import {ADataColumn} from './AColumn';
+import { format as d3Format } from 'd3v7';
+import { Cohort } from '../../Cohort';
+import { ADataColumn } from './AColumn';
 
 export default class NumberColumn extends ADataColumn {
   constructor($container: HTMLDivElement) {

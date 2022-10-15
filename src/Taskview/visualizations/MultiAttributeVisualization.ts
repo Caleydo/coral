@@ -1,5 +1,5 @@
 import * as aq from 'arquero';
-import {format, select} from 'd3v7';
+import { format, select } from 'd3v7';
 import tippy from 'tippy.js';
 import vegaEmbed from 'vega-embed';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';

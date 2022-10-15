@@ -1,4 +1,4 @@
-import {select} from 'd3v7';
+import { select } from 'd3v7';
 import vegaEmbed from 'vega-embed';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { Cohort } from '../../Cohort';

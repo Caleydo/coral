@@ -1,5 +1,5 @@
-import {format, select} from 'd3v7';
-import {cloneDeep} from 'lodash';
+import { format, select } from 'd3v7';
+import { cloneDeep } from 'lodash';
 import tippy from 'tippy.js';
 import { View as VegaView } from 'vega';
 import vegaEmbed from 'vega-embed';
