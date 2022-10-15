@@ -6,7 +6,7 @@ import { colors } from '../../config/colors';
 import { IAttribute } from '../../data/Attribute';
 import { IEqualsList, INumRange, NumRangeOperators } from '../../base/rest';
 import { getAnimatedLoadingBars, log } from '../../util';
-import { easyLabelFromFilter, niceName } from '../../utilLabels';
+import { easyLabelFromFilter, niceName } from '../../utils/labels';
 import { ADataColumn } from './AColumn';
 
 export default class AttributeColumn extends ADataColumn {

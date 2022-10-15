@@ -8,7 +8,7 @@ import { IAttribute, multiFilter } from '../../data/Attribute';
 import { IEqualsList, INumRange } from '../../base/rest';
 import { Task } from '../../Tasks';
 import { createHTMLElementWithClasses, getSessionStorageItem, setSessionStorageItem } from '../../util';
-import { easyLabelFromFilter } from '../../utilLabels';
+import { easyLabelFromFilter } from '../../utils/labels';
 import { ATask } from './ATask';
 
 interface ITaskAttributValue {

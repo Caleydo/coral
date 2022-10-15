@@ -5,7 +5,7 @@ import { colors } from '../config/colors';
 import { ScoreType } from '../data/Attribute';
 import { checkSpecialAttribute, ISpecialAttribute } from '../data/SpecialAttribute';
 import { deepCopy, getAnimatedLoadingText, log } from '../util';
-import { niceName } from '../utilLabels';
+import { niceName } from '../utils/labels';
 
 export class SearchBar {
   private _container: HTMLDivElement;

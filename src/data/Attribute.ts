@@ -30,7 +30,7 @@ import {
 } from '../base/rest';
 import { IOption, IScoreOption, IServerColumnOption, ISpecialOption, OptionType } from '../Taskview/SearchBar';
 import { deepCopy, getSessionStorageItem, IAttributeFilter, log, setSessionStorageItem } from '../util';
-import { easyLabelFromFilter, easyLabelFromFilterArray, niceName } from '../utilLabels';
+import { easyLabelFromFilter, easyLabelFromFilterArray, niceName } from '../utils/labels';
 import { ISpecialAttribute } from './SpecialAttribute';
 
 export type AttributeType = 'categorical' | 'number' | 'string';

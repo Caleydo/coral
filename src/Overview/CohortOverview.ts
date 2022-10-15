@@ -21,7 +21,7 @@ import {
   TaskRemoveEvent,
   TASK_REMOVE_EVENT_TYPE,
 } from '../base/events';
-import { niceName } from '../utilLabels';
+import { niceName } from '../utils/labels';
 import { RectangleLayout } from './OverviewLayout';
 
 export class CohortOverview {

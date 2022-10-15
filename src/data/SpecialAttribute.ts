@@ -13,7 +13,7 @@ import {
   INumRange,
 } from '../base/rest';
 import { deepCopy, getSessionStorageItem, log, setSessionStorageItem } from '../util';
-import { niceName } from '../utilLabels';
+import { niceName } from '../utils/labels';
 import { AttributeType, IdValuePair } from './Attribute';
 
 export interface ISpecialAttribute {
