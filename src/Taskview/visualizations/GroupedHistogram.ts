@@ -3,7 +3,7 @@ import { Field } from 'vega-lite/build/src/channeldef';
 import { TopLevelUnitSpec } from 'vega-lite/build/src/spec/unit';
 import { getCohortLabel } from '../../Cohort';
 import { ICohort } from '../../CohortInterfaces';
-import { colors } from '../../colors';
+import { colors } from '../../config/colors';
 import { IdValuePair } from '../../data/Attribute';
 import { log } from '../../util';
 import { AVegaVisualization, FACETED_CHARTS_WIDTH } from './AVegaVisualization';

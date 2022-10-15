@@ -1,7 +1,7 @@
 import { select } from 'd3v7';
 import { IdTextPair, IServerColumn, RestBaseUtils } from 'tdp_core';
 import { dataTypes, depletion, IDataSubtypeConfig, IDataTypeConfig } from 'tdp_publicdb';
-import { colors } from '../colors';
+import { colors } from '../config/colors';
 import { ScoreType } from '../data/Attribute';
 import { checkSpecialAttribute, ISpecialAttribute } from '../data/SpecialAttribute';
 import { deepCopy, getAnimatedLoadingText, log } from '../util';

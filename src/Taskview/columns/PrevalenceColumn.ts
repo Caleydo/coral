@@ -1,7 +1,7 @@
 import vegaEmbed from 'vega-embed';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { Cohort } from '../../Cohort';
-import { colors } from '../../colors';
+import { colors } from '../../config/colors';
 import { getAnimatedLoadingBars } from '../../util';
 import { ADataColumn } from './AColumn';
 

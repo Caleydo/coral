@@ -1,6 +1,6 @@
 import { select } from 'd3v7';
 import { Cohort, EMPTY_COHORT_ID, LOADER_COHORT_ID } from '../../Cohort';
-import { colors } from '../../colors';
+import { colors } from '../../config/colors';
 import { createSearchBarTooltip } from '../../Tooltip';
 import { getAnimatedLoadingBars, log } from '../../util';
 import { ColumnCloseEvent } from '../../utilCustomEvents';

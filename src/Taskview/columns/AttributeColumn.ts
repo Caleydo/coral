@@ -2,7 +2,7 @@ import { select } from 'd3v7';
 import vegaEmbed from 'vega-embed';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { Cohort } from '../../Cohort';
-import { colors } from '../../colors';
+import { colors } from '../../config/colors';
 import { IAttribute } from '../../data/Attribute';
 import { IEqualsList, INumRange, NumRangeOperators } from '../../rest';
 import { getAnimatedLoadingBars, log } from '../../util';

@@ -3,7 +3,7 @@ import tippy from 'tippy.js';
 import { Cohort, IBloodlineElement } from '../../Cohort';
 import { ICohort } from '../../CohortInterfaces';
 import { getRootCohort } from '../../cohortview';
-import { colors } from '../../colors';
+import { colors } from '../../config/colors';
 import { IAttribute, multiFilter } from '../../data/Attribute';
 import { IEqualsList, INumRange } from '../../rest';
 import { Task } from '../../Tasks';
