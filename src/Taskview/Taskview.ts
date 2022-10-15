@@ -4,7 +4,7 @@ import { RectCohortRep } from '../CohortRepresentations';
 import { IAttribute, multiAttributeFilter } from '../data/Attribute';
 import { RectangleLayout } from '../Overview/OverviewLayout';
 import { log, removeFromArray, SortType } from '../util';
-import { CohortColorSchema } from '../CohortColorSchema';
+import { CoralColorSchema } from '../config/colors';
 import { ScrollLinker } from '../utils/ScrollLinker';
 import {
   CohortSelectionEvent,
@@ -513,7 +513,7 @@ class TaskviewInput extends TaskviewTable {
 
   cohorts: InputCohort[];
 
-  usedColorsForCohorts = CohortColorSchema.COLOR_SCHEME.map((elem) => {
+  usedColorsForCohorts = CoralColorSchema.COLOR_SCHEME.map((elem) => {
     return { color: elem, cohorts: [] };
   });
 
@@ -536,7 +536,7 @@ class TaskviewInput extends TaskviewTable {
 
   private clearColorCohorts() {
     // setup color options
-    this.usedColorsForCohorts = CohortColorSchema.COLOR_SCHEME.map((elem) => {
+    this.usedColorsForCohorts = CoralColorSchema.COLOR_SCHEME.map((elem) => {
       return { color: elem, cohorts: [] };
     });
     this.maxColors = this.usedColorsForCohorts.length;

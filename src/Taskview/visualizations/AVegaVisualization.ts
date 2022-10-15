@@ -9,7 +9,7 @@ import { ICohort } from '../../CohortInterfaces';
 import { IAttribute, IdValuePair } from '../../data/Attribute';
 import { IEqualsList, INumRange, NumRangeOperators } from '../../base/rest';
 import { IFilterDesc, log } from '../../util';
-import { CohortColorSchema } from '../../CohortColorSchema';
+import { CoralColorSchema } from '../../config/colors';
 import { FilterEvent, SplitEvent } from '../../utilCustomEvents';
 import { Option, VisConfig } from './config/VisConfig';
 import { DATA_LABEL } from './constants';

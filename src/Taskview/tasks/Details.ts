@@ -7,7 +7,7 @@ import { colors } from '../../config/colors';
 import { IAttribute } from '../../data/Attribute';
 import { getCohortData } from '../../base/rest';
 import { getAnimatedLoadingText } from '../../util';
-import { CohortColorSchema } from '../../CohortColorSchema';
+import { CoralColorSchema } from '../../config/colors';
 import { getIdTypeFromCohort } from '../../utilIdTypes';
 import { DATA_LABEL } from '../visualizations';
 import { ATask } from './ATask';
@@ -144,7 +144,7 @@ export class Details extends ATask {
   getCategoryColorsForColumn(mergedDataArray: any[], attr: IAttribute): { name: string; color: string }[] {
     const uniqueCat = Array.from(new Set(mergedDataArray.map((elem) => elem[attr.dataKey])));
     const categoryColors = uniqueCat.map((cat, i) => {
-      return { name: cat, color: CohortColorSchema.get(i) };
+      return { name: cat, color: CoralColorSchema.get(i) };
     });
     return categoryColors;
   }
