@@ -1,12 +1,12 @@
 import { select } from 'd3v7';
 import { ATDPApplication, CLUEGraphManager, ProvenanceGraph } from 'tdp_core';
-import { CohortApp } from './CohortApp';
+import { CoralApp } from './CoralApp';
 import { log } from '../util';
 
 /**
  * The app for this website, embeds our Cohort App
  */
-export class Coral extends ATDPApplication<CohortApp> {
+export class Coral extends ATDPApplication<CoralApp> {
   constructor(name: string, loginDialog: string, showCookieDisclaimer = true) {
     super({
       prefix: 'coral',
@@ -37,10 +37,10 @@ export class Coral extends ATDPApplication<CohortApp> {
     console.log('clientConfig contact', this.options.clientConfig?.contact);
   }
 
-  protected createApp(graph: ProvenanceGraph, manager: CLUEGraphManager, main: HTMLElement): CohortApp | PromiseLike<CohortApp> {
+  protected createApp(graph: ProvenanceGraph, manager: CLUEGraphManager, main: HTMLElement): CoralApp | PromiseLike<CoralApp> {
     log.debug('Create App');
     this.replaceHelpIcon();
-    return new CohortApp(graph, manager, main, this.options).init();
+    return new CoralApp(graph, manager, main, this.options).init();
   }
 
   private replaceHelpIcon() {
@@ -49,7 +49,7 @@ export class Coral extends ATDPApplication<CohortApp> {
     helpButton.select('a.nav-link').insert('i', ':first-child').attr('class', 'fa fa-question-circle');
   }
 
-  protected initSessionImpl(app: CohortApp) {
+  protected initSessionImpl(app: CoralApp) {
     log.debug('initSessionImpl. Is Graph empty?', app.graph.isEmpty);
     this.jumpToStoredOrLastState();
   }

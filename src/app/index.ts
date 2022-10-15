@@ -1,4 +1,4 @@
-export * from './CohortApp';
+export * from './CoralApp';
 export * from './Coral';
-export * from './CohortSelectionListener';
+export * from './CoralSelectionListener';
 export * from './interfaces';

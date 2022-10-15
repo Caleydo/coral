@@ -1,6 +1,6 @@
 import { IObjectRef, ProvenanceGraph, IDatabaseViewDesc, RestBaseUtils } from 'tdp_core';
-import { CohortSelectionListener } from './app/CohortSelectionListener';
-import { CohortApp } from './app/CohortApp';
+import { CohortSelectionListener } from './app/CoralSelectionListener';
+import { CoralApp } from './app/CoralApp';
 import { Cohort } from './Cohort';
 import { OnboardingManager } from './OnboardingManager';
 import { CohortOverview } from './Overview/CohortOverview';
@@ -16,7 +16,7 @@ let referenceCohort: Cohort;
 
 export async function createCohortOverview(
   graph: ProvenanceGraph,
-  ref: IObjectRef<CohortApp>,
+  ref: IObjectRef<CoralApp>,
   container: HTMLDivElement,
   detailView: HTMLDivElement,
   idTypeConfig: IEntitySourceConfig,

@@ -30,14 +30,14 @@ import { getAnimatedLoadingText, handleDataLoadError, log } from '../util';
 import { CohortSelectionEvent, ConfirmTaskEvent, CONFIRM_TASK_EVENT_TYPE, PreviewConfirmEvent } from '../utilCustomEvents';
 import { idCellline, idCovid19, idStudent, idTissue, IEntitySourceConfig } from '../utilIdTypes';
 import { niceName } from '../utilLabels';
-import { IDatasetDesc, IPanelDesc } from '../app/interfaces';
-import { CohortSelectionListener } from './CohortSelectionListener';
+import { IDatasetDesc, IPanelDesc } from './interfaces';
+import { CohortSelectionListener } from './CoralSelectionListener';
 
 /**
  * The Cohort app that does the acutal stuff.
  */
 
-export class CohortApp {
+export class CoralApp {
   private readonly $node: Selection<HTMLDivElement, any, null, undefined>;
 
   private $overview: HTMLDivElement;
@@ -64,9 +64,9 @@ export class CohortApp {
 
   /**
    * IObjectRef to this CohortApp instance
-   * @type {IObjectRef<CohortApp>}
+   * @type {IObjectRef<CoralApp>}
    */
-  readonly ref: IObjectRef<CohortApp>;
+  readonly ref: IObjectRef<CoralApp>;
 
   constructor(
     public readonly graph: ProvenanceGraph,

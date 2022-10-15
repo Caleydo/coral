@@ -1,6 +1,6 @@
 import { IObjectRef, ObjectRefUtils, ProvenanceGraph, UniqueIdManager, IDatabaseViewDesc } from 'tdp_core';
 import tippy from 'tippy.js';
-import { CohortApp } from '../app/CohortApp';
+import { CoralApp } from '../app/CoralApp';
 import { Cohort, createCohortFromDB } from '../Cohort';
 import { ElementProvType, IElement, IElementProvJSON, IOverviewLayout, IRectCohortRep, IRectTaskRep, ITask, ITaskParams, TaskType } from '../CohortInterfaces';
 import { RectCohortRep } from '../CohortRepresentations';
@@ -62,7 +62,7 @@ export class CohortOverview {
 
   public readonly ref: IObjectRef<CohortOverview>;
 
-  public readonly appRef: IObjectRef<CohortApp>;
+  public readonly appRef: IObjectRef<CoralApp>;
 
   private refName = 'CohortApp-Overview';
 
@@ -71,7 +71,7 @@ export class CohortOverview {
   constructor(
     private parent: HTMLDivElement,
     graph: ProvenanceGraph,
-    ref: IObjectRef<CohortApp>,
+    ref: IObjectRef<CoralApp>,
     layout: IOverviewLayout,
     root: Cohort,
     viewDescr: IDatabaseViewDesc,

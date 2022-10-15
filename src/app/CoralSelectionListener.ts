@@ -1,5 +1,5 @@
 import { Cohort } from '../Cohort';
-import { CohortApp } from './CohortApp';
+import { CoralApp } from './CoralApp';
 import Taskview, { InputCohort } from '../Taskview/Taskview';
 import { log, removeFromArray } from '../util';
 import { CohortSelectionEvent, COHORT_SELECTION_EVENT_TYPE } from '../utilCustomEvents';
@@ -17,7 +17,7 @@ export class CohortSelectionListener {
     return CohortSelectionListener.instance;
   }
 
-  static init(eventTarget: Node, app: CohortApp) {
+  static init(eventTarget: Node, app: CoralApp) {
     if (CohortSelectionListener.instance) {
       CohortSelectionListener.instance.eventTarget.removeEventListener(COHORT_SELECTION_EVENT_TYPE, CohortSelectionListener.instance.handleSelectionEvent); // remove listener
       CohortSelectionListener.instance.selection.forEach((cht) => (cht.selected = false)); // deselect
@@ -33,7 +33,7 @@ export class CohortSelectionListener {
     }
   }
 
-  private constructor(private eventTarget: Node, private app: CohortApp) {
+  private constructor(private eventTarget: Node, private app: CoralApp) {
     eventTarget.addEventListener(COHORT_SELECTION_EVENT_TYPE, (ev) => this.handleSelectionEvent(ev as CohortSelectionEvent)); // arrow function to keep "this" working in eventhandler
   }
 
