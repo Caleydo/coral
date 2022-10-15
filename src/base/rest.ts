@@ -1,5 +1,5 @@
 import { Ajax, AppContext, IParams, IRow } from 'tdp_core';
-import { deepCopy, log } from './util';
+import { deepCopy, log } from '../util';
 
 export interface ICohortDBParams extends IParams {
   name: string;

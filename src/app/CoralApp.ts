@@ -21,7 +21,7 @@ import { PanelScoreAttribute } from '../data/Attribute';
 import { OnboardingManager } from '../OnboardingManager';
 import { CohortOverview } from '../Overview';
 import { setDatasetAction } from '../Provenance/General';
-import { getDBCohortData } from '../rest';
+import { getDBCohortData } from '../base/rest';
 import { Task } from '../Tasks';
 import Taskview from '../Taskview/Taskview';
 import deleteModal from './templates/DeleteModal.html';

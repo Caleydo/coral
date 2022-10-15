@@ -5,7 +5,7 @@ import { ICohort } from '../../CohortInterfaces';
 import { getRootCohort } from '../../cohortview';
 import { colors } from '../../config/colors';
 import { IAttribute, multiFilter } from '../../data/Attribute';
-import { IEqualsList, INumRange } from '../../rest';
+import { IEqualsList, INumRange } from '../../base/rest';
 import { Task } from '../../Tasks';
 import { createHTMLElementWithClasses, getSessionStorageItem, setSessionStorageItem } from '../../util';
 import { easyLabelFromFilter } from '../../utilLabels';

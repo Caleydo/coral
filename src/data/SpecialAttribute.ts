@@ -11,7 +11,7 @@ import {
   ICohortDBHistScoreParms,
   IEqualsList,
   INumRange,
-} from '../rest';
+} from '../base/rest';
 import { deepCopy, getSessionStorageItem, log, setSessionStorageItem } from '../util';
 import { niceName } from '../utilLabels';
 import { AttributeType, IdValuePair } from './Attribute';

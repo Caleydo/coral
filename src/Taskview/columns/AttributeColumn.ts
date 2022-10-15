@@ -4,7 +4,7 @@ import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { Cohort } from '../../Cohort';
 import { colors } from '../../config/colors';
 import { IAttribute } from '../../data/Attribute';
-import { IEqualsList, INumRange, NumRangeOperators } from '../../rest';
+import { IEqualsList, INumRange, NumRangeOperators } from '../../base/rest';
 import { getAnimatedLoadingBars, log } from '../../util';
 import { easyLabelFromFilter, niceName } from '../../utilLabels';
 import { ADataColumn } from './AColumn';

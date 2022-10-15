@@ -44,7 +44,7 @@ import {
   sizeDBCohortWithNumFilter,
   updateCohortName,
   valueListDelimiter,
-} from './rest';
+} from './base/rest';
 import { mergeTwoAllFilters, Task } from './Tasks';
 import { deepCopy, handleDataLoadError, handleDataSaveError, log } from './util';
 

@@ -5,7 +5,7 @@ import { Cohort } from '../../Cohort';
 import { ICohort } from '../../CohortInterfaces';
 import { colors } from '../../config/colors';
 import { IAttribute } from '../../data/Attribute';
-import { getCohortData } from '../../rest';
+import { getCohortData } from '../../base/rest';
 import { CohortColorSchema, getAnimatedLoadingText } from '../../util';
 import { getIdTypeFromCohort } from '../../utilIdTypes';
 import { DATA_LABEL } from '../visualizations';

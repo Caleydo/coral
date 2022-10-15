@@ -6,7 +6,7 @@ import { TopLevel, LayerSpec } from 'vega-lite/build/src/spec';
 import { Field } from 'vega-lite/build/src/channeldef';
 import { Cohort } from '../../Cohort';
 import { AttributeType, IAttribute, IdValuePair, ServerColumnAttribute } from '../../data/Attribute';
-import { NumRangeOperators } from '../../rest';
+import { NumRangeOperators } from '../../base/rest';
 import { IFilterDesc, inRange } from '../../util';
 import { FilterEvent } from '../../utilCustomEvents';
 import { DATA_LABEL } from './constants';

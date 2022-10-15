@@ -8,7 +8,7 @@ export * from './Cohort';
 export * from './CohortInterfaces';
 export * from './CohortRepresentations';
 export * from './cohortview';
-export * from './rest';
+export * from './base/rest';
 
 export * from './util';
 export * from './utils';

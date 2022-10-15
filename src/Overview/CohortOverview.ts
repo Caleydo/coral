@@ -6,7 +6,7 @@ import { ElementProvType, IElement, IElementProvJSON, IOverviewLayout, IRectCoho
 import { RectCohortRep } from '../CohortRepresentations';
 import { IAttribute } from '../data/Attribute';
 import { addOverviewCohortAction, removeOverviewCohortAction } from '../Provenance/CohortEV';
-import { getDBCohortData } from '../rest';
+import { getDBCohortData } from '../base/rest';
 import { RectTaskRep } from '../TaskRepresentations';
 import { createTaskFromProvJSON, Task, TaskFilter, TaskSplit } from '../Tasks';
 import { deepCopy, log, ScrollLinker } from '../util';

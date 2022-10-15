@@ -27,7 +27,7 @@ import {
   ICohortDBPanelAnnotationParams,
   IEqualsList,
   INumRange,
-} from '../rest';
+} from '../base/rest';
 import { IOption, IScoreOption, IServerColumnOption, ISpecialOption, OptionType } from '../Taskview/SearchBar';
 import { deepCopy, getSessionStorageItem, IAttributeFilter, log, setSessionStorageItem } from '../util';
 import { easyLabelFromFilter, easyLabelFromFilterArray, niceName } from '../utilLabels';

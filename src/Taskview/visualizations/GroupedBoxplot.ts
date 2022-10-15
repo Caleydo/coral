@@ -4,7 +4,7 @@ import { Spec as VegaSpec } from 'vega';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { ICohort } from '../../CohortInterfaces';
 import { IAttribute, IdValuePair } from '../../data/Attribute';
-import { NumRangeOperators } from '../../rest';
+import { NumRangeOperators } from '../../base/rest';
 import { IAttributeFilter, IFilterDesc } from '../../util';
 import { FilterEvent, SplitEvent } from '../../utilCustomEvents';
 import { AVegaVisualization } from './AVegaVisualization';

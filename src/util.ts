@@ -3,7 +3,7 @@ import * as logger from 'loglevel';
 import { NotificationHandler } from 'tdp_core';
 import { ICohort } from './CohortInterfaces';
 import { IAttribute } from './data/Attribute';
-import { IEqualsList, INumRange } from './rest';
+import { IEqualsList, INumRange } from './base/rest';
 
 logger.setDefaultLevel(logger.levels.INFO);
 export const log = logger;

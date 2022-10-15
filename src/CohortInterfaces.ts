@@ -1,7 +1,7 @@
 import { IDType, IServerColumn } from 'tdp_core';
 import { Cohort } from './Cohort';
 import { IAttribute, IAttributeJSON } from './data/Attribute';
-import { IEqualsList, INumRange } from './rest';
+import { IEqualsList, INumRange } from './base/rest';
 import { InputCohort } from './Taskview/Taskview';
 
 /**

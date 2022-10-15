@@ -7,7 +7,7 @@ import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { Cohort, getCohortLabel } from '../../Cohort';
 import { ICohort } from '../../CohortInterfaces';
 import { IAttribute, IdValuePair } from '../../data/Attribute';
-import { IEqualsList, INumRange, NumRangeOperators } from '../../rest';
+import { IEqualsList, INumRange, NumRangeOperators } from '../../base/rest';
 import { CohortColorSchema, IFilterDesc, log } from '../../util';
 import { FilterEvent, SplitEvent } from '../../utilCustomEvents';
 import { Option, VisConfig } from './config/VisConfig';
