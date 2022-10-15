@@ -8,14 +8,42 @@ export function niceName(label: string): string {
     .join(' ');
 }
 
-export function easyLabelFromFilterArray(filter: INumRange[] | IEqualsList, attrLabel: string = null): string {
-  let label = '';
-  if (Array.isArray(filter)) {
-    label = filter.map((a) => easyLabelFromFilter(a, attrLabel)).join(' / ');
-  } else {
-    label = easyLabelFromFilter(filter, attrLabel);
+// TODO label
+// export function labelFromRanges(lowerOperator: '(' | '[', lowerBound: number, upperBound: number, upperOperator: ')' | ']', attr: IAttribute): string {
+export function labelFromRanges(lowerOperator: '(' | '[', lowerBound: number, upperBound: number, upperOperator: ')' | ']', attrLabel: string): string {
+  // const attribute = attr && attr.label ? attr.label : 'x';
+  const attribute = attrLabel || 'x';
+  const htmlLte = '&#8804';
+  const htmlLt = '&#60';
+  const htmlGte = '&#8805';
+  const htmlGt = '&#62';
+  const formatter = format('.4~f');
+
+  if (lowerOperator === null) {
+    // const up = upperOperator === ')' ? htmlLt : htmlLte;
+    // return `${attribute} ${up} ${formatter(upperBound as number)}`;
+    const up = upperOperator === ')' ? htmlLt : htmlLte;
+    return `${up} ${formatter(upperBound as number)}`;
   }
-  return label;
+  if (upperOperator === null) {
+    // const low = lowerOperator === '(' ? htmlLt : htmlLte;
+    // return `${formatter(lowerBound as number)} ${low} ${attribute}`;
+    const low = lowerOperator === '(' ? htmlGt : htmlGte;
+    return `${low} ${formatter(lowerBound as number)}`;
+  }
+  if (formatter(lowerBound) === formatter(upperBound)) {
+    return `${formatter(lowerBound)}`;
+  }
+  // const low = lowerOperator === '(' ? htmlLt : htmlLte;
+  // const up = upperOperator === ')' ? htmlLt : htmlLte;
+  // return `${formatter(lowerBound as number)} ${low} ${attribute} ${up} ${formatter(upperBound as number)}`;
+  const low = lowerOperator === '(' ? htmlGt : htmlGte;
+  const up = upperOperator === ')' ? htmlLt : htmlLte;
+  return ` ${low} ${formatter(lowerBound as number)} to ${up} ${formatter(upperBound as number)}`;
+}
+
+export function labelForCategories(categories: Array<any>): string {
+  return categories.map((cat) => niceName(`${cat}`)).join('/');
 }
 
 export function easyLabelFromFilter(filter: INumRange | IEqualsList, attrLabel: string = null): string {
@@ -35,6 +63,16 @@ export function easyLabelFromFilter(filter: INumRange | IEqualsList, attrLabel: 
   }
 
   throw new Error('not implemented ☠');
+}
+
+export function easyLabelFromFilterArray(filter: INumRange[] | IEqualsList, attrLabel: string = null): string {
+  let label = '';
+  if (Array.isArray(filter)) {
+    label = filter.map((a) => easyLabelFromFilter(a, attrLabel)).join(' / ');
+  } else {
+    label = easyLabelFromFilter(filter, attrLabel);
+  }
+  return label;
 }
 
 // -----
@@ -74,44 +112,6 @@ export function labelFromFilter(filter: INumRange | IEqualsList, attrLabel: stri
   throw new Error('not implemented ☠');
 }
 
-// TODO label
-// export function labelFromRanges(lowerOperator: '(' | '[', lowerBound: number, upperBound: number, upperOperator: ')' | ']', attr: IAttribute): string {
-export function labelFromRanges(lowerOperator: '(' | '[', lowerBound: number, upperBound: number, upperOperator: ')' | ']', attrLabel: string): string {
-  // const attribute = attr && attr.label ? attr.label : 'x';
-  const attribute = attrLabel || 'x';
-  const htmlLte = '&#8804';
-  const htmlLt = '&#60';
-  const htmlGte = '&#8805';
-  const htmlGt = '&#62';
-  const formatter = format('.4~f');
-
-  if (lowerOperator === null) {
-    // const up = upperOperator === ')' ? htmlLt : htmlLte;
-    // return `${attribute} ${up} ${formatter(upperBound as number)}`;
-    const up = upperOperator === ')' ? htmlLt : htmlLte;
-    return `${up} ${formatter(upperBound as number)}`;
-  }
-  if (upperOperator === null) {
-    // const low = lowerOperator === '(' ? htmlLt : htmlLte;
-    // return `${formatter(lowerBound as number)} ${low} ${attribute}`;
-    const low = lowerOperator === '(' ? htmlGt : htmlGte;
-    return `${low} ${formatter(lowerBound as number)}`;
-  }
-  if (formatter(lowerBound) === formatter(upperBound)) {
-    return `${formatter(lowerBound)}`;
-  }
-  // const low = lowerOperator === '(' ? htmlLt : htmlLte;
-  // const up = upperOperator === ')' ? htmlLt : htmlLte;
-  // return `${formatter(lowerBound as number)} ${low} ${attribute} ${up} ${formatter(upperBound as number)}`;
-  const low = lowerOperator === '(' ? htmlGt : htmlGte;
-  const up = upperOperator === ')' ? htmlLt : htmlLte;
-  return ` ${low} ${formatter(lowerBound as number)} to ${up} ${formatter(upperBound as number)}`;
-}
-
-export function labelForCategories(categories: Array<any>): string {
-  return categories.map((cat) => niceName(`${cat}`)).join('/');
-}
-
 // plural and sigular functions from: https://stackoverflow.com/a/57129703
 // licensed under CC-BY-SA 4.0, see https://stackoverflow.com/help/licensing
 /**
@@ -126,7 +126,7 @@ export function plural(word: string, amount?: number): string {
   if (amount !== undefined && amount === 1) {
     return word;
   }
-  const plural: { [key: string]: string } = {
+  const pluralWords: { [key: string]: string } = {
     '(quiz)$': '$1zes',
     '^(ox)$': '$1en',
     '([m|l])ouse$': '$1ice',
@@ -201,11 +201,11 @@ export function plural(word: string, amount?: number): string {
     }
   }
   // check for matches using regular expressions
-  for (const reg in plural) {
-    if (plural.hasOwnProperty(reg)) {
+  for (const reg in pluralWords) {
+    if (pluralWords.hasOwnProperty(reg)) {
       const pattern = new RegExp(reg, 'i');
       if (pattern.test(word)) {
-        return word.replace(pattern, plural[reg]);
+        return word.replace(pattern, pluralWords[reg]);
       }
     }
   }
@@ -224,7 +224,7 @@ export function singular(word: string, amount?: number): string {
   if (amount !== undefined && amount !== 1) {
     return word;
   }
-  const singular: { [key: string]: string } = {
+  const singularWords: { [key: string]: string } = {
     '(quiz)zes$': '$1',
     '(matr)ices$': '$1ix',
     '(vert|ind)ices$': '$1ex',
@@ -309,11 +309,11 @@ export function singular(word: string, amount?: number): string {
     }
   }
   // check for matches using regular expressions
-  for (const reg in singular) {
-    if (singular.hasOwnProperty(reg)) {
+  for (const reg in singularWords) {
+    if (singularWords.hasOwnProperty(reg)) {
       const pattern = new RegExp(reg, 'i');
       if (pattern.test(word)) {
-        return word.replace(pattern, singular[reg]);
+        return word.replace(pattern, singularWords[reg]);
       }
     }
   }
