@@ -15,6 +15,7 @@ import {
 import { deepCopy, getSessionStorageItem, log, setSessionStorageItem } from '../util';
 import { niceName } from '../utils/labels';
 import { AttributeType, IdValuePair } from './Attribute';
+import { ICohort } from '../app/interfaces';
 
 export interface ISpecialAttribute {
   readonly overrideSearchBarDetails: boolean;
@@ -54,7 +55,7 @@ export interface ISpecialAttribute {
 
   getCount(cohortDbId: number, filters?: IAllFilters): Promise<number>;
 
-  filter(cht: Cohort, filter: INumRange[] | IEqualsList, label: string): Promise<Cohort>;
+  filter(cht: ICohort, filter: INumRange[] | IEqualsList, label: string): Promise<ICohort>;
 }
 
 export class SATreatment implements ISpecialAttribute {
@@ -367,7 +368,7 @@ export class SATreatment implements ISpecialAttribute {
     throw new Error('Method not implemented.');
   }
 
-  filter(cht: Cohort, filter: INumRange[] | IEqualsList, label: string): Promise<Cohort> {
+  filter(cht: ICohort, filter: INumRange[] | IEqualsList, label: string): Promise<ICohort> {
     log.debug('FILTER of special attribute: ', { cht, filter });
     const optName = this.options.filter((o) => o.id === this.attributeOption)[0].name;
     const baseAgent = this.attributeOption.includes('base');

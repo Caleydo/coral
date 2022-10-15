@@ -1,17 +1,17 @@
 import vegaEmbed from 'vega-embed';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
-import { Cohort } from '../../Cohort';
+import { ICohort } from '../../app/interfaces';
 import { colors } from '../../config/colors';
 import { getAnimatedLoadingBars } from '../../util';
 import { ADataColumn } from './AColumn';
 
 export default class PrevalenceColumn extends ADataColumn {
-  constructor(private reference: Cohort, $container: HTMLDivElement) {
+  constructor(private reference: ICohort, $container: HTMLDivElement) {
     super(`% [${reference.label}]`, $container);
     this.$column.classList.add('prevalence');
   }
 
-  async setCellContent(cell: HTMLDivElement, cht: Cohort): Promise<void> {
+  async setCellContent(cell: HTMLDivElement, cht: ICohort): Promise<void> {
     cell.appendChild(new PrevalenceBar(cht, this.reference).getNode());
   }
 }
@@ -23,7 +23,7 @@ class PrevalenceBar {
 
   readonly $hist: HTMLDivElement;
 
-  constructor(private cht: Cohort, private reference: Cohort) {
+  constructor(private cht: ICohort, private reference: ICohort) {
     this.$node = document.createElement('div');
     this.$node.classList.add('hist');
 

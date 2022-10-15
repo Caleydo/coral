@@ -4,7 +4,7 @@ import { Spec as VegaSpec } from 'vega';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { TopLevel, LayerSpec } from 'vega-lite/build/src/spec';
 import { Field } from 'vega-lite/build/src/channeldef';
-import { Cohort } from '../../Cohort';
+import { ICohort } from '../../app/interfaces';
 import { AttributeType, IAttribute, IdValuePair, ServerColumnAttribute } from '../../data/Attribute';
 import { NumRangeOperators } from '../../base/rest';
 import { IFilterDesc, inRange } from '../../util';
@@ -1058,7 +1058,7 @@ export class TsneScatterplot extends Scatterplot {
     return scatterSpec;
   }
 
-  async show(container: HTMLDivElement, attributes: IAttribute[], cohorts: Cohort[]) {
+  async show(container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]) {
     super.show(container, attributes, cohorts);
   }
 

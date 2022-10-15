@@ -1,7 +1,7 @@
 import { select } from 'd3v7';
 import * as $ from 'jquery';
 import tippy from 'tippy.js';
-import { Cohort } from '../Cohort';
+import { ICohort } from '../app';
 import { IAttribute, toAttribute } from '../data/Attribute';
 import searchHtml from '../templates/SearchColumn.html'; // webpack imports html to variable
 import { log } from '../util';
@@ -19,13 +19,13 @@ export default class SearchColumn {
 
   private searchBar: SearchBar;
 
-  private refCohort: Cohort;
+  private refCohort: ICohort;
 
   private $ColumnHeader: HTMLDivElement;
 
   activeTask: ATask;
 
-  constructor($container: HTMLDivElement, private referenceCht: Cohort, private taskview: Taskview) {
+  constructor($container: HTMLDivElement, private referenceCht: ICohort, private taskview: Taskview) {
     $container.insertAdjacentHTML('beforeend', searchHtml); // faster than innerHTML (https://developer.mozilla.org/de/docs/Web/API/Element/insertAdjacentHTML)
     this.$searchColumn = $container.firstChild as HTMLDivElement;
     this.$tasks = select(this.$searchColumn).select('.task-selector').node() as HTMLDivElement;
@@ -68,7 +68,7 @@ export default class SearchColumn {
     this.$searchColumn.remove();
   }
 
-  private async _setupSearchBar(referenceCht: Cohort) {
+  private async _setupSearchBar(referenceCht: ICohort) {
     this.searchBar = new SearchBar(select(this.$searchColumn).select('.search-bar').node() as HTMLDivElement, referenceCht.database, referenceCht.view);
     this.setSearchBarVisibility(false); // hide searchBar -> set display: none
     this.searchBar.getSearchBarHTMLDivElement().addEventListener('optionchange', async (e) => {

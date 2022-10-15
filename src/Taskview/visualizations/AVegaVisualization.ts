@@ -50,7 +50,7 @@ export abstract class AVegaVisualization implements IVegaVisualization {
 
   protected data;
 
-  protected cohorts: Cohort[];
+  protected cohorts: ICohort[];
 
   protected vegaLiteSpec;
 
@@ -312,9 +312,9 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
 
   protected hideVisualization: boolean;
 
-  protected nullValueMap: Map<string, Map<Cohort, number>>;
+  protected nullValueMap: Map<string, Map<ICohort, number>>;
 
-  async show(container: HTMLDivElement, attributes: IAttribute[], cohorts: Cohort[]) {
+  async show(container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]) {
     log.debug('show: ', { container, attributes, cohorts });
 
     if (cohorts.length <= 0) {
@@ -355,7 +355,7 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     const flatData = data.flat(1);
 
     // check if all values are null
-    this.nullValueMap = new Map<string, Map<Cohort, number>>(); // Map: Attribute -> Cohort --> number of null values per cohort per attribute
+    this.nullValueMap = new Map<string, Map<ICohort, number>>(); // Map: Attribute -> Cohort --> number of null values per cohort per attribute
     this.nullValueMap.set(this.attribute.dataKey, new Map(this.cohorts.map((cht) => [cht, 0]))); // init map with 0 for all attribues
 
     let nullValues = 0;

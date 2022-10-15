@@ -1,13 +1,11 @@
 import * as aq from 'arquero';
 import { select } from 'd3v7';
 import * as LineUpJS from 'lineupjs';
-import { Cohort } from '../../Cohort';
 import { ICohort } from '../../app/interfaces';
-import { colors } from '../../config/colors';
+import { colors, CoralColorSchema } from '../../config/colors';
 import { IAttribute } from '../../data/Attribute';
 import { getCohortData } from '../../base/rest';
 import { getAnimatedLoadingText } from '../../util';
-import { CoralColorSchema } from '../../config/colors';
 import { getIdTypeFromCohort } from '../../config/entities';
 import { DATA_LABEL } from '../visualizations';
 import { ATask } from './ATask';
@@ -44,7 +42,7 @@ export class Details extends ATask {
       this.$lineUpContainer.insertAdjacentElement('beforeend', getAnimatedLoadingText('data'));
       select(columnHeader).selectAll('.export').remove();
 
-      const data = await this.getData(attributes, cohorts as Cohort[]);
+      const data = await this.getData(attributes, cohorts as ICohort[]);
       if (eventId !== this.eventID) {
         return;
       }
@@ -63,8 +61,8 @@ export class Details extends ATask {
     }
   }
 
-  async getData(attributes: IAttribute[], cohorts: Cohort[]) {
-    const idType = getIdTypeFromCohort(cohorts[0] as Cohort);
+  async getData(attributes: IAttribute[], cohorts: ICohort[]) {
+    const idType = getIdTypeFromCohort(cohorts[0] as ICohort);
     this._entityName = idType.entityName;
 
     const dataPromises = cohorts.map((cht) => {
@@ -113,7 +111,7 @@ export class Details extends ATask {
     builder.column(LineUpJS.buildStringColumn(this._entityName).label('Id').width(120)).column(
       LineUpJS.buildCategoricalColumn(
         DATA_LABEL,
-        cohorts.map((cht) => ({ name: `${cht.dbId}`, label: cht.label, color: (cht as Cohort).colorTaskView })),
+        cohorts.map((cht) => ({ name: `${cht.dbId}`, label: cht.label, color: (cht as ICohort).colorTaskView })),
       )
         .renderer('catheatmap', 'categorical')
         .asSet(),

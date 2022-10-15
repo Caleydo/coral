@@ -14,8 +14,8 @@ import {
 } from 'tdp_core';
 import { cellline, tissue } from 'tdp_publicdb';
 import { Instance as TippyInstance } from 'tippy.js';
-import { Cohort, createCohort, createCohortFromDB } from '../Cohort';
-import { IElementProvJSON, IElementProvJSONCohort, ITaskParams } from '../app/interfaces';
+import { createCohort, createCohortFromDB } from '../Cohort';
+import { IElementProvJSON, IElementProvJSONCohort, ITaskParams, ICohort, IDatasetDesc, IPanelDesc } from './interfaces';
 import { cohortOverview, createCohortOverview, destroyOld, loadViewDescription, taskview } from '../cohortview';
 import { PanelScoreAttribute } from '../data/Attribute';
 import { OnboardingManager } from '../OnboardingManager';
@@ -30,7 +30,6 @@ import { getAnimatedLoadingText, handleDataLoadError, log } from '../util';
 import { CohortSelectionEvent, ConfirmTaskEvent, CONFIRM_TASK_EVENT_TYPE, PreviewConfirmEvent } from '../base/events';
 import { idCellline, idCovid19, idStudent, idTissue, IEntitySourceConfig } from '../config/entities';
 import { niceName } from '../utils/labels';
-import { IDatasetDesc, IPanelDesc } from './interfaces';
 import { CohortSelectionListener } from './CoralSelectionListener';
 
 /**
@@ -54,7 +53,7 @@ export class CoralApp {
 
   private _taskview: Taskview = null;
 
-  private rootCohort: Cohort = null;
+  private rootCohort: ICohort = null;
 
   private datasetEventID = 0;
 
@@ -103,7 +102,7 @@ export class CoralApp {
     for (const task of taskParams) {
       for (const cht of task.outputCohorts) {
         log.debug('app sets counter to', 1 + this.chtCounter);
-        (cht as Cohort).setLabels(`#${this.chtCounter++} ${(cht as Cohort).labelOne}`, (cht as Cohort).labelTwo);
+        cht.setLabels(`#${this.chtCounter++} ${cht.labelOne}`, cht.labelTwo);
       }
     }
 
@@ -117,7 +116,7 @@ export class CoralApp {
     let replace = true;
     for (const task of tasks) {
       for (const cht of task.children) {
-        this.$node.node().dispatchEvent(new CohortSelectionEvent(cht as Cohort, replace));
+        this.$node.node().dispatchEvent(new CohortSelectionEvent(cht as ICohort, replace));
         replace = false; // replace old selection with first cohort, then add the others
 
         if (this.firstOutput) {
@@ -350,7 +349,7 @@ export class CoralApp {
     log.debug('retrievedViewDesctiprion', viewDescription);
     const idColumn: IServerColumn = viewDescription.columns.find((col) => col.label === 'id') || { column: 'id', label: 'id', type: 'string' };
     // create root cohort
-    let root: Cohort = await createCohort(
+    let root: ICohort = await createCohort(
       niceName(idTypeConfig.idType),
       'All',
       true,

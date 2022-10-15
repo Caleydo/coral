@@ -1,15 +1,15 @@
-import { Cohort } from '../Cohort';
 import { CoralApp } from './CoralApp';
-import Taskview, { InputCohort } from '../Taskview/Taskview';
+import Taskview from '../Taskview/Taskview';
 import { log, removeFromArray } from '../util';
 import { CohortSelectionEvent, COHORT_SELECTION_EVENT_TYPE } from '../base/events';
+import type { ICohort, IInputCohort } from '.';
 
 export class CohortSelectionListener {
   private static instance: CohortSelectionListener;
 
   public taskview: Taskview;
 
-  selection: Cohort[] = [];
+  selection: ICohort[] = [];
 
   firstCohort = true;
 
@@ -54,8 +54,8 @@ export class CohortSelectionListener {
         removeFromArray(this.selection, clickedCht);
         clickedCht.colorTaskView = null;
         clickedCht.selected = false;
-        if ((clickedCht as InputCohort).outputCohorts !== undefined) {
-          delete (clickedCht as InputCohort).outputCohorts;
+        if ((clickedCht as IInputCohort).outputCohorts !== undefined) {
+          delete (clickedCht as IInputCohort).outputCohorts;
         }
         log.info(`De-Selected "${clickedCht.label}"`);
       } else {

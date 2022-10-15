@@ -1,5 +1,18 @@
 import { IAllFilters, IDType, IDTypeLike, IDTypeManager, IRow, IServerColumn, UniqueIdManager } from 'tdp_core';
-import { ElementProvType, ICohort, ICohortRep, IElement, IElementProvJSONCohort, IProvAttrAndValuesCohort } from './app/interfaces';
+import {
+  ECloneFilterTypes,
+  EElementProvType,
+  IBloodlineElement,
+  ICohort,
+  ICohortClassBasicValues,
+  ICohortClassDatabaseValues,
+  ICohortRep,
+  IElement,
+  IElementProvJSONCohort,
+  IInputCohort,
+  IOutputCohort,
+  IProvAttrAndValuesCohort,
+} from './app/interfaces';
 import {
   createDBCohort,
   createDBCohortWithDepletionScoreFilter,
@@ -74,7 +87,7 @@ export async function createCohort(
   idType: IDTypeLike,
   idColumn: IServerColumn,
   filters: IAllFilters,
-): Promise<Cohort> {
+): Promise<ICohort> {
   const params: ICohortDBParams = {
     name: combineLabelsForDB(labelOne, labelTwo),
     isInitial: isInitial ? 1 : 0,
@@ -115,13 +128,13 @@ function getLegacyRangeFilter(parentFilters: IAllFilters, attribute: string, ran
 }
 
 export async function createCohortWithEqualsFilter(
-  parentCohort: Cohort,
+  parentCohort: ICohort,
   labelOne: string,
   labelTwo: string,
   attribute: string,
   numeric: 'true' | 'false',
   values: Array<string> | Array<number>,
-): Promise<Cohort> {
+): Promise<ICohort> {
   const params: ICohortDBWithEqualsFilterParams = {
     cohortId: parentCohort.dbId,
     name: combineLabelsForDB(labelOne, labelTwo),
@@ -153,13 +166,13 @@ export async function createCohortWithEqualsFilter(
 }
 
 export async function createCohortWithTreatmentFilter(
-  parentCohort: Cohort,
+  parentCohort: ICohort,
   labelOne: string,
   labelTwo: string,
   baseAgent: boolean,
   agent: Array<string>,
   regimen: number,
-): Promise<Cohort> {
+): Promise<ICohort> {
   const params: ICohortDBWithTreatmentFilterParams = {
     cohortId: parentCohort.dbId,
     name: combineLabelsForDB(labelOne, labelTwo),
@@ -191,12 +204,12 @@ export async function createCohortWithTreatmentFilter(
 }
 
 export async function createCohortWithNumFilter(
-  parentCohort: Cohort,
+  parentCohort: ICohort,
   labelOne: string,
   labelTwo: string,
   attribute: string,
   ranges: Array<INumRange>,
-): Promise<Cohort> {
+): Promise<ICohort> {
   const params: ICohortDBWithNumFilterParams = {
     cohortId: parentCohort.dbId,
     name: combineLabelsForDB(labelOne, labelTwo),
@@ -227,14 +240,14 @@ export async function createCohortWithNumFilter(
 }
 
 export async function createCohortWithGeneNumFilter(
-  parentCohort: Cohort,
+  parentCohort: ICohort,
   labelOne: string,
   labelTwo: string,
   table: string,
   attribute: string,
   ensg: string,
   ranges: Array<INumRange>,
-): Promise<Cohort> {
+): Promise<ICohort> {
   const params: ICohortDBWithGeneNumFilterParams = {
     cohortId: parentCohort.dbId,
     name: combineLabelsForDB(labelOne, labelTwo),
@@ -268,7 +281,7 @@ export async function createCohortWithGeneNumFilter(
 }
 
 export async function createCohortWithGeneEqualsFilter(
-  parentCohort: Cohort,
+  parentCohort: ICohort,
   labelOne: string,
   labelTwo: string,
   table: string,
@@ -276,7 +289,7 @@ export async function createCohortWithGeneEqualsFilter(
   ensg: string,
   numeric: 'true' | 'false',
   values: Array<string> | Array<number>,
-): Promise<Cohort> {
+): Promise<ICohort> {
   const params: ICohortDBWithGeneEqualsFilterParams = {
     cohortId: parentCohort.dbId,
     name: combineLabelsForDB(labelOne, labelTwo),
@@ -311,7 +324,7 @@ export async function createCohortWithGeneEqualsFilter(
 }
 
 export async function createCohortWithDepletionScoreFilter(
-  parentCohort: Cohort,
+  parentCohort: ICohort,
   labelOne: string,
   labelTwo: string,
   table: string,
@@ -319,7 +332,7 @@ export async function createCohortWithDepletionScoreFilter(
   ensg: string,
   depletionscreen: string,
   ranges: Array<INumRange>,
-): Promise<Cohort> {
+): Promise<ICohort> {
   const params: ICohortDBWithDepletionScoreFilterParams = {
     cohortId: parentCohort.dbId,
     name: combineLabelsForDB(labelOne, labelTwo),
@@ -354,12 +367,12 @@ export async function createCohortWithDepletionScoreFilter(
 }
 
 export async function createCohortWithPanelAnnotationFilter(
-  parentCohort: Cohort,
+  parentCohort: ICohort,
   labelOne: string,
   labelTwo: string,
   panel: string,
   values: Array<string>,
-): Promise<Cohort> {
+): Promise<ICohort> {
   const params: ICohortDBWithPanelAnnotationFilterParams = {
     cohortId: parentCohort.dbId,
     name: combineLabelsForDB(labelOne, labelTwo),
@@ -429,7 +442,7 @@ function splitLabelsFromDB(name: string): { labelOne: string; labelTwo: string }
   };
 }
 
-export function createCohortFromDB(data: ICohortRow, provJSON: IProvAttrAndValuesCohort): Cohort {
+export function createCohortFromDB(data: ICohortRow, provJSON: IProvAttrAndValuesCohort): ICohort {
   // ATTENTION : database != databaseName
   const labels = splitLabelsFromDB(data.name);
   const isInitial = data.is_initial === 1;
@@ -455,32 +468,6 @@ export function createCohortFromDB(data: ICohortRow, provJSON: IProvAttrAndValue
   return cht;
 }
 
-export enum cloneFilterTypes {
-  none,
-  equals,
-  range,
-  geneScoreRange,
-  geneScoreEquals,
-  depletionScoreRange,
-  panelAnnotation,
-}
-
-export interface ICohortClassBasicValues {
-  id: string;
-  dbId: number;
-  labelOne: string;
-  labelTwo: string;
-}
-
-export interface ICohortClassDatabaseValues {
-  database: string;
-  schema: string;
-  table: string;
-  view: string;
-  idType: IDTypeLike;
-  idColumn: IServerColumn;
-}
-
 export class Cohort implements ICohort {
   // public from interface
   public id: string;
@@ -497,7 +484,7 @@ export class Cohort implements ICohort {
 
   public isInitial: boolean;
 
-  public values: Array<INumRange[] | IEqualsList>;
+  public values: (INumRange[] | IEqualsList)[];
 
   public isClone: boolean;
 
@@ -505,7 +492,7 @@ export class Cohort implements ICohort {
 
   private _sizeReference: number;
 
-  public usedFilter: cloneFilterTypes;
+  public usedFilter: ECloneFilterTypes;
 
   public usedFilterParams:
     | ICohortEqualsFilterParams
@@ -529,7 +516,7 @@ export class Cohort implements ICohort {
 
   private _children: Array<IElement>;
 
-  private _parentCohorts: Array<Cohort>;
+  private _parentCohorts: ICohort[];
 
   private _filters: IAllFilters;
 
@@ -545,7 +532,7 @@ export class Cohort implements ICohort {
 
   constructor(
     basicValues: ICohortClassBasicValues,
-    values: Array<INumRange[] | IEqualsList>,
+    values: (INumRange[] | IEqualsList)[],
     databaseValues: ICohortClassDatabaseValues,
     filters: IAllFilters = { normal: {}, lt: {}, lte: {}, gt: {}, gte: {} },
     sizeReference: number = null,
@@ -634,29 +621,29 @@ export class Cohort implements ICohort {
     return labelOneHTML;
   }
 
-  public set parents(parents: Array<IElement>) {
+  public set parents(parents: IElement[]) {
     this._parents = parents;
     this.updateBloodline();
   }
 
-  public get parents(): Array<IElement> {
+  public get parents(): IElement[] {
     return this._parents;
   }
 
   /**
    * Returns all parent tasks, which are all the parent elements of this element.
    */
-  public getTaskParents(): Array<Task> {
+  public getTaskParents(): Task[] {
     return this._parents as Task[];
   }
 
   /**
    * Returns all parent cohorts, which are all the grand-parent elements of this element.
    */
-  public getCohortParents(): Array<Cohort> {
-    const chtParents: Cohort[] = [];
+  public getCohortParents(): ICohort[] {
+    const chtParents: ICohort[] = [];
     for (const p of this._parents) {
-      chtParents.push(...(p.parents as Cohort[]));
+      chtParents.push(...(p.parents as ICohort[]));
     }
 
     if (chtParents.length === 0 && !this.isInitial) {
@@ -666,32 +653,32 @@ export class Cohort implements ICohort {
     return chtParents;
   }
 
-  public setCohortParents(chtParents: Array<Cohort>) {
+  public setCohortParents(chtParents: ICohort[]) {
     this._parentCohorts = chtParents;
   }
 
-  public set children(children: Array<IElement>) {
+  public set children(children: IElement[]) {
     this._children = children;
   }
 
-  public get children(): Array<IElement> {
+  public get children(): IElement[] {
     return this._children;
   }
 
   /**
    * Returns all children tasks, which are all the children elements of this element.
    */
-  public getTaskChildren(): Array<Task> {
+  public getTaskChildren(): Task[] {
     return this._children as Task[];
   }
 
   /**
    * Returns all children cohorts, which are all the grand-children elements of this element.
    */
-  public getCohortChildren(): Array<Cohort> {
-    const chtChildren: Cohort[] = [];
+  public getCohortChildren(): ICohort[] {
+    const chtChildren: ICohort[] = [];
     for (const p of this._children) {
-      chtChildren.push(...(p.children as Cohort[]));
+      chtChildren.push(...(p.children as ICohort[]));
     }
     return chtChildren;
   }
@@ -785,25 +772,25 @@ export class Cohort implements ICohort {
     };
     try {
       if (this.isClone) {
-        if (this.usedFilter === cloneFilterTypes.none) {
+        if (this.usedFilter === ECloneFilterTypes.none) {
           return await getCohortSize(params);
         }
-        if (this.usedFilter === cloneFilterTypes.equals) {
+        if (this.usedFilter === ECloneFilterTypes.equals) {
           return await sizeDBCohortWithEqualsFilter(this.usedFilterParams as ICohortEqualsFilterParams);
         }
-        if (this.usedFilter === cloneFilterTypes.range) {
+        if (this.usedFilter === ECloneFilterTypes.range) {
           return await sizeDBCohortWithNumFilter(this.usedFilterParams as ICohortNumFilterParams);
         }
-        if (this.usedFilter === cloneFilterTypes.geneScoreRange) {
+        if (this.usedFilter === ECloneFilterTypes.geneScoreRange) {
           return await sizeDBCohortGeneWithNumFilter(this.usedFilterParams as ICohortGeneNumFilterParams);
         }
-        if (this.usedFilter === cloneFilterTypes.geneScoreEquals) {
+        if (this.usedFilter === ECloneFilterTypes.geneScoreEquals) {
           return await sizeDBCohortGeneWithEqualsFilter(this.usedFilterParams as ICohortGeneEqualsFilterParams);
         }
-        if (this.usedFilter === cloneFilterTypes.depletionScoreRange) {
+        if (this.usedFilter === ECloneFilterTypes.depletionScoreRange) {
           return await sizeDBCohortDepletionScoreFilter(this.usedFilterParams as ICohortDepletionScoreFilterParams);
         }
-        if (this.usedFilter === cloneFilterTypes.panelAnnotation) {
+        if (this.usedFilter === ECloneFilterTypes.panelAnnotation) {
           return await sizeDBCohortPanelAnnotationFilter(this.usedFilterParams as ICohortPanelAnnotationFilterParams);
         }
       } else {
@@ -812,6 +799,7 @@ export class Cohort implements ICohort {
     } catch (e) {
       handleDataLoadError(e);
     }
+    return Promise.reject();
   }
 
   private async _fetchData(): Promise<IRow[]> {
@@ -820,25 +808,25 @@ export class Cohort implements ICohort {
     };
     try {
       if (this.isClone) {
-        if (this.usedFilter === cloneFilterTypes.none) {
+        if (this.usedFilter === ECloneFilterTypes.none) {
           return await getCohortData(params);
         }
-        if (this.usedFilter === cloneFilterTypes.equals) {
+        if (this.usedFilter === ECloneFilterTypes.equals) {
           return await dataDBCohortWithEqualsFilter(this.usedFilterParams as ICohortEqualsFilterParams);
         }
-        if (this.usedFilter === cloneFilterTypes.range) {
+        if (this.usedFilter === ECloneFilterTypes.range) {
           return await dataDBCohortWithNumFilter(this.usedFilterParams as ICohortNumFilterParams);
         }
-        if (this.usedFilter === cloneFilterTypes.geneScoreRange) {
+        if (this.usedFilter === ECloneFilterTypes.geneScoreRange) {
           return await dataDBCohortGeneWithNumFilter(this.usedFilterParams as ICohortGeneNumFilterParams);
         }
-        if (this.usedFilter === cloneFilterTypes.geneScoreEquals) {
+        if (this.usedFilter === ECloneFilterTypes.geneScoreEquals) {
           return await dataDBCohortGeneWithEqualsFilter(this.usedFilterParams as ICohortGeneEqualsFilterParams);
         }
-        if (this.usedFilter === cloneFilterTypes.depletionScoreRange) {
+        if (this.usedFilter === ECloneFilterTypes.depletionScoreRange) {
           return await dataDBCohortDepletionScoreFilter(this.usedFilterParams as ICohortDepletionScoreFilterParams);
         }
-        if (this.usedFilter === cloneFilterTypes.panelAnnotation) {
+        if (this.usedFilter === ECloneFilterTypes.panelAnnotation) {
           return await dataDBCohortPanelAnnotationFilter(this.usedFilterParams as ICohortPanelAnnotationFilterParams);
         }
       } else {
@@ -849,11 +837,12 @@ export class Cohort implements ICohort {
     } catch (e) {
       handleDataLoadError(e);
     }
+    return Promise.reject();
   }
 
   // filter method and params for the function
   clone(
-    usedFilter: cloneFilterTypes,
+    usedFilter: ECloneFilterTypes,
     filterParams:
       | ICohortEqualsFilterParams
       | ICohortNumFilterParams
@@ -861,7 +850,7 @@ export class Cohort implements ICohort {
       | ICohortGeneEqualsFilterParams
       | ICohortDepletionScoreFilterParams
       | ICohortPanelAnnotationFilterParams,
-  ): Cohort {
+  ): ICohort {
     const clone = new Cohort(
       { id: `${this.id}-clone#${UniqueIdManager.getInstance().uniqueId('cht:cohort')}`, dbId: this.dbId, labelOne: this.labelOne, labelTwo: this.labelTwo },
       this.values,
@@ -920,7 +909,7 @@ export class Cohort implements ICohort {
   public toProvenanceJSON(): IElementProvJSONCohort {
     return {
       id: this.id,
-      type: ElementProvType.Cohort,
+      type: EElementProvType.Cohort,
       label: this.label,
       parent: this._parents.map((elem) => elem.id),
       children: this._children.map((elem) => elem.id),
@@ -937,16 +926,23 @@ export class Cohort implements ICohort {
   }
 }
 
-export interface IBloodlineElement {
-  obj: IElement;
-  elemType: string;
-  label: string;
-  size: number;
+// This class is currently unused because it is covered by typecasting the `Cohort` object into `IInputCohort` and adding the missing property in a hacky way
+// TODO the `Cohort` object should be transformed/cloned into an `InputCohort`. Otherwise we can remove this class
+export class InputCohort extends Cohort implements IInputCohort {
+  outputCohorts: IOutputCohort[] = [];
+}
+
+// This class is currently unused because it is covered by typecasting the `Cohort` object into `IOutputCohort` and adding the missing property in a hacky way
+// TODO the `Cohort` object should be transformed/cloned into an `OutputCohort`. Otherwise we can remove this class
+export class OutputCohort extends Cohort implements IOutputCohort {
+  public isLastOutputCohort = false; // used to add a paddding between outputcohorts of different input cohorts
+
+  public isFirstOutputCohort = false; // used to add a paddding between outputcohorts of different input cohorts
 }
 
 export const EMPTY_COHORT_ID = '--EMPTY--';
-export function getEmptyCohort(parent: Cohort) {
-  const cht = new Cohort({ id: EMPTY_COHORT_ID, dbId: NaN, labelOne: 'Empty', labelTwo: '' }, null, {
+export function getEmptyCohort(parent: ICohort) {
+  const cht: ICohort = new Cohort({ id: EMPTY_COHORT_ID, dbId: NaN, labelOne: 'Empty', labelTwo: '' }, null, {
     database: null,
     schema: null,
     table: null,
@@ -959,8 +955,8 @@ export function getEmptyCohort(parent: Cohort) {
 }
 
 export const LOADER_COHORT_ID = '--LOADING--';
-export function getLoaderCohort(parent: Cohort) {
-  const cht = new Cohort({ id: LOADER_COHORT_ID, dbId: NaN, labelOne: 'Loading', labelTwo: '' }, null, {
+export function getLoaderCohort(parent: ICohort) {
+  const cht: ICohort = new Cohort({ id: LOADER_COHORT_ID, dbId: NaN, labelOne: 'Loading', labelTwo: '' }, null, {
     database: null,
     schema: null,
     table: null,
@@ -972,10 +968,10 @@ export function getLoaderCohort(parent: Cohort) {
   return cht;
 }
 
-export function getCohortLabel(cht: Cohort) {
+export function getCohortLabel(cht: ICohort) {
   return cht.label;
 }
 
-export function getCohortLabels(cohorts: Cohort[]) {
+export function getCohortLabels(cohorts: ICohort[]) {
   return cohorts.map((cht) => getCohortLabel(cht));
 }

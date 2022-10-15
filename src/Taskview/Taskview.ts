@@ -1,5 +1,5 @@
-import { Cohort, EMPTY_COHORT_ID, getEmptyCohort, getLoaderCohort, LOADER_COHORT_ID } from '../Cohort';
-import { ITaskParams, TaskType } from '../app/interfaces';
+import { EMPTY_COHORT_ID, getEmptyCohort, getLoaderCohort, LOADER_COHORT_ID } from '../Cohort';
+import { ICohort, IInputCohort, IOutputCohort, ITaskParams, TaskType } from '../app/interfaces';
 import { RectCohortRep } from '../CohortRepresentations';
 import { IAttribute, multiAttributeFilter } from '../data/Attribute';
 import { RectangleLayout } from '../Overview/OverviewLayout';
@@ -70,7 +70,7 @@ export default class Taskview {
 
   private columnSortListener: EventListenerOrEventListenerObject = (ev) => this.handleColumnSortEvent(ev as ColumnSortEvent);
 
-  constructor(public readonly $node: HTMLDivElement, private reference: Cohort) {
+  constructor(public readonly $node: HTMLDivElement, private reference: ICohort) {
     this.$node.classList.add('task-view');
 
     const inNode = document.createElement('div');
@@ -100,7 +100,7 @@ export default class Taskview {
 
   public async handleColumnSortEvent(ev: ColumnSortEvent) {
     const sortDetail = ev.detail;
-    const inputChts = this.getInputCohorts() as InputCohort[];
+    const inputChts = this.getInputCohorts() as IInputCohort[];
     if (sortDetail.sortInputChts) {
       // sort input cohort
       const defaultOrder = this.input.cohortOrder;
@@ -108,7 +108,7 @@ export default class Taskview {
     } else {
       // sort output cohort for each input cohort
       for (const inCht of inputChts) {
-        const currOutChts = inCht.outputCohorts as OutputCohort[];
+        const currOutChts = inCht.outputCohorts as IOutputCohort[];
         const outputOrder = this.output.cohortOrders.filter((order) => order.inputCht === inCht.dbId);
         const defaultOrder = outputOrder.length === 1 ? outputOrder[0].cohorts : currOutChts.map((cht) => cht.dbId);
         await this.sortCohorts(sortDetail.type, currOutChts, defaultOrder);
@@ -133,7 +133,7 @@ export default class Taskview {
     this.orderCohorts();
   }
 
-  private async sortCohorts(type: SortType, cohortsToSort: Cohort[], defaultOrder: number[]) {
+  private async sortCohorts(type: SortType, cohortsToSort: ICohort[], defaultOrder: number[]) {
     if (type === SortType.Default) {
       // sort by default
       const sortingArray = defaultOrder;
@@ -176,7 +176,7 @@ export default class Taskview {
     return 0;
   }
 
-  private async sortCohortsBySize(descending: boolean, cohortsToSort: Cohort[]) {
+  private async sortCohortsBySize(descending: boolean, cohortsToSort: ICohort[]) {
     const chtSizes = [];
     for (const cht of cohortsToSort) {
       const currSize = await cht.size;
@@ -219,8 +219,8 @@ export default class Taskview {
     this.$node.dispatchEvent(new ConfirmTaskEvent(this.taskParams, this.taskAttributes));
   }
 
-  public setInputCohorts(cohorts: Cohort[]): void {
-    this.input.setCohorts(cohorts as InputCohort[]);
+  public setInputCohorts(cohorts: ICohort[]): void {
+    this.input.setCohorts(cohorts as IInputCohort[]);
     this.search.updateTasks();
     const outChts = [].concat(...this.input.cohorts.map((cht) => cht.outputCohorts));
     this.setOutputCohorts(outChts);
@@ -230,19 +230,19 @@ export default class Taskview {
     this.input.update(); // adjust height after removing output cohorts
   }
 
-  public getInputCohorts(): Cohort[] {
+  public getInputCohorts(): IInputCohort[] {
     return this.input.cohorts;
   }
 
-  public getOutputCohorts(): Cohort[] {
+  public getOutputCohorts(): ICohort[] {
     return this.output ? this.output.cohorts : [];
   }
 
-  public setOutputCohorts(cohorts: Cohort[]): void {
+  public setOutputCohorts(cohorts: ICohort[]): void {
     this.output.setCohorts(cohorts);
   }
 
-  public setReference(reference: Cohort): void {
+  public setReference(reference: ICohort): void {
     this.reference = reference;
   }
 
@@ -282,17 +282,17 @@ export default class Taskview {
 
   async handleFilterEvent(ev: FilterEvent | SplitEvent) {
     const currentEv = ++this.currentEvent;
-    let outputCohorts = []; // Stores the output cohorts in correct order, will replace the array currently used
+    let outputCohorts: IOutputCohort[] = []; // Stores the output cohorts in correct order, will replace the array currently used
     const taskWithSelectedOutput: ITaskParams[] = [];
     this.taskParams = [];
     this.taskAttributes = ev.detail.desc[0].filter.map((filter) => filter.attr);
 
     for (const inCht of this.input.cohorts) {
       const chtBins = ev.detail.desc.filter((bin) => inCht.id === bin.cohort.id);
-      const outChts = new Array(Math.max(chtBins.length, 1)).fill(null).map(() => getLoaderCohort(inCht));
+      const outChts: IOutputCohort[] = new Array(Math.max(chtBins.length, 1)).fill(null).map(() => getLoaderCohort(inCht) as unknown as IOutputCohort);
 
-      (outChts[outChts.length - 1] as OutputCohort).isLastOutputCohort = true;
-      (outChts[0] as OutputCohort).isFirstOutputCohort = true;
+      outChts[outChts.length - 1].isLastOutputCohort = true;
+      outChts[0].isFirstOutputCohort = true;
 
       inCht.outputCohorts = outChts;
       outputCohorts.push(...outChts);
@@ -337,13 +337,13 @@ export default class Taskview {
             }
           });
 
-          (newOutCht as Cohort).setCohortParents([cht]);
+          newOutCht.setCohortParents([cht]);
           cht.outputCohorts.push(newOutCht); // Add new output cohort to existing cohorts
         }
 
         await Promise.all(chtSizes); // wait for the cohort sizes to properly display the representation
       } else {
-        cht.outputCohorts.push(getEmptyCohort(cht));
+        cht.outputCohorts.push(getEmptyCohort(cht) as IOutputCohort);
       }
 
       // the async/time instensive stuff is done now, check if we should continue:
@@ -351,8 +351,8 @@ export default class Taskview {
         return;
       }
 
-      (cht.outputCohorts[cht.outputCohorts.length - 1] as OutputCohort).isLastOutputCohort = true;
-      (cht.outputCohorts[0] as OutputCohort).isFirstOutputCohort = true;
+      cht.outputCohorts[cht.outputCohorts.length - 1].isLastOutputCohort = true;
+      cht.outputCohorts[0].isFirstOutputCohort = true;
       outputCohorts.push(...cht.outputCohorts); // add all output cohorts of current input cohorts (ensures correct order in output side)
 
       if (chtBins.length > 0) {
@@ -399,7 +399,7 @@ abstract class TaskviewTable {
 
   columns: AColumn[] = [];
 
-  cohorts: Cohort[] = [];
+  cohorts: ICohort[] = [];
 
   constructor(private $wrapper: HTMLDivElement) {
     this.$wrapper.classList.add('task-view-table-button-wrapper');
@@ -439,7 +439,7 @@ abstract class TaskviewTable {
     this.setCohorts(this.cohorts);
   }
 
-  public setCohorts(cohorts: Cohort[]) {
+  public setCohorts(cohorts: ICohort[]) {
     this.cohorts = cohorts;
     for (const column of this.columns) {
       column.setCohorts(cohorts);
@@ -448,7 +448,7 @@ abstract class TaskviewTable {
     this.$floatingBtns.hidden = cohorts.filter((cht) => cht.id !== LOADER_COHORT_ID && cht.id !== EMPTY_COHORT_ID).length === 0;
   }
 
-  public addCohort(cht: Cohort) {
+  public addCohort(cht: ICohort) {
     this.cohorts.push(cht);
     this.setCohorts(this.cohorts);
   }
@@ -511,7 +511,7 @@ abstract class TaskviewTable {
 class TaskviewInput extends TaskviewTable {
   cohortOrder: number[];
 
-  cohorts: InputCohort[];
+  cohorts: IInputCohort[];
 
   usedColorsForCohorts = CoralColorSchema.COLOR_SCHEME.map((elem) => {
     return { color: elem, cohorts: [] };
@@ -521,7 +521,7 @@ class TaskviewInput extends TaskviewTable {
 
   maxColors: number;
 
-  constructor($wrapper: HTMLDivElement, reference: Cohort, private taskview: Taskview) {
+  constructor($wrapper: HTMLDivElement, reference: ICohort, private taskview: Taskview) {
     super($wrapper);
     this.$node.classList.add('input');
 
@@ -542,7 +542,7 @@ class TaskviewInput extends TaskviewTable {
     this.maxColors = this.usedColorsForCohorts.length;
   }
 
-  public setCohorts(cohorts: InputCohort[]) {
+  public setCohorts(cohorts: IInputCohort[]) {
     this.clearColorCohorts();
     cohorts.filter((cht) => !cht.outputCohorts).forEach((cht) => (cht.outputCohorts = [])); // handle undefined outputCohort array
 
@@ -603,7 +603,7 @@ class TaskviewOutput extends TaskviewTable {
 
   private outputCohortCol: OutputCohortColumn;
 
-  constructor($wrapper: HTMLDivElement, reference: Cohort, private taskview: Taskview) {
+  constructor($wrapper: HTMLDivElement, reference: ICohort, private taskview: Taskview) {
     super($wrapper);
     $wrapper.classList.add('output');
 
@@ -650,13 +650,13 @@ class TaskviewOutput extends TaskviewTable {
   clear() {
     super.clear();
 
-    this.taskview.getInputCohorts().forEach((cht) => ((cht as InputCohort).outputCohorts = []));
+    this.taskview.getInputCohorts().forEach((cht) => ((cht as IInputCohort).outputCohorts = []));
     this.taskview.updateInput();
     // remove the preview by setting the taskParams to an empty array
     this.$node.dispatchEvent(new PreviewChangeEvent([], null));
   }
 
-  public setCohorts(cohorts: Cohort[]) {
+  public setCohorts(cohorts: ICohort[]) {
     super.setCohorts(cohorts);
 
     // set order of output cohorts for each input cohort
@@ -676,14 +676,4 @@ class TaskviewOutput extends TaskviewTable {
     }
     this.outputCohortCol.setDefaultSort();
   }
-}
-
-export class InputCohort extends Cohort {
-  outputCohorts: Cohort[] = [];
-}
-
-export class OutputCohort extends Cohort {
-  public isLastOutputCohort = false; // used to add a paddding between outputcohorts of different input cohorts
-
-  public isFirstOutputCohort = false; // used to add a paddding between outputcohorts of different input cohorts
 }

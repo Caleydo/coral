@@ -1,13 +1,14 @@
 import tippy from 'tippy.js';
 import { select } from 'd3v7';
-import { Cohort, EMPTY_COHORT_ID, LOADER_COHORT_ID } from '../../Cohort';
+import { EMPTY_COHORT_ID, LOADER_COHORT_ID } from '../../Cohort';
 import { colors } from '../../config/colors';
 import { getAnimatedLoadingBars, log } from '../../util';
 import { ColumnCloseEvent } from '../../base/events';
-import Taskview, { InputCohort, OutputCohort } from '../Taskview';
+import Taskview from '../Taskview';
 import { taskview } from '../../cohortview';
 import { toAttribute } from '../../data/Attribute';
-import { SearchBar } from '../../Taskview/SearchBar';
+import { SearchBar } from '../SearchBar';
+import { ICohort, IInputCohort, IOutputCohort } from '../../app/interfaces';
 
 function createSearchBarTooltip(elemWithTooltip: HTMLDivElement, cssClassName: string, database: string, view: string, positionStart = true) {
   // start of tooltip content
@@ -108,7 +109,7 @@ export abstract class AColumn {
     this.$container.dispatchEvent(new ColumnCloseEvent(this));
   }
 
-  public abstract setCohorts(cohorts: Cohort[]);
+  public abstract setCohorts(cohorts: ICohort[]);
 }
 
 /**
@@ -119,9 +120,9 @@ export abstract class ADataColumn extends AColumn {
 
   private dataCells;
 
-  public setCohorts(cohorts: Cohort[]) {
+  public setCohorts(cohorts: ICohort[]) {
     this.dataCells = select(this.$column)
-      .selectAll<HTMLDivElement, Cohort>('div.data')
+      .selectAll<HTMLDivElement, ICohort>('div.data')
       .data(cohorts, (d) => d.id);
     const _thisColumn = this;
 
@@ -143,12 +144,12 @@ export abstract class ADataColumn extends AColumn {
     this.dataCells.exit().remove(); // Exit
   }
 
-  public orderCohorts(cohorts: Cohort[]) {
+  public orderCohorts(cohorts: ICohort[]) {
     this.setCohorts(cohorts);
     this.dataCells.order();
   }
 
-  async setCell(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void> {
+  async setCell(cell: HTMLDivElement, cht: ICohort, index: number): Promise<void> {
     log.debug('Set cell for cohort', cht.label);
     this.setCellStyle(cell, cht, index);
 
@@ -163,12 +164,12 @@ export abstract class ADataColumn extends AColumn {
     }
   }
 
-  async setCellStyle(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void> {
+  async setCellStyle(cell: HTMLDivElement, cht: ICohort, index: number): Promise<void> {
     let cellHeight = 56; // Cohort Representation + Padding + Border Top = 52px + 2*2px + 1px = 57px
 
-    if ((cht as InputCohort).outputCohorts) {
+    if ((cht as IInputCohort).outputCohorts) {
       // check chohort type -> InputCohort always has a outputCohorts array
-      const rows = (cht as InputCohort).outputCohorts.length; // one row for each output cohort
+      const rows = (cht as IInputCohort).outputCohorts.length; // one row for each output cohort
       cellHeight *= Math.max(rows, 1); // at least one row
       cellHeight += 10 - 2; // extra padding - default padding
       cellHeight += 1; // border
@@ -179,12 +180,12 @@ export abstract class ADataColumn extends AColumn {
       cell.dataset.inputCohort = `${parent.dbId}`;
       cell.classList.remove('last-output-cohort');
       cell.classList.remove('first-output-cohort');
-      if ((cht as OutputCohort).isLastOutputCohort) {
+      if ((cht as IOutputCohort).isLastOutputCohort) {
         cell.classList.add('last-output-cohort');
         cellHeight += 10 - 2; // extra padding - default padding
         cellHeight += 1; // border
       }
-      if ((cht as OutputCohort).isFirstOutputCohort) {
+      if ((cht as IOutputCohort).isFirstOutputCohort) {
         cell.classList.add('first-output-cohort');
         cellHeight += 0; // margin (not part of border-box)
       }
@@ -195,7 +196,7 @@ export abstract class ADataColumn extends AColumn {
     cell.classList.toggle('deselected', !selected);
   }
 
-  abstract setCellContent(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void>;
+  abstract setCellContent(cell: HTMLDivElement, cht: ICohort, index: number): Promise<void>;
 }
 
 /**
@@ -209,7 +210,7 @@ export class EmptyColumn extends ADataColumn {
     this.showLoadingAnimation = false;
   }
 
-  async setCellContent(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void> {
+  async setCellContent(cell: HTMLDivElement, cht: ICohort, index: number): Promise<void> {
     // Empty
   }
 }
@@ -245,7 +246,7 @@ export default class AddColumnColumn extends ADataColumn {
     createSearchBarTooltip(divAdd, cssClassName, database, view, onInputCohortSide);
   }
 
-  async setCellContent(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void> {
+  async setCellContent(cell: HTMLDivElement, cht: ICohort, index: number): Promise<void> {
     // Empty
   }
 }

@@ -2,7 +2,18 @@ import { IObjectRef, ObjectRefUtils, ProvenanceGraph, UniqueIdManager, IDatabase
 import tippy from 'tippy.js';
 import { CoralApp } from '../app/CoralApp';
 import { Cohort, createCohortFromDB } from '../Cohort';
-import { ElementProvType, IElement, IElementProvJSON, IOverviewLayout, IRectCohortRep, IRectTaskRep, ITask, ITaskParams, TaskType } from '../app/interfaces';
+import {
+  EElementProvType,
+  ICohort,
+  IElement,
+  IElementProvJSON,
+  IOverviewLayout,
+  IRectCohortRep,
+  IRectTaskRep,
+  ITask,
+  ITaskParams,
+  TaskType,
+} from '../app/interfaces';
 import { RectCohortRep } from '../CohortRepresentations';
 import { IAttribute } from '../data/Attribute';
 import { addOverviewCohortAction, removeOverviewCohortAction } from '../Provenance/CohortEV';
@@ -25,7 +36,7 @@ import { niceName } from '../utils/labels';
 import { RectangleLayout } from './OverviewLayout';
 
 export class CohortOverview {
-  private root: Cohort;
+  private root: ICohort;
 
   private rootDBid: number;
 
@@ -67,14 +78,14 @@ export class CohortOverview {
 
   private refName = 'CohortApp-Overview';
 
-  private _reference: Cohort;
+  private _reference: ICohort;
 
   constructor(
     private parent: HTMLDivElement,
     graph: ProvenanceGraph,
     ref: IObjectRef<CoralApp>,
     layout: IOverviewLayout,
-    root: Cohort,
+    root: ICohort,
     viewDescr: IDatabaseViewDesc,
   ) {
     this.root = root;
@@ -236,7 +247,7 @@ export class CohortOverview {
   public executeTask(taskParam: ITaskParams, attributes: IAttribute[], addToTaskHistory = true): Task {
     log.debug('executeTask: ', taskParam);
     let validType = false;
-    const parentCohort: Cohort = taskParam.inputCohorts[0] as Cohort;
+    const parentCohort: ICohort = taskParam.inputCohorts[0];
     let task: ITask;
     if (taskParam.type === TaskType.Filter) {
       validType = true;
@@ -417,7 +428,7 @@ export class CohortOverview {
       }
 
       // create missing Cohorts
-      const jsonCohorts = jsonElementsToCreate.filter((elem) => elem.type === ElementProvType.Cohort);
+      const jsonCohorts = jsonElementsToCreate.filter((elem) => elem.type === EElementProvType.Cohort);
       const cohortIDs: number[] = jsonCohorts.map((elem) => Number(elem.id));
       // get cohort DB data
       const chtSizes = [];
@@ -448,7 +459,7 @@ export class CohortOverview {
       // console.log('root element found (AFTER): ', foundRoot);
 
       // create missing Tasks
-      const jsonTasks = jsonElementsToCreate.filter((elem) => elem.type !== ElementProvType.Cohort);
+      const jsonTasks = jsonElementsToCreate.filter((elem) => elem.type !== EElementProvType.Cohort);
       for (const jsonT of jsonTasks) {
         const newTask = createTaskFromProvJSON(jsonT);
         provElements.push(newTask);

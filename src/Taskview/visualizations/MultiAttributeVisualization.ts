@@ -23,9 +23,9 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
 
   protected colorPalette: string[];
 
-  protected nullValueMap: Map<string, Map<Cohort, number>>;
+  protected nullValueMap: Map<string, Map<ICohort, number>>;
 
-  async show(container: HTMLDivElement, attributes: IAttribute[], cohorts: Cohort[]) {
+  async show(container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]) {
     log.debug('show: ', { container, attributes, cohorts });
     if (attributes.length <= 1) {
       throw new Error('Number of attributes must be at least 2');
@@ -76,7 +76,7 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
     const flatData = <IdValuePair[]>data.flat(1);
 
     // check if all values are null
-    this.nullValueMap = new Map<string, Map<Cohort, number>>(); // Map: Attribute -> Cohort --> number of null values per cohort per attribute
+    this.nullValueMap = new Map<string, Map<ICohort, number>>(); // Map: Attribute -> Cohort --> number of null values per cohort per attribute
     this.attributes.forEach((attr) => this.nullValueMap.set(attr.dataKey, new Map(this.cohorts.map((cht) => [cht, 0])))); // init map with 0 for all attribues
 
     let nullValues = 0;

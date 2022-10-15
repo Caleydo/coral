@@ -1,18 +1,18 @@
 import { IObjectRef, ProvenanceGraph, IDatabaseViewDesc, RestBaseUtils } from 'tdp_core';
 import { CohortSelectionListener } from './app/CoralSelectionListener';
 import { CoralApp } from './app/CoralApp';
-import { Cohort } from './Cohort';
 import { OnboardingManager } from './OnboardingManager';
 import { CohortOverview } from './Overview/CohortOverview';
 import { RectangleLayout } from './Overview/OverviewLayout';
 import Taskview from './Taskview/Taskview';
 import { handleDataLoadError, log } from './util';
 import { IEntitySourceConfig } from './config/entities';
+import { ICohort } from './app/interfaces';
 
 export let cohortOverview: CohortOverview;
 export let taskview: Taskview;
 
-let referenceCohort: Cohort;
+let referenceCohort: ICohort;
 
 export async function createCohortOverview(
   graph: ProvenanceGraph,
@@ -20,7 +20,7 @@ export async function createCohortOverview(
   container: HTMLDivElement,
   detailView: HTMLDivElement,
   idTypeConfig: IEntitySourceConfig,
-  rootCohort: Cohort,
+  rootCohort: ICohort,
 ): Promise<{ cohortOV: CohortOverview; taskV: Taskview }> {
   const viewDescription: IDatabaseViewDesc = await loadViewDescription(idTypeConfig.dbConnectorName, idTypeConfig.viewName);
   log.debug('retrievedViewDesctiprion', viewDescription);
@@ -47,7 +47,7 @@ export async function createCohortOverview(
   };
 }
 
-export function getRootCohort(): Cohort {
+export function getRootCohort(): ICohort {
   return referenceCohort;
 }
 

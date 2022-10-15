@@ -1,7 +1,6 @@
 import { hsl } from 'd3v7';
 import tippy from 'tippy.js';
-import { Cohort } from './Cohort';
-import { IElement, IRectCohortRep } from './app/interfaces';
+import { IBloodlineElement, ICohort, IElement, IRectCohortRep } from './app/interfaces';
 import { getRootCohort } from './cohortview';
 import { log } from './util';
 import { CohortRemoveEvent, CohortSelectionEvent } from './base/events';
@@ -22,11 +21,11 @@ export class RectCohortRep implements IRectCohortRep {
 
   private _width: number;
 
-  private _cohort: Cohort;
+  private _cohort: ICohort;
 
   private _isSelected: boolean;
 
-  private _bloodline: Array<any>;
+  private _bloodline: any[];
 
   private _bloodlinePaths: SVGPathElement[];
 
@@ -36,7 +35,7 @@ export class RectCohortRep implements IRectCohortRep {
 
   private _refSize: number;
 
-  constructor(private cohort: Cohort, height: number, width: number) {
+  constructor(private cohort: ICohort, height: number, width: number) {
     this.id = cohort.id;
     this.labelOne = cohort.labelOne;
     this.labelTwo = cohort.labelTwo;
@@ -188,10 +187,10 @@ export class RectCohortRep implements IRectCohortRep {
                 delConfirm = modal.querySelector('.confirm-delete');
 
                 // add click event to delete button
-                delConfirm.addEventListener('click', (event) => {
+                delConfirm.addEventListener('click', (event2) => {
                   // dispatch event to remove cohort and its children
                   container.dispatchEvent(new CohortRemoveEvent(this.cohort));
-                  event.stopPropagation();
+                  event2.stopPropagation();
                   // hide modal
                   ($('#deleteModal') as any).modal('hide');
                 });
@@ -497,7 +496,7 @@ export class RectCohortRep implements IRectCohortRep {
         const cohort = this._bloodline[i - 1];
         // TODO labels
         // const valueLabel = cohort.obj.labelTwo.replace(htmlLte,'<=').replace(htmlLt,'<');
-        const cohortObj = cohort.obj as Cohort;
+        const cohortObj = cohort.obj as ICohort;
         ttInfo.chtName = cohortObj.label;
         ttInfo.chtSize = cohort.size;
         ttInfo.prevSize = previousSize;
@@ -537,7 +536,7 @@ export class RectCohortRep implements IRectCohortRep {
     } else {
       const cohort = this._bloodline[0];
       const ttInfo = { chtName: '', chtSize: 0, prevSize: 0, percentage: 0, attr: [] };
-      const cohortObj = cohort.obj as Cohort;
+      const cohortObj = cohort.obj as ICohort;
       ttInfo.chtName = cohortObj.label;
       ttInfo.chtSize = cohort.size;
       ttInfo.prevSize = previousSize;

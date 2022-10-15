@@ -115,7 +115,7 @@ export interface IAttribute {
 
   getCount(cohortDbId: number, filters?: IAllFilters): Promise<number>;
 
-  filter(cht: ICohort, filter: INumRange[] | IEqualsList): Promise<Cohort>;
+  filter(cht: ICohort, filter: INumRange[] | IEqualsList): Promise<ICohort>;
 
   toJSON();
 }
@@ -176,7 +176,7 @@ export abstract class Attribute implements IAttribute {
     return getCohortSize({ cohortId: cohortDbId });
   }
 
-  abstract filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort>;
+  abstract filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<ICohort>;
 
   abstract toJSON(): IAttributeJSON;
 }
@@ -190,7 +190,7 @@ export class ServerColumnAttribute extends Attribute {
     this.categories = serverColumn.categories as string[];
   }
 
-  async filter(cht: Cohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort> {
+  async filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<ICohort> {
     if (Array.isArray(filter)) {
       // TODO label
       // const label = rangeLabel ? rangeLabel : filter.map((a) => labelFromFilter(a, this)).join(' / ');
@@ -253,7 +253,7 @@ export class SpecialAttribute extends Attribute {
     return null;
   }
 
-  async filter(cht: Cohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort> {
+  async filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<ICohort> {
     if (this.spAttribute.overrideFilter) {
       // this.spAttribute.attributeOption = this.attrOption;
       // TODO label
@@ -368,7 +368,7 @@ export class GeneScoreAttribute extends AScoreAttribute {
     });
   }
 
-  async filter(cht: Cohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort> {
+  async filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<ICohort> {
     const param = this.getParam();
     if (Array.isArray(filter)) {
       // TODO label
@@ -509,7 +509,7 @@ export class PanelScoreAttribute extends AScoreAttribute {
     return this.getHistWithStorage(type, params);
   }
 
-  async filter(cht: Cohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort> {
+  async filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<ICohort> {
     if (Array.isArray(filter)) {
       throw new Error('not implemented ☠');
     } else {
@@ -583,7 +583,7 @@ function subType2Type(subType: string): AttributeType {
   }
 }
 
-export async function multiFilter(baseCohort: Cohort, attributes: IAttribute[], filters: Array<IEqualsList | INumRange[]>): Promise<Cohort> {
+export async function multiFilter(baseCohort: ICohort, attributes: IAttribute[], filters: Array<IEqualsList | INumRange[]>): Promise<ICohort> {
   if (attributes.length !== filters.length) {
     throw new Error(`Number of filters has to match the number of attribtues`);
   }
@@ -594,7 +594,7 @@ export async function multiFilter(baseCohort: Cohort, attributes: IAttribute[], 
   );
 }
 
-export async function multiAttributeFilter(baseCohort: Cohort, filters: IAttributeFilter[]): Promise<Cohort> {
+export async function multiAttributeFilter(baseCohort: ICohort, filters: IAttributeFilter[]): Promise<ICohort> {
   let newCohort = baseCohort;
 
   const labelOne = [];

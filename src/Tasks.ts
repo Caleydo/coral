@@ -1,5 +1,5 @@
 import { IAllFilters, IParams } from 'tdp_core';
-import { ElementProvType, IElement, IElementProvJSON, IElementProvJSONTask, ITask, ITaskRep, TaskType } from './app/interfaces';
+import { EElementProvType, IElement, IElementProvJSON, IElementProvJSONTask, ITask, ITaskRep, TaskType } from './app/interfaces';
 import { IAttribute, toAttribute } from './data/Attribute';
 import { deepCopy, log } from './util';
 
@@ -42,7 +42,7 @@ export class TaskFilter extends Task {
   public toProvenanceJSON(): IElementProvJSONTask {
     return {
       id: this.id,
-      type: ElementProvType.TaskFilter,
+      type: EElementProvType.TaskFilter,
       label: this.label,
       parent: this.parents.map((elem) => elem.id),
       children: this.children.map((elem) => elem.id),
@@ -62,7 +62,7 @@ export class TaskSplit extends Task {
   public toProvenanceJSON(): IElementProvJSONTask {
     return {
       id: this.id,
-      type: ElementProvType.TaskSplit,
+      type: EElementProvType.TaskSplit,
       label: this.label,
       parent: this.parents.map((elem) => elem.id),
       children: this.children.map((elem) => elem.id),
@@ -79,7 +79,7 @@ export function createTaskFromProvJSON(config: IElementProvJSON): Task {
     return toAttribute(elem.option, elem.currentDB, elem.currentView);
   });
 
-  if (config.type === ElementProvType.TaskFilter) {
+  if (config.type === EElementProvType.TaskFilter) {
     return new TaskFilter(config.id, config.label, attributes);
   }
   return new TaskSplit(config.id, config.label, attributes);

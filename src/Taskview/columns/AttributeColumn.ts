@@ -1,16 +1,16 @@
 import { select } from 'd3v7';
 import vegaEmbed from 'vega-embed';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
-import { Cohort } from '../../Cohort';
 import { colors } from '../../config/colors';
 import { IAttribute } from '../../data/Attribute';
 import { IEqualsList, INumRange, NumRangeOperators } from '../../base/rest';
 import { getAnimatedLoadingBars, log } from '../../util';
 import { easyLabelFromFilter, niceName } from '../../utils/labels';
 import { ADataColumn } from './AColumn';
+import { ICohort } from '../../app/interfaces';
 
 export default class AttributeColumn extends ADataColumn {
-  private hists: WeakMap<Cohort, Histogram> = new WeakMap();
+  private hists: WeakMap<ICohort, Histogram> = new WeakMap();
 
   private showOutputChtHistRef = false;
 
@@ -96,7 +96,7 @@ export default class AttributeColumn extends ADataColumn {
   }
 
   updateCellContent() {
-    const chts = select(this.$column).selectAll<HTMLDivElement, Cohort>('div.data').data();
+    const chts = select(this.$column).selectAll<HTMLDivElement, ICohort>('div.data').data();
     for (const cht of chts) {
       const hist = this.hists.get(cht);
       hist.showReference = this.showOutputChtHistRef;
@@ -135,7 +135,7 @@ export default class AttributeColumn extends ADataColumn {
     });
   }
 
-  async setCellStyle(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void> {
+  async setCellStyle(cell: HTMLDivElement, cht: ICohort, index: number): Promise<void> {
     super.setCellStyle(cell, cht, index);
 
     if (this.color) {
@@ -153,7 +153,7 @@ export default class AttributeColumn extends ADataColumn {
   }
 
   // called by base class in constructor
-  async setCellContent(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void> {
+  async setCellContent(cell: HTMLDivElement, cht: ICohort, index: number): Promise<void> {
     const hist = new Histogram(this.attribute, cht, this.showOutputChtHistRef, index, this.color);
     this.hists.set(cht, hist);
     cell.appendChild(hist.getNode());
@@ -171,7 +171,7 @@ class Histogram {
 
   public showReference = true;
 
-  constructor(private attribute: IAttribute, private cohort: Cohort, showReference, private index, private color) {
+  constructor(private attribute: IAttribute, private cohort: ICohort, showReference, private index, private color) {
     this.showReference = showReference;
     this.$node = document.createElement('div');
     this.$node.classList.add('hist');
