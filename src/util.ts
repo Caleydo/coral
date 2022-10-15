@@ -128,122 +128,24 @@ export function getAnimatedLoadingBars(): HTMLDivElement {
   return loadingContainer;
 }
 
-const category20 = [
-  // Based on Category20: https://vega.github.io/vega/docs/schemes/#category20
-  // Saturated
-  '#1f77b4',
-  '#2ca02c',
-  '#d62728',
-  '#9467bd',
-  '#8c564b',
-  '#e377c2',
-  '#7f7f7f',
-  '#bcbd22',
-  // unsaturated
-  '#aec7e8',
-  '#98df8a',
-  '#ff9896',
-  '#c5b0d5',
-  '#c49c94',
-  '#f7b6d2',
-  '#c7c7c7',
-  '#dbdb8d',
-];
-
-const tableau20 = [
-  // Based on Tableau20: https://vega.github.io/vega/docs/schemes/#tableau20
-  // Saturated
-  '#4c78a8',
-  '#54a24b',
-  '#e45756',
-  '#79706e',
-  '#d67195',
-  '#b279a2',
-  '#9e765f',
-  // unsaturated
-  '#9ecae9',
-  '#88d27a',
-  '#ff9d98',
-  '#bab0ac',
-  '#fcbfd2',
-  '#d6a5c9',
-  '#d8b5a5',
-];
-
-const pastel1 = [
-  // based on patel1: https://vega.github.io/vega/docs/schemes/#pastel1
-  '#fbb4ae' /* p1:red */,
-  '#b3cde3' /* p1:blue */,
-  '#ccebc5' /* p1:green */,
-  '#decbe4' /* p1:lila */,
-  '#fed9a6' /* p1:orange */,
-  '#ffffcc' /* p1:yellow */,
-  '#e5d8bd' /* p1:brown */,
-  '#fddaec' /* p1:pink */,
-  '#f2f2f2' /* p1:grey */,
-];
-
-const pastel2 = [
-  // based on pastel2: https://vega.github.io/vega/docs/schemes/#pastel2
-  '#b3e2cd' /* p2:dark green */,
-  '#fdcdac' /* p2:orange */,
-  '#cbd5e8' /* p2:blue */,
-  '#f4cae4' /* p2:pink */,
-  '#e6f5c9' /* p2:light green */,
-  '#fff2ae' /* p2:yellow */,
-  '#f1e2cc' /* p2:brown */,
-  '#cccccc' /* p2:grey */,
-];
-
-const set2 = [
-  // based on set3: https://vega.github.io/vega/docs/schemes/#set2
-  // -> rearranged and without turquose, and grey
-  '#fc8d62' /* red */,
-  '#8da0cb' /* blue */,
-  '#e78ac3' /* pink */,
-  '#a6d854' /* green */,
-  '#ffd92f' /* yellow */,
-  '#e5c494' /* brown */,
-  // '#66c2a5' /* turquose */,
-  // '#b3b3b3' /* grey*/,
-];
-
-const set3 = [
-  // based on set3: https://vega.github.io/vega/docs/schemes/#set3
-  // -> rearranged and without orange, turquose, and grey
-  '#8dd3c7' /* set3:turquose */,
-  '#fdb462' /* set3:orange */,
-  '#b3de69' /* set3:green */,
-  '#fb8072' /* set3:red */,
-  '#ffed6f' /* set3:yellow */,
-  '#bc80bd' /* set3:lila */,
-  '#80b1d3' /* set3:blue */,
-  '#fccde5' /* set3:pink */,
-  '#ccebc5' /* set3:mint */,
-  '#bebada' /* set3:light lila */,
-  '#d8b5a5' /* t20: light brown */,
-  // '#ffffb3' /* set3:light yellow */,
-  // '#d9d9d9' /* set3:grey */,
-];
-
-const combination = [
-  // combination of different set: set3, tableau20, pastel1 & 2
-  '#80b1d3' /* set3:blue */,
-  '#fb8072' /* set3:red */,
-  '#b3de69' /* set3:green */,
-  '#bc80bd' /* set3:lila */,
-  '#ffed6f' /* set3:yellow */,
-  '#fcbfd2' /* t20:light pink */,
-  '#d8b5a5' /* t20: light brown */,
-  '#e6f5c9' /* p2:light green */,
-  '#decbe4' /* p1:lila */,
-  '#ffffb3' /* set3:light yellow */,
-  '#fddaec' /* p1:pink */,
-  '#f1e2cc' /* p2:brown */,
-];
-
 export class CohortColorSchema {
-  static readonly COLOR_SCHEME = set3;
+  static readonly COLOR_SCHEME = [
+    // based on set3: https://vega.github.io/vega/docs/schemes/#set3
+    // -> rearranged and without orange, turquose, and grey
+    '#8dd3c7' /* set3:turquose */,
+    '#fdb462' /* set3:orange */,
+    '#b3de69' /* set3:green */,
+    '#fb8072' /* set3:red */,
+    '#ffed6f' /* set3:yellow */,
+    '#bc80bd' /* set3:lila */,
+    '#80b1d3' /* set3:blue */,
+    '#fccde5' /* set3:pink */,
+    '#ccebc5' /* set3:mint */,
+    '#bebada' /* set3:light lila */,
+    '#d8b5a5' /* t20: light brown */,
+    // '#ffffb3' /* set3:light yellow */,
+    // '#d9d9d9' /* set3:grey */,
+  ];
 
   static get(index: number): string {
     const moduloIndex = index % CohortColorSchema.COLOR_SCHEME.length;
