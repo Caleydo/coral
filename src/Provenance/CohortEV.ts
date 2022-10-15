@@ -1,5 +1,5 @@
 import { ActionMetaData, ActionUtils, ICmdResult, IObjectRef, ObjectRefUtils } from 'tdp_core';
-import { CohortApp } from '../app';
+import { CohortApp } from '../app/CohortApp';
 import { IElementProvJSON } from '../CohortInterfaces';
 import { CohortOverview } from '../Overview/CohortOverview';
 import { log } from '../util';

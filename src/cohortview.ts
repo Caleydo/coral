@@ -1,5 +1,6 @@
 import { IObjectRef, ProvenanceGraph, IDatabaseViewDesc, RestBaseUtils } from 'tdp_core';
-import { CohortApp, CohortSelectionListener } from './app';
+import { CohortSelectionListener } from './app/CohortSelectionListener';
+import { CohortApp } from './app/CohortApp';
 import { Cohort } from './Cohort';
 import { OnboardingManager } from './OnboardingManager';
 import { CohortOverview } from './Overview/CohortOverview';

@@ -1,6 +1,6 @@
 import { IObjectRef, ObjectRefUtils, ProvenanceGraph, UniqueIdManager, IDatabaseViewDesc } from 'tdp_core';
 import tippy from 'tippy.js';
-import { CohortApp } from '../app';
+import { CohortApp } from '../app/CohortApp';
 import { Cohort, createCohortFromDB } from '../Cohort';
 import { ElementProvType, IElement, IElementProvJSON, IOverviewLayout, IRectCohortRep, IRectTaskRep, ITask, ITaskParams, TaskType } from '../CohortInterfaces';
 import { RectCohortRep } from '../CohortRepresentations';
