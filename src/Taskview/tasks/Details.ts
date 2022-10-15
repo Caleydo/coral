@@ -2,7 +2,7 @@ import * as aq from 'arquero';
 import { select } from 'd3v7';
 import * as LineUpJS from 'lineupjs';
 import { Cohort } from '../../Cohort';
-import { ICohort } from '../../CohortInterfaces';
+import { ICohort } from '../../app/interfaces';
 import { colors } from '../../config/colors';
 import { IAttribute } from '../../data/Attribute';
 import { getCohortData } from '../../base/rest';

@@ -1,5 +1,5 @@
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
-import { ICohort } from '../../CohortInterfaces';
+import { ICohort } from '../../app/interfaces';
 import { IdValuePair } from '../../data/Attribute';
 import { colors } from '../../config/colors';
 import { log } from '../../util';

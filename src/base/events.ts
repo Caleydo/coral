@@ -1,5 +1,5 @@
 import { Cohort } from '../Cohort';
-import { ITaskParams } from '../CohortInterfaces';
+import { ITaskParams } from '../app/interfaces';
 import { IAttribute } from '../data/Attribute';
 import { Task } from '../Tasks';
 import { AColumn } from '../Taskview/columns/AColumn';

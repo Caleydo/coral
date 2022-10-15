@@ -1,7 +1,7 @@
 import { select, Selection } from 'd3v7';
 import * as logger from 'loglevel';
 import { NotificationHandler } from 'tdp_core';
-import { ICohort } from './CohortInterfaces';
+import { ICohort } from './app/interfaces';
 import { IAttribute } from './data/Attribute';
 import { IEqualsList, INumRange } from './base/rest';
 

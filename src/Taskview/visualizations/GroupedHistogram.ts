@@ -2,7 +2,7 @@ import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { Field } from 'vega-lite/build/src/channeldef';
 import { TopLevelUnitSpec } from 'vega-lite/build/src/spec/unit';
 import { getCohortLabel } from '../../Cohort';
-import { ICohort } from '../../CohortInterfaces';
+import { ICohort } from '../../app/interfaces';
 import { colors } from '../../config/colors';
 import { IdValuePair } from '../../data/Attribute';
 import { log } from '../../util';

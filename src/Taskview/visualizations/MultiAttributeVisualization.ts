@@ -4,7 +4,7 @@ import tippy from 'tippy.js';
 import vegaEmbed from 'vega-embed';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { Cohort, getCohortLabel } from '../../Cohort';
-import { ICohort } from '../../CohortInterfaces';
+import { ICohort } from '../../app/interfaces';
 import { IAttribute, IdValuePair } from '../../data/Attribute';
 import { log, selectLast } from '../../util';
 import { AVegaVisualization } from './AVegaVisualization';

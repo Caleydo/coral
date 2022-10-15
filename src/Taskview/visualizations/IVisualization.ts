@@ -1,4 +1,4 @@
-import { ICohort } from '../../CohortInterfaces';
+import { ICohort } from '../../app/interfaces';
 import { IAttribute } from '../../data/Attribute';
 
 export interface IVisualization {

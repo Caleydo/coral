@@ -1,5 +1,5 @@
 import { Cohort, EMPTY_COHORT_ID, getEmptyCohort, getLoaderCohort, LOADER_COHORT_ID } from '../Cohort';
-import { ITaskParams, TaskType } from '../CohortInterfaces';
+import { ITaskParams, TaskType } from '../app/interfaces';
 import { RectCohortRep } from '../CohortRepresentations';
 import { IAttribute, multiAttributeFilter } from '../data/Attribute';
 import { RectangleLayout } from '../Overview/OverviewLayout';

@@ -8,7 +8,7 @@ import { IdValuePair, ServerColumnAttribute } from '../../data/Attribute';
 import { DATA_LABEL } from './constants';
 import { getCohortLabel, getCohortLabels } from '../../Cohort';
 import { SingleAttributeVisualization, AVegaVisualization } from './AVegaVisualization';
-import { ICohort } from '../../CohortInterfaces';
+import { ICohort } from '../../app/interfaces';
 import { confidenceToggleGroup, confidenceNone } from './config/ConfidenceConfig';
 import confidenceIcon from '../../assets/icons/confidence.svg';
 

@@ -1,5 +1,5 @@
 import { Selection } from 'd3v7';
-import { ICohort } from '../../CohortInterfaces';
+import { ICohort } from '../../app/interfaces';
 import { IAttribute } from '../../data/Attribute';
 import { getAnimatedLoadingText, log } from '../../util';
 import { AreaChart } from '../visualizations/AreaChart';

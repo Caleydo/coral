@@ -1,5 +1,5 @@
 import { IAllFilters, IParams } from 'tdp_core';
-import { ElementProvType, IElement, IElementProvJSON, IElementProvJSONTask, ITask, ITaskRep, TaskType } from './CohortInterfaces';
+import { ElementProvType, IElement, IElementProvJSON, IElementProvJSONTask, ITask, ITaskRep, TaskType } from './app/interfaces';
 import { IAttribute, toAttribute } from './data/Attribute';
 import { deepCopy, log } from './util';
 

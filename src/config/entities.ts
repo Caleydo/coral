@@ -1,5 +1,5 @@
 import { cellline, tissue } from 'tdp_publicdb';
-import { ICohort } from '../CohortInterfaces';
+import { ICohort } from '../app/interfaces';
 
 export interface IEntitySourceConfig {
   idType: string;

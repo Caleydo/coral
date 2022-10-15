@@ -1,6 +1,6 @@
 import { ActionMetaData, ActionUtils, ICmdResult, IObjectRef, ObjectRefUtils } from 'tdp_core';
 import { CoralApp } from '../app/CoralApp';
-import { IElementProvJSON } from '../CohortInterfaces';
+import { IElementProvJSON } from '../app/interfaces';
 import { CohortOverview } from '../Overview/CohortOverview';
 import { log } from '../util';
 

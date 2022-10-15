@@ -1,7 +1,7 @@
 import { hsl } from 'd3v7';
 import tippy from 'tippy.js';
 import { Cohort } from './Cohort';
-import { IElement, IRectCohortRep } from './CohortInterfaces';
+import { IElement, IRectCohortRep } from './app/interfaces';
 import { getRootCohort } from './cohortview';
 import { log } from './util';
 import { CohortRemoveEvent, CohortSelectionEvent } from './base/events';

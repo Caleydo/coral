@@ -1,4 +1,4 @@
-import { IRectTaskRep } from './CohortInterfaces';
+import { IRectTaskRep } from './app/interfaces';
 import { Task } from './Tasks';
 import { TaskRemoveEvent } from './base/events';
 

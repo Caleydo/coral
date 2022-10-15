@@ -9,7 +9,7 @@ import {
   createCohortWithNumFilter,
   createCohortWithPanelAnnotationFilter,
 } from '../Cohort';
-import { ICohort } from '../CohortInterfaces';
+import { ICohort } from '../app/interfaces';
 import {
   getCohortData,
   getCohortDepletionScore,

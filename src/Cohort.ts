@@ -1,5 +1,5 @@
 import { IAllFilters, IDType, IDTypeLike, IDTypeManager, IRow, IServerColumn, UniqueIdManager } from 'tdp_core';
-import { ElementProvType, ICohort, ICohortRep, IElement, IElementProvJSONCohort, IProvAttrAndValuesCohort } from './CohortInterfaces';
+import { ElementProvType, ICohort, ICohortRep, IElement, IElementProvJSONCohort, IProvAttrAndValuesCohort } from './app/interfaces';
 import {
   createDBCohort,
   createDBCohortWithDepletionScoreFilter,

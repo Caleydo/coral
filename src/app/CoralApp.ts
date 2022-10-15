@@ -15,7 +15,7 @@ import {
 import { cellline, tissue } from 'tdp_publicdb';
 import { Instance as TippyInstance } from 'tippy.js';
 import { Cohort, createCohort, createCohortFromDB } from '../Cohort';
-import { IElementProvJSON, IElementProvJSONCohort, ITaskParams } from '../CohortInterfaces';
+import { IElementProvJSON, IElementProvJSONCohort, ITaskParams } from '../app/interfaces';
 import { cohortOverview, createCohortOverview, destroyOld, loadViewDescription, taskview } from '../cohortview';
 import { PanelScoreAttribute } from '../data/Attribute';
 import { OnboardingManager } from '../OnboardingManager';

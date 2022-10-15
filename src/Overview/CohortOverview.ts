@@ -2,7 +2,7 @@ import { IObjectRef, ObjectRefUtils, ProvenanceGraph, UniqueIdManager, IDatabase
 import tippy from 'tippy.js';
 import { CoralApp } from '../app/CoralApp';
 import { Cohort, createCohortFromDB } from '../Cohort';
-import { ElementProvType, IElement, IElementProvJSON, IOverviewLayout, IRectCohortRep, IRectTaskRep, ITask, ITaskParams, TaskType } from '../CohortInterfaces';
+import { ElementProvType, IElement, IElementProvJSON, IOverviewLayout, IRectCohortRep, IRectTaskRep, ITask, ITaskParams, TaskType } from '../app/interfaces';
 import { RectCohortRep } from '../CohortRepresentations';
 import { IAttribute } from '../data/Attribute';
 import { addOverviewCohortAction, removeOverviewCohortAction } from '../Provenance/CohortEV';

@@ -1,4 +1,4 @@
-import { ICohort, IElement, IOverviewLayout, IRectLayout, ITask } from '../CohortInterfaces';
+import { ICohort, IElement, IOverviewLayout, IRectLayout, ITask } from '../app/interfaces';
 import { Task } from '../Tasks';
 import { deepCopy, log } from '../util';
 
