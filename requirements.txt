@@ -1,1 +1,1 @@
-tdp_core@git+https://github.com/datavisyn/tdp_core.git@develop#egg=tdp_core
+tdp_core@git+https://github.com/datavisyn/tdp_core.git@upgrade_python_deps#egg=tdp_core

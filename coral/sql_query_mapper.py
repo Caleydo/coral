@@ -95,7 +95,7 @@ class QueryElements:
         try:
             return {c.key: getattr(row, c.key) for c in inspect(row).mapper.column_attrs}
         except NoInspectionAvailable:  # this exception is raised when the result is not of a registered sqlalchemy type due to which the inspection fails
-            result = dict()
+            result = {}
             result[COLUMN_LABEL_SCORE] = row[0]
             result[COLUMN_LABEL_ID] = row[1]
             return result
@@ -145,10 +145,7 @@ class QueryElements:
                 str_values = str_values + ("{val}, ".format(val=curr_val))
                 cnt += 1
 
-        if cnt > 0:
-            str_values = str_values[:-2]  # remove the last ', ' from the value list
-        else:
-            str_values = "-1"  # returns no cohorts -> ids are only positiv
+        str_values = str_values[:-2] if cnt > 0 else "-1"  # returns no cohorts -> ids are only positiv
 
         sql_text = "SELECT id, name, is_initial, previous_cohort, entity_database, entity_schema, entity_table FROM cohort.cohort c WHERE c.id IN ({str_values})".format(
             str_values=str_values
@@ -173,7 +170,7 @@ class QueryElements:
 
             session_data.query(Cohort).filter(Cohort.id == cohort_id).update({Cohort.name: name}, synchronize_session=False)
             # synchronize_session
-            # False - don’t synchronize the session. This option is the most efficient and is reliable once the session is expired,
+            # False - don`t synchronize the session. This option is the most efficient and is reliable once the session is expired,
             # which typically occurs after a commit(), or explicitly using expire_all(). Before the expiration,
             # updated objects may still remain in the session with stale values on their attributes, which can lead to confusing results.
 
@@ -341,19 +338,13 @@ class QueryElements:
                 if val.startswith("!"):
                     add_equals_not_value = True
                     val = val[1:]
-                    if numeric in ["true"]:  # determine if the values are strings or numbers
-                        curr_val = "{val}".format(val=val)
-                    else:
-                        curr_val = "'{val}'".format(val=val)
+                    curr_val = "{val}".format(val=val) if numeric in ["true"] else "'{val}'".format(val=val)
 
                     str_not_values = str_not_values + ("{val}, ".format(val=curr_val))
 
                 else:
                     add_equals_value = True
-                    if numeric in ["true"]:  # determine if the values are strings or numbers
-                        curr_val = "{val}".format(val=val)
-                    else:
-                        curr_val = "'{val}'".format(val=val)
+                    curr_val = "{val}".format(val=val) if numeric in ["true"] else "'{val}'".format(val=val)
 
                     str_values = str_values + ("{val}, ".format(val=curr_val))
 
@@ -455,10 +446,7 @@ class QueryElements:
             raise RuntimeError(error_msg)
 
         array_operation = "="
-        if base_agent in ["true"]:  # determine if the values are strings or numbers
-            array_operation = "@>"
-        else:
-            array_operation = "="
+        array_operation = "@>" if base_agent in ["true"] else "="
 
         entity_id_col = ""
         if cohort.entity_table == "tdp_tissue":
@@ -508,10 +496,7 @@ class QueryElements:
         # regimen is defined
         if regimen is not None:
             reg_sql = ("tmp.rn::int = {val}").format(val=regimen)
-            if agent is not None:
-                sql_where = sql_where + " AND " + reg_sql
-            else:
-                sql_where = reg_sql
+            sql_where = sql_where + " AND " + reg_sql if agent is not None else reg_sql
 
         # SQL with the combined filter (actual agent values, null values)
         sql_refiend = ""
@@ -555,10 +540,7 @@ class QueryElements:
                 base_table=cohort.entity_table,
             )
 
-            if agent_exists:
-                sql_refiend = sql_refiend + " UNION " + sql_null
-            else:
-                sql_refiend = sql_refiend + sql_null
+            sql_refiend = sql_refiend + " UNION " + sql_null if agent_exists else sql_refiend + sql_null
 
         # complete SQL statement that filters the data based on the given cohort
         new_sql_text = """SELECT cohort.* FROM ({entities}) cohort
