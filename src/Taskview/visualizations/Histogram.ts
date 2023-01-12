@@ -1,10 +1,10 @@
-import {TopLevelSpec as VegaLiteSpec} from 'vega-lite';
-import {ICohort} from '../../CohortInterfaces';
-import {IdValuePair} from '../../data/Attribute';
-import {colors} from '../../colors';
-import {log} from '../../util';
-import {AVegaVisualization, SingleAttributeVisualization} from './AVegaVisualization';
-import {DATA_LABEL} from './constants';
+import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
+import { ICohort } from '../../CohortInterfaces';
+import { IdValuePair } from '../../data/Attribute';
+import { colors } from '../../colors';
+import { log } from '../../util';
+import { AVegaVisualization, SingleAttributeVisualization } from './AVegaVisualization';
+import { DATA_LABEL } from './constants';
 
 export class VegaHistogram extends SingleAttributeVisualization {
   static readonly NAME = 'Histogram';
@@ -22,12 +22,13 @@ export class VegaHistogram extends SingleAttributeVisualization {
       this.sort = 'ascending';
     }
 
-    const vegaLiteSpecPart: Partial<VegaLiteSpec> = { // Specific to histogram
+    const vegaLiteSpecPart: Partial<VegaLiteSpec> = {
+      // Specific to histogram
       mark: {
         type: 'bar',
         tooltip: true,
         cursor: 'pointer',
-        height: 15
+        height: 15,
       },
       encoding: {
         [this.type === 'quantitative' ? 'x' : 'y']: {
@@ -36,20 +37,20 @@ export class VegaHistogram extends SingleAttributeVisualization {
           type: this.type,
           sort: this.sort,
           title: this.attribute.label,
-          scale: {clamp: true}
+          scale: { clamp: true },
         },
         [this.type === 'quantitative' ? 'y' : 'x']: {
           aggregate: 'count',
           type: 'quantitative',
           axis: {
-            orient: this.type === 'quantitative' ? 'left' : 'top'
+            orient: this.type === 'quantitative' ? 'left' : 'top',
           },
-          title: 'Count'
+          title: 'Count',
         },
         color: {
           field: DATA_LABEL,
           type: 'nominal',
-          legend: null  // use custom legend
+          legend: null, // use custom legend
         },
         stroke: {
           field: DATA_LABEL, // same color as fill, except for hover
@@ -58,27 +59,27 @@ export class VegaHistogram extends SingleAttributeVisualization {
             {
               param: AVegaVisualization.HIGHLIGHT_SIGNAL_NAME,
               empty: false,
-              value: colors.darkBorder
-            }
-          ]
+              value: colors.darkBorder,
+            },
+          ],
         },
         opacity: {
           condition: [
             {
               param: AVegaVisualization.SELECTION_SIGNAL_NAME,
-              value: 1
+              value: 1,
             },
             {
               param: AVegaVisualization.HIGHLIGHT_SIGNAL_NAME,
               empty: false,
-              value: 0.8 // not fully opaque --> you will notice a change when selection the bar
-            }
+              value: 0.8, // not fully opaque --> you will notice a change when selection the bar
+            },
           ],
-          value: 0.3
-        }
-      }
+          value: 0.3,
+        },
+      },
     };
-    const histSpec: VegaLiteSpec = Object.assign(super.getSpec(data), vegaLiteSpecPart) as VegaLiteSpec; //the combination gives a full spec
+    const histSpec: VegaLiteSpec = Object.assign(super.getSpec(data), vegaLiteSpecPart) as VegaLiteSpec; // the combination gives a full spec
 
     this.addHoverSelection(histSpec);
 
@@ -95,34 +96,34 @@ export class VegaHistogram extends SingleAttributeVisualization {
    * From == To for categorical data, e.g. FROM: male, TO: male
    * From is inclusive (>=) and TO exclusive (<) for numerical data, e.g. FROM 50 TO 60 = [50,60)
    */
-  getSelectedData(): {cohort: ICohort, from: string | number, to: string | number}[] {
-    const filters: {cohort: ICohort, from: string | number, to: string | number}[] = [];
+  getSelectedData(): { cohort: ICohort; from: string | number; to: string | number }[] {
+    const filters: { cohort: ICohort; from: string | number; to: string | number }[] = [];
     if (this.type === 'quantitative') {
-      if(!this.hideVisualization) {
+      if (!this.hideVisualization) {
         const selections = this.vegaView.signal(AVegaVisualization.SELECTION_SIGNAL_NAME);
         let attrSelection = selections[this.field];
         if (!attrSelection || attrSelection.length !== 2) {
           attrSelection = this.vegaView.scale('x').domain();
         }
         this.cohorts.forEach((cohort) => {
-          filters.push({from: attrSelection[0], to: attrSelection[1], cohort});
+          filters.push({ from: attrSelection[0], to: attrSelection[1], cohort });
 
           const nullFilter = this.getNullValueSelectedData(cohort, this.attribute);
-          if(nullFilter) {
+          if (nullFilter) {
             filters.push(nullFilter);
           }
         });
       } else {
         this.cohorts.forEach((cohort) => {
           const nullFilter = this.getNullValueSelectedData(cohort, this.attribute);
-          if(nullFilter) {
+          if (nullFilter) {
             filters.push(nullFilter);
           }
         });
       }
     } else {
       const dataStore = this.sort === '-x' || this.sort === 'x' ? AVegaVisualization.DATA_STORE_1 : AVegaVisualization.DATA_STORE_0; // sorting by frequency adds one more transformation, i.e. data array -> data_1
-      const vegaData = this.vegaView.data(dataStore); //default name
+      const vegaData = this.vegaView.data(dataStore); // default name
       log.debug('vegaData', vegaData);
 
       const selectionData: any[] = this.vegaView.data(AVegaVisualization.SELECTION_STORE);
@@ -134,10 +135,10 @@ export class VegaHistogram extends SingleAttributeVisualization {
 
         // if ordinal or nominal, we can get the selected bins by the name of field
         const selectedBins = filteredVegaData.map((dataItem) => dataItem[this.field]);
-        this.cohorts.forEach((cohort) => filters.push(...selectedBins.map((bin) => ({from: bin, to: bin, cohort}))));
+        this.cohorts.forEach((cohort) => filters.push(...selectedBins.map((bin) => ({ from: bin, to: bin, cohort }))));
       } else {
-        //select all
-        this.cohorts.forEach((cohort) => filters.push(...vegaData.map((datum) => ({from: datum[this.field], to: datum[this.field], cohort}))));
+        // select all
+        this.cohorts.forEach((cohort) => filters.push(...vegaData.map((datum) => ({ from: datum[this.field], to: datum[this.field], cohort }))));
       }
     }
 

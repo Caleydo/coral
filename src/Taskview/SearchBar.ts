@@ -9,30 +9,49 @@ import {niceName} from '../utilLabels';
 
 export class SearchBar {
   private _container: HTMLDivElement;
+
   private _serachBarInputDiv: HTMLDivElement;
+
   private _searchBarInput: HTMLInputElement;
+
   private _searchBarPlaceholder: HTMLDivElement;
+
   private _optionContainerWrapper: HTMLDivElement;
+
   private _optionContainer: HTMLDivElement;
+
   private _optionList: HTMLDivElement;
+
   private _optionDetail: HTMLDivElement;
+
   private _optionFocusIndex: number;
+
   private _pageSize: number;
+
   private _pageNumberGenes: number;
+
   private _moreGenes: boolean;
+
   private _databaseColumns: IServerColumn[];
+
   private _panelAnnotations: any[];
+
   private _waitForMoreOptions: boolean;
+
   private _optionWrapperCSSClass: string;
+
   private _databaseConfig: {
-    database: string,
-    view: string
+    database: string;
+    view: string;
   };
+
   private _geneDataTypes: Array<IDataTypeConfig>;
+
   private _eventListenerCloseOptionWindow: (e: any) => void;
+
   private _geneHoverOptionId: string;
 
-  constructor(parentContainer: HTMLDivElement, database: string, view: string, optionWrapperCSSClass: string = 'standard') {
+  constructor(parentContainer: HTMLDivElement, database: string, view: string, optionWrapperCSSClass = 'standard') {
     this._pageSize = 30;
     this._pageNumberGenes = 0;
     this._moreGenes = false;
@@ -42,13 +61,13 @@ export class SearchBar {
     this._optionWrapperCSSClass = optionWrapperCSSClass;
     this._databaseConfig = {
       database,
-      view
+      view,
     };
 
     // get all needed gene data types (e.g. Copy Number)
     this._geneDataTypes = this._getGeneDataTypes(view);
 
-    log.debug('SearchBar Configuration - with the database and view: ', {database, view, pageSize: this._pageSize});
+    log.debug('SearchBar Configuration - with the database and view: ', { database, view, pageSize: this._pageSize });
 
     // create placeholder
     this._createSearchBarPlaceholder();
@@ -149,23 +168,31 @@ export class SearchBar {
     try {
       const options = await this._getAllPossibleOptions(text);
 
-      if (this.searchID === thisSearch) { // check if the retrieved options are still needed
+      if (this.searchID === thisSearch) {
+        // check if the retrieved options are still needed
         loading.remove(); // a follow up call to this method would have already removed the loading indicator and added a new one
 
         if (options.length > 0) {
           this._createAllOptions(options);
         } else {
-          this._optionList.insertAdjacentHTML('afterbegin', `
+          this._optionList.insertAdjacentHTML(
+            'afterbegin',
+            `
             <p>No attributes were found with <i>${text}</i> in their name.<p>
-          `);
+          `,
+          );
         }
       }
     } catch {
-      if (this.searchID === thisSearch) { // check if the retrieved options are still needed
+      if (this.searchID === thisSearch) {
+        // check if the retrieved options are still needed
         loading.remove();
-        this._optionList.insertAdjacentHTML('afterbegin', `
+        this._optionList.insertAdjacentHTML(
+          'afterbegin',
+          `
           <p>Loading available attributes failed. Please check your connection and try again.<p>
-        `);
+        `,
+        );
       }
     }
   }
@@ -189,15 +216,13 @@ export class SearchBar {
     select(this._optionList)
       .selectAll('div')
       .data(data)
-      .enter()  // go through all groups
+      .enter() // go through all groups
       .append('div')
       .attr('class', 'option-group option-element')
       .each((d, i, nodes) => {
         const group = select(nodes[i]);
         // add group header
-        group.append('div')
-          .attr('class', 'option-group-header option-element')
-          .html(d.groupLabel);
+        group.append('div').attr('class', 'option-group-header option-element').html(d.groupLabel);
         // go through all options for group
         this._addOptionsToGroup(group.node(), d);
       });
@@ -224,7 +249,8 @@ export class SearchBar {
     });
 
     select(groupElement)
-      .selectAll('div.option').data(options.data, (d: any) => d.optionId)
+      .selectAll('div.option')
+      .data(options.data, (d: any) => d.optionId)
       .enter()
       .append('div')
       .attr('class', 'option option-element')
@@ -239,9 +265,8 @@ export class SearchBar {
             }
           }
           return noOfSub;
-        } else { // other wise set to null -> no dataset.subtypes will exits
-          return null;
-        }
+        } // other wise set to null -> no dataset.subtypes will exits
+        return null;
       })
       .classed('option-selected', (d) => {
         // check if a option is selected (= badge), then add class to highlight
@@ -254,7 +279,7 @@ export class SearchBar {
       .html((d) => {
         let text = d.optionText;
         if (d.optionType === 'gene') {
-          text = text + `<div class="option-text-ensemble option-element">${d.optionId}</div>`;
+          text += `<div class="option-text-ensemble option-element">${d.optionId}</div>`;
         }
         return text;
       })
@@ -301,7 +326,7 @@ export class SearchBar {
   }
 
   private async _getAllPossibleOptions(text: string): Promise<ISearchBarGroup[]> {
-    //check if databse column were loaded, otherwise do it now
+    // check if databse column were loaded, otherwise do it now
     if (this._databaseColumns === null) {
       // get the database columns
       await this._getDatabaseColumns(this._databaseConfig.database, this._databaseConfig.view);
@@ -320,7 +345,7 @@ export class SearchBar {
         this._panelAnnotations = await this._getPanelAnnotation();
       }
       // log.debug('Panels: ', this._panelAnnotations);
-      const groupPanelLabel = niceName(this._databaseConfig.view) + ' Panel Annotation';
+      const groupPanelLabel = `${niceName(this._databaseConfig.view)} Panel Annotation`;
       const filteredPanels = this._panelAnnotations.filter((a) => a.id.toLowerCase().indexOf(text.toLowerCase()) !== -1);
       panels = this._createSearchBarGroup(filteredPanels, groupPanelLabel, 'panel', 'id', 'id');
     }
@@ -350,11 +375,11 @@ export class SearchBar {
   private _createSearchBarGroup(data: any[], groupLabelText: string, type: OptionType, textProperty: string, idProperty: string): ISearchBarGroup {
     const group: ISearchBarGroup = {
       groupLabel: groupLabelText,
-      data: data.map((a: (IdTextPair | IServerColumn)) => {
+      data: data.map((a: IdTextPair | IServerColumn) => {
         const text = a[textProperty] === null ? '' : niceName(a[textProperty]);
         const oId: string = a[idProperty];
         return this._createOption(oId, type, text, a);
-      })
+      }),
     };
     return group;
   }
@@ -363,7 +388,7 @@ export class SearchBar {
     const option: IOption = {
       optionId: id,
       optionType: type,
-      optionText: text
+      optionText: text,
     };
 
     switch (type) {
@@ -374,10 +399,10 @@ export class SearchBar {
             sAttrId: option.optionId,
             attrOption: '',
             spAttribute: spAttr,
-            serverColumn: data as IServerColumn
+            serverColumn: data as IServerColumn,
           };
         } else {
-          (option as IServerColumnOption).optionData = {serverColumn: data as IServerColumn};
+          (option as IServerColumnOption).optionData = { serverColumn: data as IServerColumn };
         }
 
         break;
@@ -387,7 +412,7 @@ export class SearchBar {
       case 'panel':
         (option as IPanelOption).optionData = {
           description: data.description,
-          species: data.species
+          species: data.species,
         };
         break;
     }
@@ -399,9 +424,9 @@ export class SearchBar {
     this._pageNumberGenes += 1;
     const addOptions = await this._getAdditionalOptionsFromGenePage(text, this._pageNumberGenes);
     const optionGroupHeaders = this._optionList.querySelectorAll('.option-group-header');
-    const targetGroups = Array.from(optionGroupHeaders).filter((a) => (a.innerHTML === addOptions.groupLabel));
-    const targetGroup = targetGroups.length > 0 ? targetGroups[0].parentElement as HTMLDivElement : null;
-    log.debug('group to add: ', {targetGroup, addOptions});
+    const targetGroups = Array.from(optionGroupHeaders).filter((a) => a.innerHTML === addOptions.groupLabel);
+    const targetGroup = targetGroups.length > 0 ? (targetGroups[0].parentElement as HTMLDivElement) : null;
+    log.debug('group to add: ', { targetGroup, addOptions });
     if (targetGroup !== null) {
       // add options to the group
       this._addOptionsToGroup(targetGroup, addOptions);
@@ -419,19 +444,19 @@ export class SearchBar {
 
   // get all available panels
   private async _getPanelAnnotation(): Promise<any[]> {
-    const view = this._databaseConfig.view + '_panel';
+    const view = `${this._databaseConfig.view}_panel`;
     const panels = await RestBaseUtils.getTDPData(this._databaseConfig.database, view);
     return panels;
   }
 
   // get genes of a certain page with a query value
-  private _getGenePage(query: string, page: number): Promise<{more: boolean, items: Readonly<IdTextPair>[]}> {
+  private _getGenePage(query: string, page: number): Promise<{ more: boolean; items: Readonly<IdTextPair>[] }> {
     return RestBaseUtils.getTDPLookup('publicdb', 'gene_gene_items', {
       column: 'symbol',
       species: 'human',
       query,
       page,
-      limit: this._pageSize
+      limit: this._pageSize,
     });
   }
 
@@ -445,7 +470,7 @@ export class SearchBar {
     const opt = {
       badgeName: currData.optionText,
       optionId: currData.optionId,
-      data: currData
+      data: currData,
     };
 
     // create badge for the seach bar
@@ -464,7 +489,8 @@ export class SearchBar {
     }
 
     // set classes for un/selected options and (not) close option conatiern depending on the Ctrl-key
-    if (target.classList.contains('option-selected')) { //already selected -> deselect
+    if (target.classList.contains('option-selected')) {
+      // already selected -> deselect
       log.debug('remove item: ', existingSelectedItem);
       if (e.ctrlKey || e.altKey) {
         target.classList.remove('option-selected');
@@ -479,9 +505,10 @@ export class SearchBar {
         }
         this._showOCW(false); // close option container
       }
-      this._addAndRemoveClearAll();  // add/remove the clearAll button
+      this._addAndRemoveClearAll(); // add/remove the clearAll button
       this._setPlaceholder();
-    } else { // not selected -> select
+    } else {
+      // not selected -> select
       log.debug('add item: ', sElem);
       if (e.ctrlKey || e.altKey) {
         target.classList.add('option-selected');
@@ -526,7 +553,8 @@ export class SearchBar {
     const geneOption = this._optionList.querySelector(`.option[data-optid="${opttionData.optionId}"]`) as HTMLDivElement;
     const currNoOfSubTypes = Number(geneOption.dataset.subtypes);
     // set classes for un/selected options and (not) close option conatiern depending on the Ctrl-key
-    if (target.classList.contains('option-selected')) { //already selected -> deselect
+    if (target.classList.contains('option-selected')) {
+      // already selected -> deselect
       log.debug('remove item: ', existingSelectedItem);
       if (e.ctrlKey || e.altKey) {
         target.classList.remove('option-selected');
@@ -543,13 +571,14 @@ export class SearchBar {
         this._showOCW(false); // close option container
       }
       // remove gene hihglighting if no subdatatypes are selected
-      geneOption.dataset.subtypes = '' + (currNoOfSubTypes - 1);
-      if ((currNoOfSubTypes - 1) === 0) {
+      geneOption.dataset.subtypes = `${currNoOfSubTypes - 1}`;
+      if (currNoOfSubTypes - 1 === 0) {
         geneOption.classList.remove('option-selected');
       }
-      this._addAndRemoveClearAll();  // add/remove the clearAll button
+      this._addAndRemoveClearAll(); // add/remove the clearAll button
       this._setPlaceholder();
-    } else { // not selected -> select
+    } else {
+      // not selected -> select
       log.debug('add item: ', sElem);
       if (e.ctrlKey || e.altKey) {
         target.classList.add('option-selected');
@@ -562,8 +591,8 @@ export class SearchBar {
         this._showOCW(false); // close option container
       }
       // add gene hihglighting if one/more subdatatypes are selected
-      geneOption.dataset.subtypes = '' + (currNoOfSubTypes + 1);
-      if ((currNoOfSubTypes + 1) > 0) {
+      geneOption.dataset.subtypes = `${currNoOfSubTypes + 1}`;
+      if (currNoOfSubTypes + 1 > 0) {
         geneOption.classList.add('option-selected');
       }
       select(sElem).datum(dataForBadge);
@@ -579,7 +608,6 @@ export class SearchBar {
     const detail = this._createDetail(currData, node);
     this._optionDetail.appendChild(detail);
   }
-
 
   private _createSearchBarPlaceholder() {
     const elem = document.createElement('div');
@@ -660,17 +688,16 @@ export class SearchBar {
 
     // adds the eventlistener for the document
     document.addEventListener('click', this._eventListenerCloseOptionWindow);
-
   }
 
   private _keyboardControl(e: KeyboardEvent) {
-    log.debug('keyboardControl: ', {key: e.key, focusIndex: this._optionFocusIndex});
+    log.debug('keyboardControl: ', { key: e.key, focusIndex: this._optionFocusIndex });
     if (e.key === 'Down' || e.key === 'ArrowDown') {
-      //arrow DOWN key
+      // arrow DOWN key
       this._optionFocusIndex++;
       this._setArrowKeyFocus();
     } else if (e.key === 'Up' || e.key === 'ArrowUp') {
-      //arrow UP key
+      // arrow UP key
       this._optionFocusIndex--;
       this._setArrowKeyFocus();
     } else if (e.key === 'Enter') {
@@ -680,7 +707,7 @@ export class SearchBar {
       if (this._optionFocusIndex > -1) {
         const optionFocus = this._optionList.querySelector('.option.option-focus');
         if (optionFocus !== null) {
-          optionFocus.dispatchEvent(new MouseEvent('click', {ctrlKey: e.ctrlKey || e.altKey}));
+          optionFocus.dispatchEvent(new MouseEvent('click', { ctrlKey: e.ctrlKey || e.altKey }));
         }
       }
     } else if (e.key === 'Esc' || e.key === 'Escape') {
@@ -690,10 +717,15 @@ export class SearchBar {
 
   // remove the option container wrapper, with css class
   private _closeOCWCheck(element) {
-    if (element !== null && !element.classList.contains('option-element') &&
-      element !== this._optionList && element !== this._container &&
-      element !== this._searchBarInput && element !== this._optionContainer &&
-      element !== this._optionDetail) {
+    if (
+      element !== null &&
+      !element.classList.contains('option-element') &&
+      element !== this._optionList &&
+      element !== this._container &&
+      element !== this._searchBarInput &&
+      element !== this._optionContainer &&
+      element !== this._optionDetail
+    ) {
       this._showOCW(false);
     }
   }
@@ -710,14 +742,14 @@ export class SearchBar {
     const options = this._optionList.querySelectorAll('.option:not([hidden])');
     this._optionFocusIndex = this._optionFocusIndex >= options.length ? 0 : this._optionFocusIndex;
     this._optionFocusIndex = this._optionFocusIndex < 0 ? options.length - 1 : this._optionFocusIndex;
-    log.debug('Arrow-Key action -> new index: ', {focusIndex: this._optionFocusIndex});
+    log.debug('Arrow-Key action -> new index: ', { focusIndex: this._optionFocusIndex });
     // set focus
     options[this._optionFocusIndex].classList.add('option-focus');
-    /*// generate detail information
+    /* // generate detail information
     clearDetail();
     const currData = persons.filter((a) => a.name === options[optionFocusIndex].dataset.name); //not really elegant
     const detail = createDetail(currData[0]);
-    optionDetail.appendChild(detail);*/
+    optionDetail.appendChild(detail); */
     // set scroll offset
     const optionDim = options[this._optionFocusIndex].getBoundingClientRect();
     const spaceBottom = 3 * optionDim.height;
@@ -738,14 +770,12 @@ export class SearchBar {
     if (diffTop < spaceTop) {
       this._optionList.scrollTop = currScrollTop - (spaceTop - diffTop);
     }
-
-
   }
 
   private async _scrollPagination(e: Event) {
     if (this._moreGenes && !this._waitForMoreOptions) {
       const optListdim = this._optionList.getBoundingClientRect();
-      const optdim = this._optionList.querySelector('.option') === null ? {height: 0} : this._optionList.querySelector('.option').getBoundingClientRect();
+      const optdim = this._optionList.querySelector('.option') === null ? { height: 0 } : this._optionList.querySelector('.option').getBoundingClientRect();
       const optHeight = optdim.height;
       // log.debug('scroll now, event: ',e,optHeight);
       // log.debug('scrollTop: ', this._optionList.scrollTop, ' | scrollHeight: ',this._optionList.scrollHeight,'| optLIst height: ',optListdim.height);
@@ -758,7 +788,6 @@ export class SearchBar {
       }
     }
   }
-
 
   // show/hide the options for the search field
   private _showOCW(show: boolean) {
@@ -788,12 +817,11 @@ export class SearchBar {
   // set sie and position of the option continer wrapper
   private _setSizeAndPositionOfOCW() {
     const containerDim = this._container.getBoundingClientRect();
-    this._optionContainerWrapper.style.width = containerDim.width + 'px';
-    this._optionContainerWrapper.style.left = containerDim.left + 'px';
-    this._optionContainerWrapper.style.top = containerDim.bottom + 'px';
+    this._optionContainerWrapper.style.width = `${containerDim.width}px`;
+    this._optionContainerWrapper.style.left = `${containerDim.left}px`;
+    this._optionContainerWrapper.style.top = `${containerDim.bottom}px`;
     // log.debug('dimensions: ', {searchBarContainer: containerDim, optionContainer: this._optionContainerWrapper.getBoundingClientRect()});
   }
-
 
   private _setPlaceholder() {
     const inputTextLength = this._searchBarInput.value.length;
@@ -805,17 +833,15 @@ export class SearchBar {
       if (!existsPlaceholder) {
         this._serachBarInputDiv.appendChild(this._searchBarPlaceholder);
       }
-    } else {
-      if (existsPlaceholder) {
-        this._serachBarInputDiv.removeChild(this._searchBarPlaceholder);
-      }
+    } else if (existsPlaceholder) {
+      this._serachBarInputDiv.removeChild(this._searchBarPlaceholder);
     }
   }
 
   // set the width of the input element depending on text in it
   private _setSearchBarInputWidth() {
     const textLength = this._searchBarInput.value.length;
-    this._searchBarInput.style.width = (textLength + 2) + 'em';
+    this._searchBarInput.style.width = `${textLength + 2}em`;
     this._setPlaceholder();
   }
 
@@ -852,9 +878,8 @@ export class SearchBar {
       detail = this._createPanelDetail(data as IPanelOption);
     }
 
-
-    detail.addEventListener('mouseenter', () => parent.style.backgroundColor = colors.searchbarHoverColor);
-    detail.addEventListener('mouseleave', () => parent.style.backgroundColor = '');
+    detail.addEventListener('mouseenter', () => (parent.style.backgroundColor = colors.searchbarHoverColor));
+    detail.addEventListener('mouseleave', () => (parent.style.backgroundColor = ''));
 
     return detail;
   }
@@ -866,7 +891,7 @@ export class SearchBar {
     const badgeIds: Array<string> = Array.from(badges).map((a) => {
       return a.dataset.optid;
     });
-    const optionId = data.optionId;
+    const { optionId } = data;
     // label in detail container to see what gene is currently shown
     select(detail)
       .append('div')
@@ -880,27 +905,31 @@ export class SearchBar {
     select(detail)
       .selectAll('div.detail-info-group')
       .data(this._geneDataTypes)
-      .enter()  // go through all groups
+      .enter() // go through all groups
       .append('div')
       .attr('class', 'detail-info-group option-element')
       .each((d, i, nodes) => {
         const group = select(nodes[i]);
         // add group header
-        group.append('div')
-          .attr('class', 'detail-info-group-header option-element')
-          .html(d.name);
+        group.append('div').attr('class', 'detail-info-group-header option-element').html(d.name);
         // go through all options for group
-        group.selectAll('div.detail-info-option').data(d.dataSubtypes)
+        group
+          .selectAll('div.detail-info-option')
+          .data(d.dataSubtypes)
           .enter()
           .append('div')
           .attr('class', 'detail-info-option option-element')
-          .attr('data-optid', (d: IDataSubtypeConfig) => {return this._composeGeneDataTypeOptId(optionId, d.id);})
-          .classed('option-selected', (d: IDataSubtypeConfig) => {return badgeIds.indexOf(this._composeGeneDataTypeOptId(optionId, d.id)) !== -1;})
+          .attr('data-optid', (d: IDataSubtypeConfig) => {
+            return this._composeGeneDataTypeOptId(optionId, d.id);
+          })
+          .classed('option-selected', (d: IDataSubtypeConfig) => {
+            return badgeIds.indexOf(this._composeGeneDataTypeOptId(optionId, d.id)) !== -1;
+          })
           .html((d: IDataSubtypeConfig) => d.name)
           .on('click', (event, d: IDataSubtypeConfig) => {
             const badgeName = this._composeGeneDataTypeName(data.optionText, d.name);
             const badgeData = deepCopy(data);
-            badgeData.optionData = {subType: d, type: (d as any).dataTypeId};
+            badgeData.optionData = { subType: d, type: (d as any).dataTypeId };
             this._clickHandlerDetail(data, badgeData, badgeName, event as MouseEvent, event.currentTarget as HTMLElement);
             // indicate an change in the options
             this._container.dispatchEvent(new CustomEvent('optionchange'));
@@ -910,11 +939,11 @@ export class SearchBar {
   }
 
   private _composeGeneDataTypeName(gene: string, dataType: string): string {
-    return gene + ': ' + dataType;
+    return `${gene}: ${dataType}`;
   }
 
   private _composeGeneDataTypeOptId(geneId: string, dataTypeId: string): string {
-    return geneId + ':' + dataTypeId;
+    return `${geneId}:${dataTypeId}`;
   }
 
   private _createPanelDetail(option: IPanelOption): HTMLDivElement {
@@ -924,8 +953,7 @@ export class SearchBar {
     detailText.classList.add('option-element');
     detail.appendChild(detailText);
     detailText.innerHTML =
-      '<span class="option-element">ID:</span> ' + option.optionId + '</br>' +
-      '<span class="option-element">Description:</span> ' + option.optionData.description;
+      `<span class="option-element">ID:</span> ${option.optionId}</br>` + `<span class="option-element">Description:</span> ${option.optionData.description}`;
     return detail;
   }
 
@@ -940,32 +968,34 @@ export class SearchBar {
     const badgeIds: Array<string> = Array.from(badges).map((a) => {
       return a.dataset.optid;
     });
-    const optionId = option.optionId;
+    const { optionId } = option;
     // label in detail container to see what gene is currently shown
-    select(detail).append('div')
-      .attr('class', 'detail-info-label option-element')
-      .html(option.optionText);
+    select(detail).append('div').attr('class', 'detail-info-label option-element').html(option.optionText);
     // text for the attribute
-    select(detail).append('div')
+    select(detail)
+      .append('div')
       .attr('class', 'detail-info-text option-element')
       .html(`Treatment consists of a list of REGIMENs, each has one or multiple AGENTs`); // TODO #427 move into spAttribtue class
 
-
-    select(detail).selectAll('div.detail-info-option').data(spAttr.options)
+    select(detail)
+      .selectAll('div.detail-info-option')
+      .data(spAttr.options)
       .enter()
       .append('div')
       .attr('class', 'detail-info-option option-element')
       .attr('data-optid', (d) => d.id)
-      .classed('option-selected', (d) => {return badgeIds.indexOf(d.id) !== -1;})
+      .classed('option-selected', (d) => {
+        return badgeIds.indexOf(d.id) !== -1;
+      })
       .html((d) => d.name)
       .on('click', (event, d) => {
         const badgeName = `${option.optionText}:${d.name}`;
         const badgeData = deepCopy(option);
-        badgeData.optionData = {sAttrId: option.optionId, attrOption: d.id, spAttribute: spAttr, serverColumn: option.optionData.serverColumn};
+        badgeData.optionData = { sAttrId: option.optionId, attrOption: d.id, spAttribute: spAttr, serverColumn: option.optionData.serverColumn };
         this._clickHandlerDetail(option, badgeData, badgeName, event as MouseEvent, event.currentTarget as HTMLElement);
         // this._clickHandlerDetail(data as IScoreOption, (d as any).dataTypeId, d, badgeName, event as MouseEvent, nodes[i] as HTMLElement);
         // indicate an change in the options
-        log.debug('click spAttribute option: ', {oprtionId: option.optionId, badgeData});
+        log.debug('click spAttribute option: ', { oprtionId: option.optionId, badgeData });
         this._container.dispatchEvent(new CustomEvent('optionchange'));
       });
 
@@ -979,10 +1009,10 @@ export class SearchBar {
     detailText.classList.add('option-element');
     detail.appendChild(detailText);
     detailText.innerHTML =
-      '<span class="option-element">Column:</span> ' + option.optionData.serverColumn.column + '</br>' +
-      '<span class="option-element">Label:</span> ' + niceName(option.optionText) + '</br>' +
-      '<span class="option-element">Type:</span> ' + option.optionType + '</br>' +
-      '<span class="option-element">Text:</span> ' + option.optionText;
+      `<span class="option-element">Column:</span> ${option.optionData.serverColumn.column}</br>` +
+      `<span class="option-element">Label:</span> ${niceName(option.optionText)}</br>` +
+      `<span class="option-element">Type:</span> ${option.optionType}</br>` +
+      `<span class="option-element">Text:</span> ${option.optionText}`;
     return detail;
   }
 
@@ -996,7 +1026,7 @@ export class SearchBar {
     }
   }
 
-  //remove the selected items in the search field
+  // remove the selected items in the search field
   private _removeAllSelectedItems() {
     if (this._container) {
       const badges = this._container.querySelectorAll('.selected-option-badge');
@@ -1013,11 +1043,10 @@ export class SearchBar {
   // add or remove the clear all button, if selected exist or not
   private _addAndRemoveClearAll() {
     const badges = this._container.querySelectorAll('.selected-option-badge');
-    //log.debug('items in searchBarContainer', items);
+    // log.debug('items in searchBarContainer', items);
     if (badges.length > 0) {
       const clearAll = this._container.querySelectorAll('.clear-all');
       if (clearAll.length === 0) {
-
         const divClearAll = document.createElement('div');
         divClearAll.className = 'clear-all';
         divClearAll.title = 'Remove all';
@@ -1057,14 +1086,12 @@ export class SearchBar {
   }
 }
 
-
 export interface ISearchBarGroup {
   groupLabel: string;
   data: Array<IOption>;
 }
 
 export type OptionType = 'dbc' | 'gene' | 'panel';
-
 
 export interface IOption {
   // id: string;
@@ -1078,11 +1105,10 @@ export interface IOption {
 
 export interface IPanelOption extends IOption {
   optionData: {
-    description: string // e.g. "Cancer Cell Line Encyclopedia"
+    description: string; // e.g. "Cancer Cell Line Encyclopedia"
     species: string; // e.g. human
   };
 }
-
 
 export interface IScoreOption extends IOption {
   optionData: {

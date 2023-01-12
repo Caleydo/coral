@@ -1,5 +1,4 @@
-import {OptionGroup, Option, VisConfig} from './VisConfig';
-
+import { OptionGroup, Option, VisConfig } from './VisConfig';
 
 const linearScale = new Option('Linear', true);
 const logScale = new Option('Logarithmic', false);
@@ -14,5 +13,5 @@ export const dataConfig = new OptionGroup('', 'Show Data as', [absoluteData, rel
 export const dataScaleConfig: VisConfig = {
   icon: '<i class="fas fa-chart-line"></i>',
   label: 'Data',
-  groups: [scaleConfig, dataConfig]
+  groups: [scaleConfig, dataConfig],
 };

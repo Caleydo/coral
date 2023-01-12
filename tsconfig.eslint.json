@@ -1,0 +1,10 @@
+{
+  "extends": "visyn_scripts/config/tsconfig.eslint.template.json",
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "tsd.d.ts",
+    "tests/**/*.ts",
+    "tests/**/*.tsx",
+  ]
+}

@@ -56,3 +56,4 @@ export declare class MyDistributionRenderer implements ICellRendererFactory {
     canRender(col: LineUpDistributionColumn, mode: ERenderMode): boolean;
     create(col: LineUpDistributionColumn): ICellRenderer;
 }
+//# sourceMappingURL=Characterize.d.ts.map

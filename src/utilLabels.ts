@@ -2,7 +2,10 @@ import {format} from 'd3v7';
 import {IEqualsList, INumRange, isEqualsList, isNumRangeFilter, NumRangeOperators} from './rest';
 
 export function niceName(label: string): string {
-  return label.split('_').map((l) => l[0].toUpperCase() + l.slice(1)).join(' ');
+  return label
+    .split('_')
+    .map((l) => l[0].toUpperCase() + l.slice(1))
+    .join(' ');
 }
 
 export function easyLabelFromFilterArray(filter: INumRange[] | IEqualsList, attrLabel: string = null): string {
@@ -17,17 +20,17 @@ export function easyLabelFromFilterArray(filter: INumRange[] | IEqualsList, attr
 
 export function easyLabelFromFilter(filter: INumRange | IEqualsList, attrLabel: string = null): string {
   const formatter = format('.1~f');
-  if (isNumRangeFilter(filter)) { //INumRange Type Guard 💂‍♂️
-    if (filter.valueOne === 'null' || filter.valueTwo === 'null'
-          || filter.valueOne === null || filter.valueTwo === null) {
+  if (isNumRangeFilter(filter)) {
+    // INumRange Type Guard 💂‍♂️
+    if (filter.valueOne === 'null' || filter.valueTwo === 'null' || filter.valueOne === null || filter.valueTwo === null) {
       return attrLabel === null ? `Missing Values` : `Missing ${attrLabel} Values`;
-    } else {
-      return `${formatter(filter.valueOne as number)} to ${formatter(filter.valueTwo as number)}`;
     }
-  } else if (isEqualsList(filter)) {
+    return `${formatter(filter.valueOne as number)} to ${formatter(filter.valueTwo as number)}`;
+  }
+  if (isEqualsList(filter)) {
     // for number of categories uncomment next line.
     // check if more than one category
-    //return filter.values.length > 1 ? `${filter.values.length} Categories` : niceName(`${filter.values[0]}`);
+    // return filter.values.length > 1 ? `${filter.values.length} Categories` : niceName(`${filter.values[0]}`);
     return labelForCategories(filter.values);
   }
 
@@ -51,20 +54,20 @@ export function easyLabelFromFilter(filter: INumRange | IEqualsList, attrLabel: 
 // TODO label
 // export function labelFromFilter(filter: INumRange | IEqualsList, attr: IAttribute): string {
 export function labelFromFilter(filter: INumRange | IEqualsList, attrLabel: string): string {
-  if (isNumRangeFilter(filter)) { //INumRange Type Guard 💂‍♂️
+  if (isNumRangeFilter(filter)) {
+    // INumRange Type Guard 💂‍♂️
     const opOne = filter.operatorOne.indexOf('=') === -1 ? ')' : ']';
     const lowerOperator = filter.operatorOne === NumRangeOperators.gte ? '[' : '(';
     const upperOperator = filter.operatorTwo === NumRangeOperators.lte ? ']' : ')';
 
-    if (filter.valueOne === 'null' || filter.valueTwo === 'null'
-          || filter.valueOne === null || filter.valueTwo === null) {
+    if (filter.valueOne === 'null' || filter.valueTwo === 'null' || filter.valueOne === null || filter.valueTwo === null) {
       // return `Missing ${attr.label} Values`;
       return `Missing ${attrLabel} Values`;
-    } else {
-      // return labelFromRanges(lowerOperator, filter.valueOne as number, filter.valueTwo as number, upperOperator, attr);
-      return labelFromRanges(lowerOperator, filter.valueOne as number, filter.valueTwo as number, upperOperator, attrLabel);
     }
-  } else if (isEqualsList(filter)) {
+    // return labelFromRanges(lowerOperator, filter.valueOne as number, filter.valueTwo as number, upperOperator, attr);
+    return labelFromRanges(lowerOperator, filter.valueOne as number, filter.valueTwo as number, upperOperator, attrLabel);
+  }
+  if (isEqualsList(filter)) {
     return labelForCategories(filter.values);
   }
 
@@ -74,8 +77,8 @@ export function labelFromFilter(filter: INumRange | IEqualsList, attrLabel: stri
 // TODO label
 // export function labelFromRanges(lowerOperator: '(' | '[', lowerBound: number, upperBound: number, upperOperator: ')' | ']', attr: IAttribute): string {
 export function labelFromRanges(lowerOperator: '(' | '[', lowerBound: number, upperBound: number, upperOperator: ')' | ']', attrLabel: string): string {
-  //const attribute = attr && attr.label ? attr.label : 'x';
-  const attribute = attrLabel ? attrLabel : 'x';
+  // const attribute = attr && attr.label ? attr.label : 'x';
+  const attribute = attrLabel || 'x';
   const htmlLte = '&#8804';
   const htmlLt = '&#60';
   const htmlGte = '&#8805';
@@ -87,24 +90,22 @@ export function labelFromRanges(lowerOperator: '(' | '[', lowerBound: number, up
     // return `${attribute} ${up} ${formatter(upperBound as number)}`;
     const up = upperOperator === ')' ? htmlLt : htmlLte;
     return `${up} ${formatter(upperBound as number)}`;
-
-  } else if (upperOperator === null) {
+  }
+  if (upperOperator === null) {
     // const low = lowerOperator === '(' ? htmlLt : htmlLte;
     // return `${formatter(lowerBound as number)} ${low} ${attribute}`;
     const low = lowerOperator === '(' ? htmlGt : htmlGte;
     return `${low} ${formatter(lowerBound as number)}`;
-
-  } else if (formatter(lowerBound) === formatter(upperBound)) {
-    return `${formatter(lowerBound)}`;
-
-  } else {
-    // const low = lowerOperator === '(' ? htmlLt : htmlLte;
-    // const up = upperOperator === ')' ? htmlLt : htmlLte;
-    // return `${formatter(lowerBound as number)} ${low} ${attribute} ${up} ${formatter(upperBound as number)}`;
-    const low = lowerOperator === '(' ? htmlGt : htmlGte;
-    const up = upperOperator === ')' ? htmlLt : htmlLte;
-    return ` ${low} ${formatter(lowerBound as number)} to ${up} ${formatter(upperBound as number)}`;
   }
+  if (formatter(lowerBound) === formatter(upperBound)) {
+    return `${formatter(lowerBound)}`;
+  }
+  // const low = lowerOperator === '(' ? htmlLt : htmlLte;
+  // const up = upperOperator === ')' ? htmlLt : htmlLte;
+  // return `${formatter(lowerBound as number)} ${low} ${attribute} ${up} ${formatter(upperBound as number)}`;
+  const low = lowerOperator === '(' ? htmlGt : htmlGte;
+  const up = upperOperator === ')' ? htmlLt : htmlLte;
+  return ` ${low} ${formatter(lowerBound as number)} to ${up} ${formatter(upperBound as number)}`;
 }
 
 export function labelForCategories(categories: Array<any>): string {
@@ -125,7 +126,7 @@ export function plural(word: string, amount?: number): string {
   if (amount !== undefined && amount === 1) {
     return word;
   }
-  const plural: {[key: string]: string} = {
+  const plural: { [key: string]: string } = {
     '(quiz)$': '$1zes',
     '^(ox)$': '$1en',
     '([m|l])ouse$': '$1ice',
@@ -135,7 +136,7 @@ export function plural(word: string, amount?: number): string {
     '(hive)$': '$1s',
     '(?:([^f])fe|([lr])f)$': '$1$2ves',
     '(shea|lea|loa|thie)f$': '$1ves',
-    'sis$': 'ses',
+    sis$: 'ses',
     '([ti])um$': '$1a',
     '(tomat|potat|ech|her|vet)o$': '$1oes',
     '(bu)s$': '$1ses',
@@ -143,18 +144,18 @@ export function plural(word: string, amount?: number): string {
     '(octop)us$': '$1i',
     '(ax|test)is$': '$1es',
     '(us)$': '$1es',
-    '([^s]+)$': '$1s'
+    '([^s]+)$': '$1s',
   };
 
-  const irregular: {[key: string]: string} = {
-    'move': 'moves',
-    'foot': 'feet',
-    'goose': 'geese',
-    'sex': 'sexes',
-    'child': 'children',
-    'man': 'men',
-    'tooth': 'teeth',
-    'person': 'people'
+  const irregular: { [key: string]: string } = {
+    move: 'moves',
+    foot: 'feet',
+    goose: 'geese',
+    sex: 'sexes',
+    child: 'children',
+    man: 'men',
+    tooth: 'teeth',
+    person: 'people',
   };
 
   const uncountable: string[] = [
@@ -182,7 +183,7 @@ export function plural(word: string, amount?: number): string {
     'sugar',
     'tuna',
     'you',
-    'wood'
+    'wood',
   ];
 
   // save some time in the case that singular and plural are the same
@@ -223,7 +224,7 @@ export function singular(word: string, amount?: number): string {
   if (amount !== undefined && amount !== 1) {
     return word;
   }
-  const singular: {[key: string]: string} = {
+  const singular: { [key: string]: string } = {
     '(quiz)zes$': '$1',
     '(matr)ices$': '$1ix',
     '(vert|ind)ices$': '$1ex',
@@ -251,18 +252,18 @@ export function singular(word: string, amount?: number): string {
     '(h|bl)ouses$': '$1ouse',
     '(corpse)s$': '$1',
     '(us)es$': '$1',
-    's$': ''
+    s$: '',
   };
 
-  const irregular: {[key: string]: string} = {
-    'move': 'moves',
-    'foot': 'feet',
-    'goose': 'geese',
-    'sex': 'sexes',
-    'child': 'children',
-    'man': 'men',
-    'tooth': 'teeth',
-    'person': 'people'
+  const irregular: { [key: string]: string } = {
+    move: 'moves',
+    foot: 'feet',
+    goose: 'geese',
+    sex: 'sexes',
+    child: 'children',
+    man: 'men',
+    tooth: 'teeth',
+    person: 'people',
   };
 
   const uncountable: string[] = [
@@ -290,7 +291,7 @@ export function singular(word: string, amount?: number): string {
     'sugar',
     'tuna',
     'you',
-    'wood'
+    'wood',
   ];
 
   // save some time in the case that singular and plural are the same

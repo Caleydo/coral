@@ -1,38 +1,47 @@
 import {select} from 'd3v7';
 import * as $ from 'jquery';
 import tippy from 'tippy.js';
-import {Cohort} from '../Cohort';
-import {IAttribute, toAttribute} from '../data/Attribute';
+import { Cohort } from '../Cohort';
+import { IAttribute, toAttribute } from '../data/Attribute';
 import searchHtml from '../templates/SearchColumn.html'; // webpack imports html to variable
-import {log} from '../util';
-import {SearchBar} from './SearchBar';
-import {ATask, TaskCloseEvent, TASK_CLOSE_EVENT_TYPE} from './tasks/ATask';
-import {TASKLIST} from './tasks/TaskList';
+import { log } from '../util';
+import { SearchBar } from './SearchBar';
+import { ATask, TaskCloseEvent, TASK_CLOSE_EVENT_TYPE } from './tasks/ATask';
+import { TASKLIST } from './tasks/TaskList';
 import Taskview from './Taskview';
 
 export default class SearchColumn {
   private $searchColumn: HTMLDivElement;
+
   private $taskContainer: HTMLDivElement;
+
   private $tasks: HTMLDivElement;
+
   private searchBar: SearchBar;
+
   private refCohort: Cohort;
+
   private $ColumnHeader: HTMLDivElement;
+
   activeTask: ATask;
 
   constructor($container: HTMLDivElement, private referenceCht: Cohort, private taskview: Taskview) {
-    $container.insertAdjacentHTML('beforeend', searchHtml); //faster than innerHTML (https://developer.mozilla.org/de/docs/Web/API/Element/insertAdjacentHTML)
+    $container.insertAdjacentHTML('beforeend', searchHtml); // faster than innerHTML (https://developer.mozilla.org/de/docs/Web/API/Element/insertAdjacentHTML)
     this.$searchColumn = $container.firstChild as HTMLDivElement;
     this.$tasks = select(this.$searchColumn).select('.task-selector').node() as HTMLDivElement;
     this.$taskContainer = select(this.$searchColumn).select('.task-container').node() as HTMLDivElement;
     this.$ColumnHeader = select(this.$searchColumn).select('.header').node() as HTMLDivElement;
 
-    $container.querySelectorAll('[title]').forEach((elem) => tippy(elem, {
-      content(elm) { // build tippy tooltips from the title attribute
-        const title = elm.getAttribute('title');
-        elm.removeAttribute('title');
-        return title;
-      },
-    }));
+    $container.querySelectorAll('[title]').forEach((elem) =>
+      tippy(elem, {
+        content(elm) {
+          // build tippy tooltips from the title attribute
+          const title = elm.getAttribute('title');
+          elm.removeAttribute('title');
+          return title;
+        },
+      }),
+    );
 
     this.refCohort = referenceCht;
     this._setupSearchBar(referenceCht); // create the search bar and add the its options
@@ -43,7 +52,7 @@ export default class SearchColumn {
   }
 
   public clear() {
-    select(this.$searchColumn).select('.task.selected').classed('selected', false); //deselect all others
+    select(this.$searchColumn).select('.task.selected').classed('selected', false); // deselect all others
     this.searchBar.removeAllSelectedOptions();
   }
 
@@ -129,26 +138,28 @@ export default class SearchColumn {
     if (enable) {
       // add eventListeners
       const that = this;
-      select(this.$searchColumn).selectAll('div.action.add').on('click', function () {
-        const button = this as HTMLDivElement;
-        const attributes = that.getSelectedAttributes();
-        if (attributes.length > 0) {
-          for (const attr of attributes) {
-            if (button.classList.contains('add-left')) {
-              that.taskview.addAttributeColumnForInput(attr, true);
-            } else {
-              that.taskview.addAttributeColumnForOutput(attr, true);
+      select(this.$searchColumn)
+        .selectAll('div.action.add')
+        .on('click', function () {
+          const button = this as HTMLDivElement;
+          const attributes = that.getSelectedAttributes();
+          if (attributes.length > 0) {
+            for (const attr of attributes) {
+              if (button.classList.contains('add-left')) {
+                that.taskview.addAttributeColumnForInput(attr, true);
+              } else {
+                that.taskview.addAttributeColumnForOutput(attr, true);
+              }
             }
+          } else {
+            button.classList.add('shaking');
+            setTimeout(() => button.classList.remove('shaking'), 500);
+            // @ts-ignore
+            $(button).popover('show');
+            // @ts-ignore
+            setTimeout(() => $(button).popover('hide'), 5000);
           }
-        } else {
-          button.classList.add('shaking');
-          setTimeout(() => button.classList.remove('shaking'), 500);
-          // @ts-ignore
-          $(button).popover('show');
-          // @ts-ignore
-          setTimeout(() => $(button).popover('hide'), 5000);
-        }
-      });
+        });
     } else {
       select(this.$searchColumn).selectAll('div.action.add').on('click', null); // remove addleft/addright
     }

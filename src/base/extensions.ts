@@ -1,5 +1,5 @@
-import {IStartMenuDatasetSectionDesc} from 'ordino';
-import {IDataSourceConfig} from '../common';
+import { IStartMenuDatasetSectionDesc } from 'ordino';
+import { IDataSourceConfig } from '../common';
 
 interface IStartMenuDatasetSectionTab {
   /**

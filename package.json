@@ -2,7 +2,7 @@
   "name": "coral",
   "description": "Coral is a web-based cohort analysis tool to interactively create, refine, and analyze patient cohorts.",
   "homepage": "https://caleydo.org",
-  "version": "3.0.1-SNAPSHOT",
+  "version": "4.0.1-SNAPSHOT",
   "author": {
     "name": "PatrickAdelberger",
     "email": "coral@caleydo.org",
@@ -19,34 +19,32 @@
   },
   "private": true,
   "scripts": {
-    "build": "npm run clean && npm run compile",
-    "clean": "rimraf build dist lib",
-    "compile:watch": "tsc -w",
-    "compile": "tsc",
-    "copy-assets": "if [ -d src/assets ]; then cp -rv src/assets/. dist/assets/; fi && if [ -d src/template ]; then shx --verbose cp -R src/template/. dist/template/; fi && if [ -d src/templates ]; then shx --verbose cp -R src/templates/. dist/templates/; fi",
-    "copy-styles": "if [ -d src/scss ]; then shx --verbose cp -R src/scss/. dist/scss/; fi",
-    "copy": "npm run copy-assets && npm run copy-styles",
-    "delete-dependencies": "rimraf node_modules",
-    "dist": "mkdir lib && cd dist && tar cvzf ../lib/coral.tar.gz *",
-    "docs": "typedoc --options typedoc.json src/**.ts",
-    "lint": "tslint -c tslint.json -p . 'src/**/*.ts?(x)' 'tests/**/*.ts?(x)'",
-    "lint:fix": "tslint --fix -c tslint.json -p . 'src/**/*.ts?(x)' 'tests/**/*.ts?(x)'",
-    "postcompile": "npm run copy",
-    "posttest": "npm run lint",
-    "prebuild": "npm run test",
-    "predist": "npm run build && npm run docs",
-    "release:major": "npm version major && npm publish && git push --follow-tags",
-    "release:minor": "npm version minor && npm publish && git push --follow-tags",
-    "release:patch": "npm version patch && npm publish && git push --follow-tags",
-    "test:watch": "jest --watch",
-    "test": "test ! $(find tests -name \"*.ts\") || jest -w=1",
-    "make": "make --"
+    "all": "yarn run lint:fix && yarn run test && yarn run build && yarn run dist",
+    "build": "yarn run clean && yarn run compile && yarn run copy",
+    "clean": "visyn_scripts clean build dist lib",
+    "compile:watch": "visyn_scripts compile --watch",
+    "compile": "visyn_scripts compile",
+    "copy": "visyn_scripts copy",
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "delete-dependencies": "visyn_scripts clean node_modules",
+    "predist": "yarn run lint && yarn run test && yarn run build",
+    "dist": "mkdir lib && cd dist && tar cvzf ../lib/bundle.tar.gz *",
+    "docs": "visyn_scripts docs",
+    "lint:fix": "visyn_scripts lint --fix",
+    "lint": "visyn_scripts lint || true",
+    "prepack": "yarn run build",
+    "start": "visyn_scripts start --env workspace_mode=single",
+    "storybook:build": "NODE_OPTIONS=--max_old_space_size=4096 build-storybook",
+    "storybook": "NODE_OPTIONS=--max_old_space_size=4096 start-storybook -p 6006",
+    "test": "visyn_scripts test",
+    "webpack:dev": "visyn_scripts build --mode development --env workspace_mode=single",
+    "webpack:prod": "visyn_scripts build --mode production --env workspace_mode=single"
   },
   "files": [
     "src",
     "index.js",
     "phovea.js",
-    "phovea_registry.js",
     "dist",
     "build",
     "coral",
@@ -57,18 +55,17 @@
     "docker_packages.txt"
   ],
   "engines": {
-    "npm": ">= 3",
-    "node": ">= 6"
+    "npm": ">=8",
+    "node": ">=16"
   },
   "dependencies": {
     "@keckelt/tsne": "^1.0.0",
     "@upsetjs/bundle" : "^1.0.0",
     "arquero": "^4.8.0",
-    "canvas-confetti": "^1.4.0",
     "clone": "^2.1.2",
     "comlink": "^4.2.0",
     "jquery": "^3.5.0",
-    "lineupjs": "~4.6.0",
+    "lineupjs": "4.6.2",
     "lodash.merge": "^4.x",
     "lodash.pick": "^4.4.0",
     "loglevel": "^1.6.4",
@@ -77,45 +74,46 @@
     "react-dom": "^16.13.0",
     "react-router-dom": "^5.2.0",
     "split-grid": "^1.0.9",
-    "tdp_core": "git+ssh://git@github.com:datavisyn/tdp_core#mp/add_d3v7",
-    "tdp_publicdb": "git+ssh://git@github.com:caleydo/tdp_publicdb#develop",
+    "tdp_core": "git+ssh://git@github.com:datavisyn/tdp_core#develop",
+    "tdp_gene": "git+ssh://git@github.com:caleydo/tdp_gene#develop",
+    "tdp_publicdb": "git+ssh://git@github.com/caleydo/tdp_publicdb#develop",
     "tippy.js": "^6.2.6",
-    "tourdino": "git+ssh://git@github.com:caleydo/tourdino#develop",
+    "tourdino": "git+ssh://git@github.com/caleydo/tourdino#develop",
     "vega": "~5.20.0",
     "vega-embed": "6.19.1",
     "vega-functions": "5.12.0",
     "vega-lite": "5.1.1",
-    "vega-parser": "6.1.3"
+    "vega-parser": "6.1.3",
+    "visyn_scripts": "git+ssh://git@github.com/datavisyn/visyn_scripts.git#develop"
   },
   "devDependencies": {
-    "@babel/core": "^7.14.0",
-    "@babel/preset-env": "^7.14.1",
     "@types/d3-selection": "^3.0.2",
     "@types/d3-transition": "^3.0.1",
-    "@types/jest": "~27.4.1",
-    "@types/jquery": "~3.5.5",
     "@types/react": "^16.14.6",
     "@types/react-dom": "^16.9.5",
     "@types/react-router-dom": "^5.1.7",
-    "babel-loader": "^8.2.2",
-    "identity-obj-proxy": "~3.0.0",
-    "ifdef-loader": "2.0.0",
-    "jest": "~27.5.1",
-    "jest-raw-loader": "~1.0.1",
     "mkdirp": "0.5.1",
-    "rimraf": "~3.0.2",
-    "sass": "^1.29.0",
-    "shx": "~0.3.3",
-    "ts-jest": "~27.1.3",
-    "tslib": "~2.3.1",
     "tslint": "~5.20.1",
-    "typedoc": "~0.22.13",
-    "typescript": "~4.6.2",
     "worker-loader": "^2.0.0"
   },
   "browser": {
     "fs": false,
-    "path": false,
-    "os": false
-  }
+    "os": false,
+    "path": false
+  },
+  "visyn": {
+    "entries": {
+      "app": {
+        "js": "dist/initialize.app.js",
+        "template": "dist/app.template.ejs",
+        "html": "app/index.html",
+        "chunkName": "app",
+        "excludeChunks": []
+      }
+    },
+    "copyFiles": [
+      "dist/clientConfig.json"
+    ]
+  },
+  "packageManager": "yarn@3.2.2"
 }

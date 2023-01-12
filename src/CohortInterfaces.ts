@@ -1,10 +1,8 @@
-import {IDType} from 'tdp_core';
-import {IServerColumn} from 'tdp_core';
-import {Cohort} from './Cohort';
-import {IAttribute, IAttributeJSON} from './data/Attribute';
-import {IEqualsList, INumRange} from './rest';
-import {InputCohort} from './Taskview/Taskview';
-
+import { IDType, IServerColumn } from 'tdp_core';
+import { Cohort } from './Cohort';
+import { IAttribute, IAttributeJSON } from './data/Attribute';
+import { IEqualsList, INumRange } from './rest';
+import { InputCohort } from './Taskview/Taskview';
 
 /**
  * Enumeration for the different types of task
@@ -17,15 +15,11 @@ export enum TaskType {
   Characterization,
 }
 
-
-
-
-
-//////////////////////////////////////////////////////////////
+/// ///////////////////////////////////////////////////////////
 //
 // Cohort Overview Elements (Cohort & Task)
 //
-//////////////////////////////////////////////////////////////
+/// ///////////////////////////////////////////////////////////
 
 /**
  * Interface for every element in the overview (except the paths between the elements)
@@ -34,7 +28,7 @@ export enum TaskType {
 export enum ElementProvType {
   Cohort = 'Cohort',
   TaskSplit = 'Task-Split',
-  TaskFilter = 'Task-Filter'
+  TaskFilter = 'Task-Filter',
 }
 
 export interface IProvAttrAndValuesCohort {
@@ -101,14 +95,11 @@ export interface ITask extends IElement {
   toProvenanceJSON(): IElementProvJSONTask;
 }
 
-
-
-
-//////////////////////////////////////////////////////////////
+/// ///////////////////////////////////////////////////////////
 //
 // Cohort Overview Elements Representations (Cohort & Task)
 //
-//////////////////////////////////////////////////////////////
+/// ///////////////////////////////////////////////////////////
 
 // Overview Layout              -------------
 export interface IOverviewLayout {
@@ -121,7 +112,6 @@ export interface IOverviewLayout {
   setContainerGrid(container: HTMLDivElement, columns: number, rows: number): void;
   setPositionInGrid(element: HTMLDivElement, level: number, pos: number): void;
 }
-
 
 // Rectangle Layout              -------------
 export interface IRectLayout {
@@ -152,7 +142,6 @@ export interface IRectCohortRep extends ICohortRep {
   setInformation: (labelOne: string, labelTwo: string, size: number, sizeReference: number) => void;
 }
 
-
 // Task Representations   -------------
 /**
  * Interface for a representation of a task
@@ -180,7 +169,7 @@ export interface ISetLabelFunc {
 }
 
 export interface ITaskParams {
-  inputCohorts: InputCohort[]; //combine can have multiple
+  inputCohorts: InputCohort[]; // combine can have multiple
   outputCohorts: Cohort[];
   type: TaskType;
   label: string;

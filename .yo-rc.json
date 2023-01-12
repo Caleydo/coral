@@ -21,17 +21,6 @@
     "githubAccount": "Caleydo",
     "app": "coral",
     "clientOnly": false,
-    "entries": {
-      "app": {
-        "js": "dist/initialize.app.js",
-        "template": "dist/app.template.ejs",
-        "html": "app/index.html",
-        "chunkName": "app",
-        "excludeChunks": [
-
-        ]
-      }
-    },
     "libraryAliases": {
       "d3": "d3/d3.js"
     },
@@ -52,7 +41,6 @@
           "selection": "some"
         }
       }
-    ],
-    "copyFiles": ["dist/clientConfig.json"]
+    ]
   }
 }

@@ -15,10 +15,13 @@ import {ATask} from './ATask';
 
 export class Compare extends ATask {
   public label = `Compare`;
+
   public id = `compare`;
+
   public hasOutput = false;
 
   attributes: IAttribute[];
+
   cohorts: Cohort[];
 
   supports(attributes: IAttribute[], cohorts: Cohort[]) {
@@ -73,9 +76,11 @@ export class Compare extends ATask {
     const timestamp = new Date().getTime().toString();
     this.body.attr('data-timestamp', timestamp);
 
-    const colHeadsCht = this.body.select('thead tr').selectAll('th.head').data(this.cohorts, (cht: Cohort) => cht.id);
-    const colHeadsChtSpan = colHeadsCht.enter().append('th')
-      .attr('class', 'head rotate').append('div').append('span').append('span'); //th.head are the column headers
+    const colHeadsCht = this.body
+      .select('thead tr')
+      .selectAll('th.head')
+      .data(this.cohorts, (cht: Cohort) => cht.id);
+    const colHeadsChtSpan = colHeadsCht.enter().append('th').attr('class', 'head rotate').append('div').append('span').append('span'); // th.head are the column headers
 
     const that = this; // for the function below
     const updateTableBody = (bodyData: Array<Array<Array<IScoreCell>>>, timestamp: string) => {
@@ -86,30 +91,44 @@ export class Compare extends ATask {
       that.updateTableDescription(bodyData.length === 0);
 
       // create a table body for every column
-      const bodies = that.body.select('table').selectAll('tbody').data(bodyData, (d) => d[0][0].label); // the data of each body is of type: Array<Array<IScoreCell>>
-      const bodiesEnter = bodies.enter().append('tbody').classed('bottom-margin', true); //For each IColumnTableData, create a tbody
+      const bodies = that.body
+        .select('table')
+        .selectAll('tbody')
+        .data(bodyData, (d) => d[0][0].label); // the data of each body is of type: Array<Array<IScoreCell>>
+      const bodiesEnter = bodies.enter().append('tbody').classed('bottom-margin', true); // For each IColumnTableData, create a tbody
 
       // the data of each row is of type: Array<IScoreCell>
-      const trs = bodies.merge(bodiesEnter).selectAll('tr').data((d) => d, (d) => d[0].key); // had to specify the function to derive the data (d -> d)
+      const trs = bodies
+        .merge(bodiesEnter)
+        .selectAll('tr')
+        .data(
+          (d) => d,
+          (d) => d[0].key,
+        ); // had to specify the function to derive the data (d -> d)
       const trsEnter = trs.enter().append('tr');
-      const tds = trs.merge(trsEnter).selectAll('td').data((d) => d);   // the data of each td is of type: IScoreCell
+      const tds = trs
+        .merge(trsEnter)
+        .selectAll('td')
+        .data((d) => d); // the data of each td is of type: IScoreCell
       const tdsEnter = tds.enter().append('td');
 
       // Set colheads in thead
       colHeadsChtSpan.html((d) => `${d.label}`);
       colHeadsChtSpan.each(function (d: Cohort) {
-        const parent = select(this).node().parentNode as HTMLElement; //parent span-element
+        const parent = select(this).node().parentNode as HTMLElement; // parent span-element
         select(parent).style('background-color', (d) => (d as Cohort).colorTaskView);
         let color = '#333333';
         if (d && d.colorTaskView && 'transparent' !== d.colorTaskView && hsl(d.colorTaskView).l < 0.5) { //transparent has lightness of zero
           color = 'white';
         }
-        select(parent.parentNode as HTMLElement).style('color', color)
+        select(parent.parentNode as HTMLElement)
+          .style('color', color)
           .attr('title', (d: Cohort) => `${d.label}`);
       });
       // set data in tbody
 
-      tds.merge(tdsEnter)
+      tds
+        .merge(tdsEnter)
         .attr('colspan', (d) => d.colspan)
         .attr('rowspan', (d) => d.rowspan)
         .style('color', (d) => d.foreground)
@@ -118,10 +137,18 @@ export class Compare extends ATask {
         .classed('action', (d) => d.score !== undefined)
         .classed('score', (d) => d.measure !== undefined)
         .html((d) => d.label)
-        .on('click', function () {that.onClick.bind(that)(this);})
-        .on('mouseover', function () {that.onMouseOver.bind(that)(this, true);})
-        .on('mouseout', function () {that.onMouseOver.bind(that)(this, false);})
-        .attr('title', function () {return that.createToolTip.bind(that)(this);});
+        .on('click', function () {
+          that.onClick.bind(that)(this);
+        })
+        .on('mouseover', function () {
+          that.onMouseOver.bind(that)(this, true);
+        })
+        .on('mouseout', function () {
+          that.onMouseOver.bind(that)(this, false);
+        })
+        .attr('title', function () {
+          return that.createToolTip.bind(that)(this);
+        });
 
       // Exit
       tds.exit().remove(); // remove cells of removed columns
@@ -135,11 +162,13 @@ export class Compare extends ATask {
       const svgWidth = 120 + 33 * this.cohorts.length; // 120 height with 45° widht also 120, calculated width for the svg and polygon
 
       that.body.select('th.head.rotate svg').remove();
-      that.body.select('th.head.rotate') //select first
+      that.body
+        .select('th.head.rotate') // select first
         .insert('svg', ':first-child')
         .attr('width', svgWidth)
         .attr('height', 120)
-        .append('polygon').attr('points', '0,0 ' + svgWidth + ',0 0,120'); // 120 is thead height
+        .append('polygon')
+        .attr('points', `0,0 ${svgWidth},0 0,120`); // 120 is thead height
     };
 
     this.getTableBody(this.cohorts, this.attributes, true, null).then((data) => updateTableBody(data, timestamp)); // initialize
@@ -167,103 +196,115 @@ export class Compare extends ATask {
    * @param scaffold only create the matrix with row headers, but no value calculation
    * @param update
    */
-  async getTableBody(cohorts: Cohort[], attributes: Attribute[], scaffold: boolean, update: (bodyData: IScoreCell[][][]) => void): Promise<Array<Array<Array<IScoreCell>>>> {
+  async getTableBody(
+    cohorts: Cohort[],
+    attributes: Attribute[],
+    scaffold: boolean,
+    update: (bodyData: IScoreCell[][][]) => void,
+  ): Promise<Array<Array<Array<IScoreCell>>>> {
     const data = this.prepareDataArray(cohorts, attributes);
 
     if (scaffold) {
       return data;
-    } else {
-      const promises = [];
+    }
+    const promises = [];
 
-      // if a group is part of the column and row item groups, we use these array to get the correct index (so we can avoid duplicate calculations)
-      const rowIndex4col = cohorts.map((colGrp, i) => i);
+    // if a group is part of the column and row item groups, we use these array to get the correct index (so we can avoid duplicate calculations)
+    const rowIndex4col = cohorts.map((colGrp, i) => i);
 
-      for (const [bodyIndex, attr] of attributes.entries()) {
-        const attrPromises = [];
-        const measures = MethodManager.getMeasuresByType(Type.get(attr.type), Type.get(attr.type), SCOPE.SETS); // Always compare selected elements with a group of elements of the same column
-        if (measures.length > 0) {
-          const measure = measures[0];
+    for (const [bodyIndex, attr] of attributes.entries()) {
+      const attrPromises = [];
+      const measures = MethodManager.getMeasuresByType(Type.get(attr.type), Type.get(attr.type), SCOPE.SETS); // Always compare selected elements with a group of elements of the same column
+      if (measures.length > 0) {
+        const measure = measures[0];
 
-          for (const [rowIndex, rowCht] of cohorts.entries()) {
-            // Get the data of 'attr' for the rows inside 'rowCht'
-            const rowData = (await attr.getData(rowCht.dbId)).map((item) => item[attr.dataKey]);
-            for (const [colIndex, colCht] of cohorts.entries()) {
-              const colIndexOffset = rowIndex === 0 ? 2 : 1; // Two columns if the attribute label is in the same line, (otherwise 1 (because rowspan))
+        for (const [rowIndex, rowCht] of cohorts.entries()) {
+          // Get the data of 'attr' for the rows inside 'rowCht'
+          const rowData = (await attr.getData(rowCht.dbId)).map((item) => item[attr.dataKey]);
+          for (const [colIndex, colCht] of cohorts.entries()) {
+            const colIndexOffset = rowIndex === 0 ? 2 : 1; // Two columns if the attribute label is in the same line, (otherwise 1 (because rowspan))
 
-              if (rowCht.id === colCht.id) { // identical groups
-                data[bodyIndex][rowIndex][colIndexOffset + colIndex] = {label: '<span class="circle"/>', measure};
-              } else if (rowIndex4col[rowIndex] >= 0 && rowIndex4col[colIndex] >= 0 && rowIndex4col[colIndex] < rowIndex) {
-                // the cht is also part of the colGroups array, and the colGrp is one of the previous rowGroups --> i.e. already calculated in a table row above the current one
-              } else {
-                const colData = (await attr.getData(colCht.dbId)).map((item) => item[attr.dataKey]);
-                const setParameters = {
-                  setA: rowData,
-                  setADesc: attr,
-                  setACategory: {label: `${rowCht.label}`, color: rowCht.colorTaskView},
-                  setB: colData,
-                  setBDesc: attr,
-                  setBCategory: {label: `${colCht.label}`, color: colCht.colorTaskView}
-                };
+            if (rowCht.id === colCht.id) {
+              // identical groups
+              data[bodyIndex][rowIndex][colIndexOffset + colIndex] = { label: '<span class="circle"/>', measure };
+            } else if (rowIndex4col[rowIndex] >= 0 && rowIndex4col[colIndex] >= 0 && rowIndex4col[colIndex] < rowIndex) {
+              // the cht is also part of the colGroups array, and the colGrp is one of the previous rowGroups --> i.e. already calculated in a table row above the current one
+            } else {
+              const colData = (await attr.getData(colCht.dbId)).map((item) => item[attr.dataKey]);
+              const setParameters = {
+                setA: rowData,
+                setADesc: attr,
+                setACategory: { label: `${rowCht.label}`, color: rowCht.colorTaskView },
+                setB: colData,
+                setBDesc: attr,
+                setBCategory: { label: `${colCht.label}`, color: colCht.colorTaskView },
+              };
 
-                attrPromises.push(new Promise<IMeasureResult>((resolve, reject) => {
+              attrPromises.push(
+                new Promise<IMeasureResult>((resolve, reject) => {
                   // score for the measure
                   let score: Promise<IMeasureResult> = null;
                   score = measure.calc(rowData, colData, null);
                   // return score;
                   resolve(score);
-
-                }).then((score) => {
-                  data[bodyIndex][rowIndex][colIndexOffset + colIndex] = this.toScoreCell(score, measure, setParameters);
-                  if (rowIndex4col[rowIndex] >= 0 && rowIndex4col[colIndex] >= 0) {
-                    const colIndexOffset4Duplicate = rowIndex4col[colIndex] === 0 ? 2 : 1; // Currenlty, we can't have duplicates in the first line, so this will always be 1
-                    data[bodyIndex][rowIndex4col[colIndex]][colIndexOffset4Duplicate + rowIndex4col[rowIndex]] = this.toScoreCell(score, measure, setParameters);
-                  }
-
-                }).catch((err) => {
-                  log.error(err);
-                  const errorCell = {label: 'err', measure};
-                  data[bodyIndex][rowIndex][colIndexOffset + colIndex] = errorCell;
-                  if (rowIndex4col[rowIndex] >= 0 && rowIndex4col[colIndex] >= 0) {
-                    const colIndexOffset4Duplicate = rowIndex4col[colIndex] === 0 ? 2 : 1;
-                    data[bodyIndex][rowIndex4col[colIndex]][colIndexOffset4Duplicate + rowIndex4col[rowIndex]] = errorCell;
-                  }
-                }));
-
-
-              }
+                })
+                  .then((score) => {
+                    data[bodyIndex][rowIndex][colIndexOffset + colIndex] = this.toScoreCell(score, measure, setParameters);
+                    if (rowIndex4col[rowIndex] >= 0 && rowIndex4col[colIndex] >= 0) {
+                      const colIndexOffset4Duplicate = rowIndex4col[colIndex] === 0 ? 2 : 1; // Currenlty, we can't have duplicates in the first line, so this will always be 1
+                      data[bodyIndex][rowIndex4col[colIndex]][colIndexOffset4Duplicate + rowIndex4col[rowIndex]] = this.toScoreCell(
+                        score,
+                        measure,
+                        setParameters,
+                      );
+                    }
+                  })
+                  .catch((err) => {
+                    log.error(err);
+                    const errorCell = { label: 'err', measure };
+                    data[bodyIndex][rowIndex][colIndexOffset + colIndex] = errorCell;
+                    if (rowIndex4col[rowIndex] >= 0 && rowIndex4col[colIndex] >= 0) {
+                      const colIndexOffset4Duplicate = rowIndex4col[colIndex] === 0 ? 2 : 1;
+                      data[bodyIndex][rowIndex4col[colIndex]][colIndexOffset4Duplicate + rowIndex4col[rowIndex]] = errorCell;
+                    }
+                  }),
+              );
             }
           }
         }
-        Promise.all(attrPromises).then(() => {update(data);}); // TODO: updateSelectionAndVisuallization
-        promises.concat(attrPromises);
       }
-
-      await Promise.all(promises); //rather await all at once: https://developers.google.com/web/fundamentals/primers/async-functions#careful_avoid_going_too_sequential
-      return data; // then return the data
+      Promise.all(attrPromises).then(() => {
+        update(data);
+      }); // TODO: updateSelectionAndVisuallization
+      promises.concat(attrPromises);
     }
+
+    await Promise.all(promises); // rather await all at once: https://developers.google.com/web/fundamentals/primers/async-functions#careful_avoid_going_too_sequential
+    return data; // then return the data
   }
 
   prepareDataArray(cohorts: Cohort[], attributes: Attribute[]) {
     if (cohorts.length === 0 || attributes.length === 0) {
-      return []; //return empty array, will cause an empty table
+      return []; // return empty array, will cause an empty table
     }
     const data = new Array(attributes.length); // one array per attribute (number of table bodies)
 
     for (const [i, attr] of attributes.entries()) {
       data[i] = new Array(cohorts.length); // one array per rowGroup (number of rows in body)
       for (const [j, cht] of cohorts.entries()) {
-        data[i][j] = new Array(cohorts.length + (j === 0 ? 2 : 1)).fill({label: '<i class="fas fa-circle-notch fa-spin"></i>', measure: null} as IScoreCell);
-        data[i][j][j === 0 ? 1 : 0] = { // through rowspan, this becomes the first array item
+        data[i][j] = new Array(cohorts.length + (j === 0 ? 2 : 1)).fill({ label: '<i class="fas fa-circle-notch fa-spin"></i>', measure: null } as IScoreCell);
+        data[i][j][j === 0 ? 1 : 0] = {
+          // through rowspan, this becomes the first array item
           label: `${cht.label}`,
           background: cht.colorTaskView,
-          foreground: textColor4Background(cht.colorTaskView)
+          foreground: textColor4Background(cht.colorTaskView),
         };
 
         if (j === 0) {
           data[i][j][0] = {
             label: `<b>${attr.label}</b>`,
             rowspan: cohorts.length,
-            type: attr.type
+            type: attr.type,
           };
         }
 
@@ -281,15 +322,15 @@ export class Compare extends ATask {
     cellLabel = cellLabel.startsWith('0') ? cellLabel.substring(1) : score.pValue.toFixed(2); // [0,1) --> .123, 1 --> 1.00
     if (score.pValue > 0.1) {
       color = {
-        background: '#ffffff', //white
-        foreground: '#ffffff', //white
+        background: '#ffffff', // white
+        foreground: '#ffffff', // white
       };
     }
     if (score.pValue === -1) {
       cellLabel = '-';
       color = {
-        background: '#ffffff', //white
-        foreground: '#ffffff', //white
+        background: '#ffffff', // white
+        foreground: '#ffffff', // white
       };
     }
     return {
@@ -298,15 +339,15 @@ export class Compare extends ATask {
       foreground: color.foreground,
       score,
       measure,
-      setParameters
+      setParameters,
     };
   }
 
-  createToolTip(tableCell): String {
+  createToolTip(tableCell): string {
     if (select(tableCell).classed('score') && select(tableCell).classed('action')) {
-      const tr = tableCell.parentNode; //current row
-      const tbody = tr.parentNode;     //current body
-      const table = tbody.parentNode;  //current table
+      const tr = tableCell.parentNode; // current row
+      const tbody = tr.parentNode; // current body
+      const table = tbody.parentNode; // current table
 
       const allTds = select(tr).selectAll('td');
       let index = -1;
@@ -320,9 +361,11 @@ export class Compare extends ATask {
 
       // all label cells in row
       const rowCategories = [];
-      select(tr).selectAll('td:not(.score)').each(function () {
-        rowCategories.push(select(this).text());
-      });
+      select(tr)
+        .selectAll('td:not(.score)')
+        .each(function () {
+          rowCategories.push(select(this).text());
+        });
       // the first cell in the first row of the cells tbody
       const row = select(tbody).select('tr').select('td').text();
 
@@ -331,23 +374,22 @@ export class Compare extends ATask {
 
       // if currMaxIndex and maxIndex are not the same -> increase headerIndex by one
       // because the current row has one cell fewer
-      const headerIndex = (currLength === maxLength) ? index : index + 1;
+      const headerIndex = currLength === maxLength ? index : index + 1;
 
       // column label
       const allHeads = select(table).select('thead').selectAll('th');
       const header = select(allHeads.nodes()[headerIndex]).select('div').select('span').text();
 
       const category = rowCategories.pop();
-      const isColTask = category === row ? true : false;
+      const isColTask = category === row;
       const cellData = select(tableCell).datum() as IScoreCell;
-      const scoreValue = typeof (cellData.score.scoreValue) === 'number' && !isNaN(cellData.score.scoreValue) ? cellData.score.scoreValue.toFixed(3) : 'n/a';
+      const scoreValue = typeof cellData.score.scoreValue === 'number' && !isNaN(cellData.score.scoreValue) ? cellData.score.scoreValue.toFixed(3) : 'n/a';
       let scorePvalue: string | number = cellData.score.pValue;
       if (scorePvalue === -1) {
         scorePvalue = 'n/a';
       } else {
         scorePvalue = (scorePvalue as number).toExponential(3);
       }
-
 
       let tooltipText = '';
       if (isColTask) {
@@ -357,11 +399,9 @@ export class Compare extends ATask {
       }
 
       return tooltipText;
-    } else {
-      // cell that have no p-values
-      return null;
     }
-
+    // cell that have no p-values
+    return null;
   }
 
   onClick(tableCell) {
@@ -377,14 +417,14 @@ export class Compare extends ATask {
       this.body.selectAll('td.cross-selection').each(function (d) {
         const label = select(this).text();
         const rowspan = select(this).attr('rowspan');
-        const obj = {label, rowspan};
+        const obj = { label, rowspan };
         rowLabels.push(obj);
       });
 
       // create selected cell object
-      selCellObj = {colLabel, rowLabels};
+      selCellObj = { colLabel, rowLabels };
     } else {
-      selCellObj = {colLabel: null, rowLabels: null};
+      selCellObj = { colLabel: null, rowLabels: null };
     }
 
     log.debug('selectionLabels: ', selCellObj);
@@ -397,10 +437,9 @@ export class Compare extends ATask {
 
   onMouseOver(tableCell, state: boolean) {
     if (select(tableCell).classed('score')) {
-
-      const tr = tableCell.parentNode; //current row
-      const tbody = tr.parentNode;     //current body
-      const table = tbody.parentNode;  //current table
+      const tr = tableCell.parentNode; // current row
+      const tbody = tr.parentNode; // current body
+      const table = tbody.parentNode; // current table
 
       const allTds = select(tr).selectAll('td');
       let index = -1;
@@ -422,7 +461,7 @@ export class Compare extends ATask {
 
       // if currMaxIndex and maxIndex are not the same -> increase headerIndex by one
       // because the current row has one cell fewer
-      const headerIndex = (currLength === maxLength) ? index : index + 1;
+      const headerIndex = currLength === maxLength ? index : index + 1;
 
       // highlight column label
       const allHeads = select(table).select('thead').selectAll('th');
@@ -433,13 +472,12 @@ export class Compare extends ATask {
     }
   }
 
-
-
   private highlightSelectedCell(tableCell, cellData) {
     // remove bg highlighting from all tds
     this.body.selectAll('td').classed('selectedCell', false);
 
-    if (cellData.score) { //Currenlty only cells with a score are calculated (no category or attribute label cells)
+    if (cellData.score) {
+      // Currenlty only cells with a score are calculated (no category or attribute label cells)
       // Color table cell
       select(tableCell).classed('selectedCell', true); // add bg highlighting
     }
@@ -450,20 +488,21 @@ export class Compare extends ATask {
     const details = this.body.select<HTMLDivElement>('div.details');
     details.selectAll('*').remove(); // avada kedavra outdated details!
 
-    if (cellData.score) { //Currenlty only cells with a score are calculated (no category or attribute label cells)
+    if (cellData.score) {
+      // Currenlty only cells with a score are calculated (no category or attribute label cells)
       const resultScore: IMeasureResult = cellData.score;
-      const measure: ISimilarityMeasure = cellData.measure;
+      const { measure } = cellData;
 
       // Display details
       if (measure) {
-        this.generateVisualDetails(details, measure, resultScore, cellData.setParameters); //generate description into details div
+        this.generateVisualDetails(details, measure, resultScore, cellData.setParameters); // generate description into details div
       } else {
         details.append('p').text('There are no details for the selected table cell.');
       }
 
       // display visualisation
       if (measure.visualization) {
-        const visualization: IMeasureVisualization = measure.visualization;
+        const { visualization } = measure;
         if (cellData.setParameters) {
           const d3v3Details = d3v3.select(details.node());
           visualization.generateVisualization(d3v3Details, cellData.setParameters, cellData.score);
@@ -473,77 +512,53 @@ export class Compare extends ATask {
   }
 
   // generates the detail inforamtion to the test and the remove button
-  private generateVisualDetails(miniVisualisation: Selection<HTMLDivElement, any, null, undefined>, measure: ISimilarityMeasure, measureResult: IMeasureResult, setParameters: ISetParameters) {
+  private generateVisualDetails(
+    miniVisualisation: Selection<HTMLDivElement, any, null, undefined>,
+    measure: ISimilarityMeasure,
+    measureResult: IMeasureResult,
+    setParameters: ISetParameters,
+  ) {
+    const divDetailInfoContainer = miniVisualisation.append('div').classed('detailVisContainer', true);
 
-    const divDetailInfoContainer = miniVisualisation.append('div')
-      .classed('detailVisContainer', true);
-
-    //button for mini visualization removal
+    // button for mini visualization removal
     const that = this;
     const detailRemoveButton = divDetailInfoContainer.append('button');
     detailRemoveButton.attr('class', 'btn btn-coral removeMiniVis-btn');
-    detailRemoveButton.on('click', function () {that.removeCellDetails.bind(that)(miniVisualisation);});
+    detailRemoveButton.on('click', function () {
+      that.removeCellDetails.bind(that)(miniVisualisation);
+    });
     detailRemoveButton.html('x');
 
-    const divDetailInfo = divDetailInfoContainer.append('div')
-      .classed('detailVis', true);
+    const divDetailInfo = divDetailInfoContainer.append('div').classed('detailVis', true);
 
     // the 2 compared sets
     const setALabel = setParameters.setACategory ? setParameters.setACategory.label : setParameters.setADesc.label;
     const setBLabel = setParameters.setBCategory ? setParameters.setBCategory.label : setParameters.setBDesc.label;
-    const detailSetInfo = divDetailInfo.append('div')
-      .classed('detailDiv', true);
+    const detailSetInfo = divDetailInfo.append('div').classed('detailDiv', true);
     if (setParameters.setACategory) {
-      detailSetInfo.append('span')
-        .classed('detail-label', true)
-        .text('Data Column: ')
-        .append('span')
-        .text(setParameters.setADesc.label);
-      detailSetInfo.append('span')
-        .text(' / ');
+      detailSetInfo.append('span').classed('detail-label', true).text('Data Column: ').append('span').text(setParameters.setADesc.label);
+      detailSetInfo.append('span').text(' / ');
     }
-    detailSetInfo.append('span')
-      .classed('detail-label', true)
-      .text('Comparing ');
-    detailSetInfo.append('span')
-      .html(setALabel + ' ')
-      .append('span')
-      .text('[' + measureResult.setSizeA + ']');
-    detailSetInfo.append('span')
-      .classed('detail-label', true)
-      .text(' vs. ');
-    detailSetInfo.append('span')
-      .html(setBLabel + ' ')
-      .append('span')
-      .text('[' + measureResult.setSizeB + ']');
+    detailSetInfo.append('span').classed('detail-label', true).text('Comparing ');
+    detailSetInfo.append('span').html(`${setALabel} `).append('span').text(`[${measureResult.setSizeA}]`);
+    detailSetInfo.append('span').classed('detail-label', true).text(' vs. ');
+    detailSetInfo.append('span').html(`${setBLabel} `).append('span').text(`[${measureResult.setSizeB}]`);
 
     // test value + p-value
-    const scoreValue = typeof (measureResult.scoreValue) === 'number' && !isNaN(measureResult.scoreValue) ? measureResult.scoreValue.toFixed(3) : 'n/a';
+    const scoreValue = typeof measureResult.scoreValue === 'number' && !isNaN(measureResult.scoreValue) ? measureResult.scoreValue.toFixed(3) : 'n/a';
     const pValue = measureResult.pValue === -1 ? 'n/a' : (measureResult.pValue as number).toExponential(3);
-    const detailInfoValues = divDetailInfo.append('div')
-      .classed('detailDiv', true);
+    const detailInfoValues = divDetailInfo.append('div').classed('detailDiv', true);
     // .text(`Test-Value: ${scoreValue}, p-Value: ${pValue}`);
-    detailInfoValues.append('span')
-      .classed('detail-label', true)
-      .text(measure.label + ': ');
-    detailInfoValues.append('span')
-      .text(scoreValue);
+    detailInfoValues.append('span').classed('detail-label', true).text(`${measure.label}: `);
+    detailInfoValues.append('span').text(scoreValue);
 
-    detailInfoValues.append('span')
-      .text(', ');
+    detailInfoValues.append('span').text(', ');
 
-    detailInfoValues.append('span')
-      .classed('detail-label', true)
-      .text('p-Value: ');
-    detailInfoValues.append('span')
-      .text(pValue);
+    detailInfoValues.append('span').classed('detail-label', true).text('p-Value: ');
+    detailInfoValues.append('span').text(pValue);
 
     // test description
-    divDetailInfo.append('div')
-      .classed('detailDiv', true)
-      .text('Description: ')
-      .append('span')
-      .text(measure.description);
+    divDetailInfo.append('div').classed('detailDiv', true).text('Description: ').append('span').text(measure.description);
   }
 
   // removes mini visualization with details, and highlighting
@@ -552,7 +567,7 @@ export class Compare extends ATask {
     this.body.selectAll('div.table-container').selectAll('td').classed('selectedCell', false);
 
     // remove saved selection from session storage
-    const selCellObj = {task: this.id, colLabel: null, rowLabels: null};
+    const selCellObj = { task: this.id, colLabel: null, rowLabels: null };
     log.debug('selectionLabels: ', selCellObj);
     const selCellObjString = JSON.stringify(selCellObj);
     sessionStorage.setItem('touringSelCell', selCellObjString);
@@ -562,27 +577,19 @@ export class Compare extends ATask {
   }
 }
 
-
 // creates legend for the p-value; copied from tdp_core:
 // https://github.com/datavisyn/tdp_core/blob/keckelt/122/touring/src/lineup/internal/Touring/Tasks/Tasks.ts#L242
 const insertLegend = (parentElement: Selection<HTMLDivElement, any, null, undefined>) => {
   const divLegend = parentElement.append('div').classed('measure-legend', true);
 
-  const svgLegendContainer = divLegend.append('svg')
-    .attr('width', '100%')
-    .attr('height', 50);
+  const svgLegendContainer = divLegend.append('svg').attr('width', '100%').attr('height', 50);
   // .attr('viewBox','0 0 100% 35')
   // .attr('preserveAspectRatio','xMaxYMin meet');
 
   const legendId = Date.now();
-  const svgDefs = svgLegendContainer.append('defs').append('linearGradient')
-    .attr('id', 'pValue-gradLegend-' + legendId);
-  svgDefs.append('stop')
-    .attr('offset', '0%')
-    .attr('stop-color', '#000000');
-  svgDefs.append('stop')
-    .attr('offset', '25%')
-    .attr('stop-color', '#FFFFFF');
+  const svgDefs = svgLegendContainer.append('defs').append('linearGradient').attr('id', `pValue-gradLegend-${legendId}`);
+  svgDefs.append('stop').attr('offset', '0%').attr('stop-color', '#000000');
+  svgDefs.append('stop').attr('offset', '25%').attr('stop-color', '#FFFFFF');
 
   let xStart = 0;
   const yStart = 0;
@@ -594,83 +601,125 @@ const insertLegend = (parentElement: Selection<HTMLDivElement, any, null, undefi
   const tickLength = 5;
   const lineWidth = 1;
 
-  xStart = xStart + textWidth;
+  xStart += textWidth;
   const svgLegend = svgLegendContainer.append('g');
   const svgLegendLabel = svgLegend.append('g');
   // label
-  svgLegendLabel.append('text')
+  svgLegendLabel
+    .append('text')
     .attr('x', xStart)
     .attr('y', yStart + barHeight)
     .attr('text-anchor', 'end')
     .text('p-Value');
 
-  xStart = xStart + space;
+  xStart += space;
 
   const svgLegendGroup = svgLegend.append('g');
   // bar + bottom line
-  svgLegendGroup.append('rect')
-    .attr('x', xStart).attr('y', yStart)
+  svgLegendGroup
+    .append('rect')
+    .attr('x', xStart)
+    .attr('y', yStart)
     .attr('width', barWidth)
     .attr('height', barHeight)
-    .style('fill', 'url(#pValue-gradLegend-' + legendId + ')');
-  svgLegendGroup.append('line')
-    .attr('x1', xStart).attr('y1', yStart + barHeight)
-    .attr('x2', xStart + barWidth).attr('y2', yStart + barHeight)
-    .style('stroke-width', lineWidth).style('stroke', 'black');
+    .style('fill', `url(#pValue-gradLegend-${legendId})`);
+  svgLegendGroup
+    .append('line')
+    .attr('x1', xStart)
+    .attr('y1', yStart + barHeight)
+    .attr('x2', xStart + barWidth)
+    .attr('y2', yStart + barHeight)
+    .style('stroke-width', lineWidth)
+    .style('stroke', 'black');
 
   // label: 0 + tick
-  svgLegendGroup.append('text')
-    .attr('x', xStart).attr('y', yStart + barHeight + textHeight)
-    .attr('text-anchor', 'middle').text('0');
-  svgLegendGroup.append('line')
-    .attr('x1', xStart).attr('y1', yStart)
-    .attr('x2', xStart).attr('y2', yStart + barHeight - (lineWidth / 2) + tickLength)
-    .style('stroke-width', lineWidth / 2).style('stroke', 'black');
+  svgLegendGroup
+    .append('text')
+    .attr('x', xStart)
+    .attr('y', yStart + barHeight + textHeight)
+    .attr('text-anchor', 'middle')
+    .text('0');
+  svgLegendGroup
+    .append('line')
+    .attr('x1', xStart)
+    .attr('y1', yStart)
+    .attr('x2', xStart)
+    .attr('y2', yStart + barHeight - lineWidth / 2 + tickLength)
+    .style('stroke-width', lineWidth / 2)
+    .style('stroke', 'black');
 
   // label: 0.05 + tick
-  svgLegendGroup.append('text')
-    .attr('x', xStart + (barWidth * 0.25)).attr('y', yStart + barHeight + textHeight)
-    .attr('text-anchor', 'middle').text('0.05');
-  svgLegendGroup.append('line')
-    .attr('x1', xStart + (barWidth * 0.25)).attr('y1', yStart + barHeight - (lineWidth / 2))
-    .attr('x2', xStart + (barWidth * 0.25)).attr('y2', yStart + barHeight - (lineWidth / 2) + tickLength)
-    .style('stroke-width', lineWidth / 2).style('stroke', 'black');
+  svgLegendGroup
+    .append('text')
+    .attr('x', xStart + barWidth * 0.25)
+    .attr('y', yStart + barHeight + textHeight)
+    .attr('text-anchor', 'middle')
+    .text('0.05');
+  svgLegendGroup
+    .append('line')
+    .attr('x1', xStart + barWidth * 0.25)
+    .attr('y1', yStart + barHeight - lineWidth / 2)
+    .attr('x2', xStart + barWidth * 0.25)
+    .attr('y2', yStart + barHeight - lineWidth / 2 + tickLength)
+    .style('stroke-width', lineWidth / 2)
+    .style('stroke', 'black');
 
   // label: 0.05 + tick
-  svgLegendGroup.append('text')
-    .attr('x', xStart + (barWidth * 0.5)).attr('y', yStart + barHeight + textHeight)
-    .attr('text-anchor', 'middle').text('0.1');
-  svgLegendGroup.append('line')
-    .attr('x1', xStart + (barWidth * 0.5)).attr('y1', yStart + barHeight - (lineWidth / 2))
-    .attr('x2', xStart + (barWidth * 0.5)).attr('y2', yStart + barHeight - (lineWidth / 2) + tickLength)
-    .style('stroke-width', lineWidth / 2).style('stroke', 'black');
+  svgLegendGroup
+    .append('text')
+    .attr('x', xStart + barWidth * 0.5)
+    .attr('y', yStart + barHeight + textHeight)
+    .attr('text-anchor', 'middle')
+    .text('0.1');
+  svgLegendGroup
+    .append('line')
+    .attr('x1', xStart + barWidth * 0.5)
+    .attr('y1', yStart + barHeight - lineWidth / 2)
+    .attr('x2', xStart + barWidth * 0.5)
+    .attr('y2', yStart + barHeight - lineWidth / 2 + tickLength)
+    .style('stroke-width', lineWidth / 2)
+    .style('stroke', 'black');
 
   // label: 0.5 + tick
-  svgLegendGroup.append('text')
-    .attr('x', xStart + (barWidth * 0.75)).attr('y', yStart + barHeight + textHeight)
-    .attr('text-anchor', 'middle').text('0.5');
-  svgLegendGroup.append('line')
-    .attr('x1', xStart + (barWidth * 0.75)).attr('y1', yStart + barHeight - (lineWidth / 2))
-    .attr('x2', xStart + (barWidth * 0.75)).attr('y2', yStart + barHeight - (lineWidth / 2) + tickLength)
-    .style('stroke-width', lineWidth / 2).style('stroke', 'black');
+  svgLegendGroup
+    .append('text')
+    .attr('x', xStart + barWidth * 0.75)
+    .attr('y', yStart + barHeight + textHeight)
+    .attr('text-anchor', 'middle')
+    .text('0.5');
+  svgLegendGroup
+    .append('line')
+    .attr('x1', xStart + barWidth * 0.75)
+    .attr('y1', yStart + barHeight - lineWidth / 2)
+    .attr('x2', xStart + barWidth * 0.75)
+    .attr('y2', yStart + barHeight - lineWidth / 2 + tickLength)
+    .style('stroke-width', lineWidth / 2)
+    .style('stroke', 'black');
 
   // label: 1 + tick
-  svgLegendGroup.append('text')
-    .attr('x', xStart + barWidth).attr('y', yStart + barHeight + textHeight)
-    .attr('text-anchor', 'middle').text('1');
-  svgLegendGroup.append('line')
-    .attr('x1', xStart + barWidth).attr('y1', yStart)
-    .attr('x2', xStart + barWidth).attr('y2', yStart + barHeight - (lineWidth / 2) + tickLength)
-    .style('stroke-width', lineWidth / 2).style('stroke', 'black');
+  svgLegendGroup
+    .append('text')
+    .attr('x', xStart + barWidth)
+    .attr('y', yStart + barHeight + textHeight)
+    .attr('text-anchor', 'middle')
+    .text('1');
+  svgLegendGroup
+    .append('line')
+    .attr('x1', xStart + barWidth)
+    .attr('y1', yStart)
+    .attr('x2', xStart + barWidth)
+    .attr('y2', yStart + barHeight - lineWidth / 2 + tickLength)
+    .style('stroke-width', lineWidth / 2)
+    .style('stroke', 'black');
 
   // label: no p-value correction
-  svgLegendLabel.append('text')
+  svgLegendLabel
+    .append('text')
     .attr('x', xStart)
     .attr('y', yStart + barHeight + 2 * textHeight)
     .attr('text-anchor', 'start')
     .text('No p-Value correction for multiple comparisons.');
 };
-
 
 interface IScoreCell {
   key?: string;
@@ -687,7 +736,7 @@ interface IScoreCell {
 }
 
 interface IHighlightData {
-  column: string; //attribute.column
+  column: string; // attribute.column
   label: string;
   category?: string; // cat.name
   color?: string;
@@ -702,10 +751,9 @@ export function textColor4Background(backgroundColor: string) {
   return color;
 }
 
-export function score2color(score: number): {background: string, foreground: string} {
-  let background = '#ffffff'; //white
-  let foreground = '#333333'; //kinda black
-
+export function score2color(score: number): { background: string; foreground: string } {
+  let background = '#ffffff'; // white
+  let foreground = '#333333'; // kinda black
 
   if (score <= 0.05) {
     // log.debug('bg color cahnge')
@@ -715,5 +763,5 @@ export function score2color(score: number): {background: string, foreground: str
     foreground = textColor4Background(background);
   }
 
-  return {background, foreground};
+  return { background, foreground };
 }
