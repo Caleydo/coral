@@ -123,7 +123,7 @@ export const gene = {
             ColumnDescUtils.stringCol('symbol', { label: 'Symbol', width: 120 }),
             ColumnDescUtils.stringCol('id', { label: 'Ensembl' }),
             ColumnDescUtils.stringCol('name', { label: 'Name' }),
-            ColumnDescUtils.categoricalCol('chromosome', toChromosomes(find('chromosome').categories), { label: 'Chromosome' }),
+            ColumnDescUtils.categoricalCol('chromosome', toChromosomes(find('chromosome').categories.map((c) => { var _a, _b; return (_b = (_a = c.label) !== null && _a !== void 0 ? _a : c.name) !== null && _b !== void 0 ? _b : c; })), { label: 'Chromosome' }),
             ColumnDescUtils.categoricalCol('biotype', find('biotype').categories, { label: 'Biotype' }),
             ColumnDescUtils.categoricalCol('strand', [{ label: 'reverse strand', name: String(-1) }, { label: 'forward strand', name: String(1) }], { label: 'Strand', visible: false }),
             ColumnDescUtils.numberCol('seqregionstart', 0, maxRegion, { label: 'Seq Region Start', visible: false, extras: { renderer: 'default' } }),

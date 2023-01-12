@@ -50,7 +50,7 @@ export class ServerColumnAttribute extends Attribute {
         this.database = database;
         this.serverColumn = serverColumn;
         this.label = niceName(serverColumn.label);
-        this.categories = serverColumn.categories;
+        this.categories = serverColumn.categories.map((c) => { var _a, _b; return (_b = (_a = c.label) !== null && _a !== void 0 ? _a : c.name) !== null && _b !== void 0 ? _b : String(c); });
     }
     async filter(cht, filter, rangeLabel) {
         if (Array.isArray(filter)) {

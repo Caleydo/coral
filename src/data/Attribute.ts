@@ -1,3 +1,4 @@
+import {ICategory} from 'lineupjs';
 import {IAllFilters, IServerColumn} from 'tdp_core';
 import {IDataSubtypeConfig, IDataTypeConfig, resolveDataTypes} from 'tdp_publicdb';
 import {Cohort, createCohortWithDepletionScoreFilter, createCohortWithEqualsFilter, createCohortWithGeneEqualsFilter, createCohortWithGeneNumFilter, createCohortWithNumFilter, createCohortWithPanelAnnotationFilter} from '../Cohort';
@@ -161,7 +162,7 @@ export class ServerColumnAttribute extends Attribute {
     readonly serverColumn: IServerColumn) {
     super(id, view, database, serverColumn.type);
     this.label = niceName(serverColumn.label);
-    this.categories = serverColumn.categories;
+    this.categories = (serverColumn.categories as (Partial<string | ICategory>[])).map((c) => (c as ICategory).label ?? (c as ICategory).name ?? String(c));
   }
 
   async filter(cht: Cohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort> {
