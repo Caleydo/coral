@@ -1,26 +1,39 @@
 import {hsl} from 'd3v7';
 import tippy from 'tippy.js';
-import {Cohort} from './Cohort';
-import {IElement, IRectCohortRep} from './CohortInterfaces';
-import {getRootCohort} from './cohortview';
-import {log} from './util';
-import {CohortRemoveEvent, CohortSelectionEvent} from './utilCustomEvents';
-import {labelFromFilter} from './utilLabels';
+import { Cohort } from './Cohort';
+import { IElement, IRectCohortRep } from './CohortInterfaces';
+import { getRootCohort } from './cohortview';
+import { log } from './util';
+import { CohortRemoveEvent, CohortSelectionEvent } from './utilCustomEvents';
+import { labelFromFilter } from './utilLabels';
+
 export class RectCohortRep implements IRectCohortRep {
   id: string;
+
   labelOne: string;
+
   labelTwo: string;
 
   private _representation: HTMLDivElement;
+
   private _repClone: HTMLDivElement;
+
   private _height: number;
+
   private _width: number;
+
   private _cohort: Cohort;
+
   private _isSelected: boolean;
+
   private _bloodline: Array<any>;
+
   private _bloodlinePaths: SVGPathElement[];
+
   private _removeButton: HTMLAnchorElement;
+
   private _size: number;
+
   private _refSize: number;
 
   constructor(private cohort: Cohort, height: number, width: number) {
@@ -53,7 +66,7 @@ export class RectCohortRep implements IRectCohortRep {
     // *--- create size bar div ---*
     const divSizeBar: HTMLDivElement = document.createElement('div');
     divSizeBar.className = 'rectCohort-sizeBar cht-part';
-    divSizeBar.style.height = barHeight + 'px';
+    divSizeBar.style.height = `${barHeight}px`;
     // indicator div for the size in the size bar div
     const divSizeBarIndicator: HTMLDivElement = document.createElement('div');
     divSizeBarIndicator.className = 'rectCohort-sizeBar-indicator cht-part';
@@ -62,9 +75,9 @@ export class RectCohortRep implements IRectCohortRep {
     const divSizeBarLabel: HTMLDivElement = document.createElement('div');
     divSizeBarLabel.textContent = 'loading...';
     divSizeBarLabel.className = 'size-label cht-part';
-    divSizeBarLabel.style.height = labelHeight + 'px';
-    divSizeBarLabel.style.lineHeight = labelHeight + 'px';
-    divSizeBarLabel.style.fontSize = fontSize + 'px';
+    divSizeBarLabel.style.height = `${labelHeight}px`;
+    divSizeBarLabel.style.lineHeight = `${labelHeight}px`;
+    divSizeBarLabel.style.fontSize = `${fontSize}px`;
 
     // add div for the size overlay wrapper
     const divSizeBarLabelOverlayWrapper: HTMLDivElement = document.createElement('div');
@@ -73,9 +86,9 @@ export class RectCohortRep implements IRectCohortRep {
     // add div for the size overlay
     const divSizeBarLabelOverlay: HTMLDivElement = document.createElement('div');
     divSizeBarLabelOverlay.className = 'size-label-overlay cht-part';
-    divSizeBarLabelOverlay.style.height = labelHeight + 'px';
-    divSizeBarLabelOverlay.style.lineHeight = labelHeight + 'px';
-    divSizeBarLabelOverlay.style.fontSize = fontSize + 'px';
+    divSizeBarLabelOverlay.style.height = `${labelHeight}px`;
+    divSizeBarLabelOverlay.style.lineHeight = `${labelHeight}px`;
+    divSizeBarLabelOverlay.style.fontSize = `${fontSize}px`;
     divSizeBarLabelOverlayWrapper.appendChild(divSizeBarLabelOverlay);
 
     divSizeBar.appendChild(divSizeBarLabel);
@@ -85,15 +98,15 @@ export class RectCohortRep implements IRectCohortRep {
     // ------------------------------
     // *--- create 1st row label ---*
     const divLabelBar: HTMLDivElement = document.createElement('div');
-    divLabelBar.style.height = labelHeight + 'px';
+    divLabelBar.style.height = `${labelHeight}px`;
     divLabelBar.style.position = 'relative';
 
     // label
     const divLabel: HTMLDivElement = document.createElement('div');
     divLabel.className = 'rectCohort-label-first rectCohort-label cht-part';
-    divLabel.style.height = labelHeight + 'px';
-    divLabel.style.lineHeight = labelHeight + 'px';
-    divLabel.style.fontSize = fontSize + 'px';
+    divLabel.style.height = `${labelHeight}px`;
+    divLabel.style.lineHeight = `${labelHeight}px`;
+    divLabel.style.fontSize = `${fontSize}px`;
 
     // remove button
     this._removeButton = document.createElement('a');
@@ -104,15 +117,13 @@ export class RectCohortRep implements IRectCohortRep {
 
     divLabelBar.appendChild(divLabel);
 
-
     // ------------------------------
     // *--- create 2nd row label ---*
     const divLabelTwo: HTMLDivElement = document.createElement('div');
     divLabelTwo.className = 'rectCohort-label-second rectCohort-label cht-part';
-    divLabelTwo.style.height = labelHeight + 'px';
-    divLabelTwo.style.lineHeight = labelHeight + 'px';
-    divLabelTwo.style.fontSize = fontSize + 'px';
-
+    divLabelTwo.style.height = `${labelHeight}px`;
+    divLabelTwo.style.lineHeight = `${labelHeight}px`;
+    divLabelTwo.style.fontSize = `${fontSize}px`;
 
     // --------------------------------------------
     // *--- add the 3 parts into the container ---*
@@ -141,7 +152,6 @@ export class RectCohortRep implements IRectCohortRep {
         this.addHighlightingToElements(this._bloodline);
         this.addHighlightingToPaths(this._bloodlinePaths);
       }
-
     });
     container.addEventListener('mouseleave', (event) => {
       event.stopPropagation();
@@ -156,7 +166,8 @@ export class RectCohortRep implements IRectCohortRep {
 
     let dbClickTimer;
     container.addEventListener('click', (event) => {
-      if (event.detail === 1) { // single click
+      if (event.detail === 1) {
+        // single click
         dbClickTimer = setTimeout(() => {
           log.debug('click on cohort');
           if (event.target === this._removeButton.childNodes[0]) {
@@ -172,7 +183,6 @@ export class RectCohortRep implements IRectCohortRep {
               // get delete button in modal
               let delConfirm = modal.querySelector('.confirm-delete');
               if (delConfirm) {
-
                 // replace element with copy of it to remove the eventlisteners
                 delConfirm.replaceWith(delConfirm.cloneNode(true));
                 delConfirm = modal.querySelector('.confirm-delete');
@@ -200,12 +210,16 @@ export class RectCohortRep implements IRectCohortRep {
       }
     });
 
-    container.addEventListener('mousedown', function (event) {
-      if (event.detail > 1) {
-        event.preventDefault();
-        // prevent text highlighting on double click
-      }
-    }, false);
+    container.addEventListener(
+      'mousedown',
+      function (event) {
+        if (event.detail > 1) {
+          event.preventDefault();
+          // prevent text highlighting on double click
+        }
+      },
+      false,
+    );
 
     return container;
   }
@@ -253,14 +267,14 @@ export class RectCohortRep implements IRectCohortRep {
     const remBtn = clone.querySelector('.remove-cohort');
     remBtn.parentNode.removeChild(remBtn);
 
-    clone.id = 'clone_' + this.id;
+    clone.id = `clone_${this.id}`;
     clone.style.setProperty('grid-area', null);
 
     // enable interactions for the cohorts in the task view (de/select input cohorts, de/select possible output cohorts)
     clone.addEventListener('click', (event) => {
       log.info('click on cohort');
       // to achieve toggle selection the ctrlClick variable has to be set to true
-      const ctrlClick = true;// was CTRL or ALT key: (event as MouseEvent).ctrlKey || (event as MouseEvent).altKey;
+      const ctrlClick = true; // was CTRL or ALT key: (event as MouseEvent).ctrlKey || (event as MouseEvent).altKey;
       clone.dispatchEvent(new CohortSelectionEvent(this.cohort, !ctrlClick));
     });
 
@@ -301,7 +315,6 @@ export class RectCohortRep implements IRectCohortRep {
       this._repClone.style.color = null;
       this._removeButton.style.color = null;
     }
-
   }
 
   getSelection(): boolean {
@@ -313,12 +326,14 @@ export class RectCohortRep implements IRectCohortRep {
     this.setSize(size, sizeReference);
   }
 
-  public setLabel(labelOne: string, labelTwo: string = '') {
+  public setLabel(labelOne: string, labelTwo = '') {
     let labelOneHTML = labelOne;
     const [labelOneCounter] = labelOne.split(' ', 1);
     if (labelOneCounter.startsWith('#')) {
       const labelOneText = labelOne.substring(labelOneCounter.length + 1);
-      labelOneHTML = `<span style="font-weight: 700;"><span style="font-size: 0.8em; font-weight: 700;">#</span><span style="font-size: 0.9em; font-weight: 700;">${labelOneCounter.substring(1)}</span></span> ` + labelOneText;
+      labelOneHTML = `<span style="font-weight: 700;"><span style="font-size: 0.8em; font-weight: 700;">#</span><span style="font-size: 0.9em; font-weight: 700;">${labelOneCounter.substring(
+        1,
+      )}</span></span> ${labelOneText}`;
     }
 
     // 1st row
@@ -354,12 +369,12 @@ export class RectCohortRep implements IRectCohortRep {
     // calculate the size of bar and set its color accordingly
     const percentage = (size / sizeReference) * 100;
 
-    //original
+    // original
     const sizeBarPercentage = this._representation.querySelector('div.rectCohort-sizeBar-indicator') as HTMLDivElement;
     sizeBarPercentage.style.width = `${percentage}%`;
     // set the label for the size
     // this._representation.querySelector('div.rectCohort-labelBar').innerHTML = '' + size;
-    this._representation.querySelector('div.size-label').innerHTML = '' + size;
+    this._representation.querySelector('div.size-label').innerHTML = `${size}`;
 
     // get overlay and overlayWrapper
     const overlay = this._representation.querySelector('div.size-label-overlay') as HTMLDivElement;
@@ -369,18 +384,17 @@ export class RectCohortRep implements IRectCohortRep {
     // now get the calculated with of overlayWrapper (is a string with 'px' at the end)
     const repSize: number = window.getComputedStyle(overlayWrapper).getPropertyValue('width').slice(0, -2) as any;
 
-    overlay.innerHTML = '' + size; // set the text for the size
-    overlay.style.width = repSize + 'px'; // set size for the overlay
+    overlay.innerHTML = `${size}`; // set the text for the size
+    overlay.style.width = `${repSize}px`; // set size for the overlay
 
     overlayWrapper.style.width = `${percentage}%`; // set size of the wrapper to the length of the bar
-
 
     // clone
     const sizeBarPercentageClone = this._repClone.querySelector('div.rectCohort-sizeBar-indicator') as HTMLDivElement;
     sizeBarPercentageClone.style.width = `${percentage}%`;
     // set the label for the size
     // this._repClone.querySelector('div.rectCohort-labelBar').innerHTML = '' + size;
-    this._repClone.querySelector('div.size-label').innerHTML = '' + size;
+    this._repClone.querySelector('div.size-label').innerHTML = `${size}`;
 
     // get overlay and overlayWrapper
     const overlayClone = this._repClone.querySelector('div.size-label-overlay') as HTMLDivElement;
@@ -390,11 +404,10 @@ export class RectCohortRep implements IRectCohortRep {
     // now get the calculated with of overlayWrapper (is a string with 'px' at the end)
     const repSizeClone: number = window.getComputedStyle(overlayWrapperClone).getPropertyValue('width').slice(0, -2) as any;
 
-    overlayClone.innerHTML = '' + size; // set the text for the size
-    overlayClone.style.width = repSizeClone + 'px'; // set size for the overlay
+    overlayClone.innerHTML = `${size}`; // set the text for the size
+    overlayClone.style.width = `${repSizeClone}px`; // set size for the overlay
 
     overlayWrapperClone.style.width = `${percentage}%`; // set size of the wrapper to the length of the bar
-
 
     // create summary for the cohort
     this._setSummary();
@@ -440,7 +453,6 @@ export class RectCohortRep implements IRectCohortRep {
         duration: [300, null],
       });
     }
-
   }
 
   private _getPathsForBloodline() {
@@ -475,10 +487,11 @@ export class RectCohortRep implements IRectCohortRep {
     let previousSize = maxSize;
     let cntStep = 1;
     let htmlTooltip;
-    const tooltipInfo: {chtName: string, chtSize: number, prevSize: number, percentage: number, attr: {name: string, value: string}[]}[] = [];
-    if (this._bloodline.length > 1) { // only if more than 1 element (root)
-      for (let i = this._bloodline.length - 2; i > 0; i = i - 2) {
-        const ttInfo = {chtName: '', chtSize: 0, prevSize: 0, percentage: 0, attr: []};
+    const tooltipInfo: { chtName: string; chtSize: number; prevSize: number; percentage: number; attr: { name: string; value: string }[] }[] = [];
+    if (this._bloodline.length > 1) {
+      // only if more than 1 element (root)
+      for (let i = this._bloodline.length - 2; i > 0; i -= 2) {
+        const ttInfo = { chtName: '', chtSize: 0, prevSize: 0, percentage: 0, attr: [] };
         const task = this._bloodline[i];
         const cohort = this._bloodline[i - 1];
         // TODO labels
@@ -504,26 +517,25 @@ export class RectCohortRep implements IRectCohortRep {
             labelpart = labelFromFilter(val, label);
           }
           detailedLabelArray.push(labelpart);
-          ttInfo.attr.push({name: attrLabel[i], value: labelpart});
+          ttInfo.attr.push({ name: attrLabel[i], value: labelpart });
         }
         const detailedLabel = detailedLabelArray.join(', ');
         const valueLabel = detailedLabel.replace(htmlLte, '<=').replace(htmlLt, '<').replace(htmlGte, '>=').replace(htmlGt, '>');
 
-        const percentage = Math.round(cohort.size / maxSize * 100000) / 1000;
+        const percentage = Math.round((cohort.size / maxSize) * 100000) / 1000;
         ttInfo.percentage = percentage;
         tooltipInfo.push(ttInfo);
         // TODO lables
         // summaries = summaries + `\n${cntStep}: ${task.label} = ${valueLabel}:\n    ${previousSize} -> ${cohort.size} (= ${percentage} % of the entire dataset)`;
-        summaries = summaries + `\n${cntStep}. ${task.label}: ${valueLabel}:\n    ${previousSize} -> ${cohort.size} (= ${percentage} % of the entire dataset)`;
+        summaries += `\n${cntStep}. ${task.label}: ${valueLabel}:\n    ${previousSize} -> ${cohort.size} (= ${percentage} % of the entire dataset)`;
         previousSize = cohort.size;
         cntStep += 1;
-
       }
 
       htmlTooltip = this.createCohortTooltip(false, tooltipInfo);
     } else {
       const cohort = this._bloodline[0];
-      const ttInfo = {chtName: '', chtSize: 0, prevSize: 0, percentage: 0, attr: []};
+      const ttInfo = { chtName: '', chtSize: 0, prevSize: 0, percentage: 0, attr: [] };
       const cohortObj = cohort.obj as Cohort;
       ttInfo.chtName = cohortObj.label;
       ttInfo.chtSize = cohort.size;
@@ -538,8 +550,10 @@ export class RectCohortRep implements IRectCohortRep {
     return htmlTooltip;
   }
 
-
-  private createCohortTooltip(root: boolean, ttInfo: {chtName: string, chtSize: number, prevSize: number, percentage: number, attr: {name: string, value: string}[]}[]): HTMLDivElement {
+  private createCohortTooltip(
+    root: boolean,
+    ttInfo: { chtName: string; chtSize: number; prevSize: number; percentage: number; attr: { name: string; value: string }[] }[],
+  ): HTMLDivElement {
     // TODO labels
     log.debug('toolTipInfo: ', ttInfo);
     log.debug('tooltip cohort: ', this._cohort);
@@ -632,7 +646,6 @@ export class RectCohortRep implements IRectCohortRep {
           ctrTooltip.appendChild(ctrCurrCht);
         }
       }
-
     }
 
     // const prevInstRep = (this._representation as any)._tippy;

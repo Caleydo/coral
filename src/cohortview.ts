@@ -1,21 +1,26 @@
-import {IObjectRef, ProvenanceGraph} from 'tdp_core';
-import {IDatabaseViewDesc, RestBaseUtils} from 'tdp_core';
-import {CohortApp, CohortSelectionListener} from './app';
-import {Cohort} from './Cohort';
-import {OnboardingManager} from './OnboardingManager';
-import {CohortOverview} from './Overview/CohortOverview';
-import {RectangleLayout} from './Overview/OverviewLayout';
+import { IObjectRef, ProvenanceGraph, IDatabaseViewDesc, RestBaseUtils } from 'tdp_core';
+import { CohortApp, CohortSelectionListener } from './app';
+import { Cohort } from './Cohort';
+import { OnboardingManager } from './OnboardingManager';
+import { CohortOverview } from './Overview/CohortOverview';
+import { RectangleLayout } from './Overview/OverviewLayout';
 import Taskview from './Taskview/Taskview';
-import {handleDataLoadError, log} from './util';
-import {IEntitySourceConfig} from './utilIdTypes';
-
+import { handleDataLoadError, log } from './util';
+import { IEntitySourceConfig } from './utilIdTypes';
 
 export let cohortOverview: CohortOverview;
 export let taskview: Taskview;
 
 let referenceCohort: Cohort;
 
-export async function createCohortOverview(graph: ProvenanceGraph, ref: IObjectRef<CohortApp>, container: HTMLDivElement, detailView: HTMLDivElement, idTypeConfig: IEntitySourceConfig, rootCohort: Cohort): Promise<{cohortOV: CohortOverview; taskV: Taskview;}> {
+export async function createCohortOverview(
+  graph: ProvenanceGraph,
+  ref: IObjectRef<CohortApp>,
+  container: HTMLDivElement,
+  detailView: HTMLDivElement,
+  idTypeConfig: IEntitySourceConfig,
+  rootCohort: Cohort,
+): Promise<{ cohortOV: CohortOverview; taskV: Taskview }> {
   const viewDescription: IDatabaseViewDesc = await loadViewDescription(idTypeConfig.dbConnectorName, idTypeConfig.viewName);
   log.debug('retrievedViewDesctiprion', viewDescription);
 
@@ -24,7 +29,6 @@ export async function createCohortOverview(graph: ProvenanceGraph, ref: IObjectR
   // set reference/root cohort
   referenceCohort = rootCohort; // save reference cohort
   log.debug('cohortview - root: ', rootCohort);
-
 
   // create Overview
   cohortOverview = new CohortOverview(container, graph, ref, new RectangleLayout(130, 50, 50, 50), rootCohort, viewDescription);
@@ -38,10 +42,9 @@ export async function createCohortOverview(graph: ProvenanceGraph, ref: IObjectR
   OnboardingManager.addTip('rootCohort', rootCohort.representation.getRepresentation());
   return {
     cohortOV: cohortOverview,
-    taskV: taskview
+    taskV: taskview,
   };
 }
-
 
 export function getRootCohort(): Cohort {
   return referenceCohort;
@@ -66,7 +69,6 @@ export function getCohortOverview(): CohortOverview {
 export function getTaskview(): Taskview {
   return taskview;
 }
-
 
 export function updateOverview(overview: CohortOverview) {
   overview.generateOverview();

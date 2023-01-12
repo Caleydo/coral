@@ -1,9 +1,9 @@
 import tippy from 'tippy.js';
-import {taskview} from './cohortview';
-import {toAttribute} from './data/Attribute';
-import {SearchBar} from './Taskview/SearchBar';
+import { taskview } from './cohortview';
+import { toAttribute } from './data/Attribute';
+import { SearchBar } from './Taskview/SearchBar';
 
-export function createSearchBarTooltip(elemWithTooltip: HTMLDivElement, cssClassName: string, database: string, view: string, positionStart: boolean = true) {
+export function createSearchBarTooltip(elemWithTooltip: HTMLDivElement, cssClassName: string, database: string, view: string, positionStart = true) {
   // start of tooltip content
   const divAddAttr = document.createElement('div');
   divAddAttr.classList.add('tooltip-serachbar');
@@ -59,6 +59,6 @@ export function createSearchBarTooltip(elemWithTooltip: HTMLDivElement, cssClass
     hideOnClick: 'toggle', // the tooltip is closed when the element is clicked again
     arrow: true, // show tooltip arrow
     zIndex: 9000, // default z-index: 9999 (but the searchbar option container has z-index of 9001)
-    maxWidth: 'none',  // default max. width is 350px
+    maxWidth: 'none', // default max. width is 350px
   });
 }

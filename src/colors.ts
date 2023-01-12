@@ -1,5 +1,3 @@
-
-
 // equals colors in src/scss/abstracts/_variables.scss
 export const colors = {
   selectedColor: '#FFC340',
@@ -16,5 +14,5 @@ export const colors = {
 
   lightBorder: '#d4d4d4',
   mediumBorder: '#AAA',
-  darkBorder: '#333'
+  darkBorder: '#333',
 };

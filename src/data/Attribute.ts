@@ -1,13 +1,37 @@
-import {ICategory} from 'lineupjs';
-import {IAllFilters, IServerColumn} from 'tdp_core';
-import {IDataSubtypeConfig, IDataTypeConfig, resolveDataTypes} from 'tdp_publicdb';
-import {Cohort, createCohortWithDepletionScoreFilter, createCohortWithEqualsFilter, createCohortWithGeneEqualsFilter, createCohortWithGeneNumFilter, createCohortWithNumFilter, createCohortWithPanelAnnotationFilter} from '../Cohort';
-import {ICohort} from '../CohortInterfaces';
-import {getCohortData, getCohortDepletionScore, getCohortGeneScore, getCohortHist, getCohortPanelAnnotation, getCohortSize, HistRouteType, ICohortDBDepletionScoreParams, ICohortDBGeneScoreParams, ICohortDBHistDataParms, ICohortDBHistPanelParms, ICohortDBHistScoreDepletionParms, ICohortDBHistScoreParms, ICohortDBPanelAnnotationParams, IEqualsList, INumRange} from '../rest';
-import {IOption, IScoreOption, IServerColumnOption, ISpecialOption, OptionType} from '../Taskview/SearchBar';
-import {deepCopy, getSessionStorageItem, IAttributeFilter, log, setSessionStorageItem} from '../util';
-import {easyLabelFromFilter, easyLabelFromFilterArray, niceName} from '../utilLabels';
-import {ISpecialAttribute} from './SpecialAttribute';
+import { IAllFilters, IServerColumn } from 'tdp_core';
+import { IDataSubtypeConfig, IDataTypeConfig, resolveDataTypes } from 'tdp_publicdb';
+import {
+  Cohort,
+  createCohortWithDepletionScoreFilter,
+  createCohortWithEqualsFilter,
+  createCohortWithGeneEqualsFilter,
+  createCohortWithGeneNumFilter,
+  createCohortWithNumFilter,
+  createCohortWithPanelAnnotationFilter,
+} from '../Cohort';
+import { ICohort } from '../CohortInterfaces';
+import {
+  getCohortData,
+  getCohortDepletionScore,
+  getCohortGeneScore,
+  getCohortHist,
+  getCohortPanelAnnotation,
+  getCohortSize,
+  HistRouteType,
+  ICohortDBDepletionScoreParams,
+  ICohortDBGeneScoreParams,
+  ICohortDBHistDataParms,
+  ICohortDBHistPanelParms,
+  ICohortDBHistScoreDepletionParms,
+  ICohortDBHistScoreParms,
+  ICohortDBPanelAnnotationParams,
+  IEqualsList,
+  INumRange,
+} from '../rest';
+import { IOption, IScoreOption, IServerColumnOption, ISpecialOption, OptionType } from '../Taskview/SearchBar';
+import { deepCopy, getSessionStorageItem, IAttributeFilter, log, setSessionStorageItem } from '../util';
+import { easyLabelFromFilter, easyLabelFromFilterArray, niceName } from '../utilLabels';
+import { ISpecialAttribute } from './SpecialAttribute';
 
 export type AttributeType = 'categorical' | 'number' | 'string';
 
@@ -82,9 +106,12 @@ export interface IAttribute {
 
   getData(cohortDbId: number, filters?: IAllFilters): Promise<IdValuePair[]>; // IRow has _id but IScoreRow has not
 
-  getHist(dbId: number, filters?: IAllFilters, bins?: number): Promise<{bin: string, count: number}[]>;
+  getHist(dbId: number, filters?: IAllFilters, bins?: number): Promise<{ bin: string; count: number }[]>;
 
-  getHistWithStorage(histType: HistRouteType, params: ICohortDBHistDataParms | ICohortDBHistScoreParms | ICohortDBHistScoreDepletionParms | ICohortDBHistPanelParms): Promise<{bin: string, count: number}[]>;
+  getHistWithStorage(
+    histType: HistRouteType,
+    params: ICohortDBHistDataParms | ICohortDBHistScoreParms | ICohortDBHistScoreDepletionParms | ICohortDBHistPanelParms,
+  ): Promise<{ bin: string; count: number }[]>;
 
   getCount(cohortDbId: number, filters?: IAllFilters): Promise<number>;
 
@@ -93,46 +120,48 @@ export interface IAttribute {
   toJSON();
 }
 
-
 export abstract class Attribute implements IAttribute {
-
-  public preferLog: boolean = false;
+  public preferLog = false;
 
   public min?: number;
+
   public max?: number;
+
   public categories?: string[];
+
   public label: string;
+
   public dataKey: string;
 
-  constructor(public readonly id: string,
-    public readonly view: string,
-    public readonly database: string,
-    public readonly type: AttributeType) {
-    this.label = niceName(this.id); //default
-    this.dataKey = this.id; //identical by default
+  constructor(public readonly id: string, public readonly view: string, public readonly database: string, public readonly type: AttributeType) {
+    this.label = niceName(this.id); // default
+    this.dataKey = this.id; // identical by default
     // console.log('attribute Option: ', option);
     // console.log('attribute JSON: ', this.toJSON());
   }
 
   async getData(cohortDbId: number, filters?: IAllFilters): Promise<IdValuePair[]> {
-    const rows = await getCohortData({cohortId: cohortDbId, attribute: this.id});
+    const rows = await getCohortData({ cohortId: cohortDbId, attribute: this.id });
     return rows;
   }
 
-  getHist(dbId: number, filters?: IAllFilters, bins?: number): Promise<{bin: string, count: number}[]> {
+  getHist(dbId: number, filters?: IAllFilters, bins?: number): Promise<{ bin: string; count: number }[]> {
     const params: ICohortDBHistDataParms = {
       cohortId: dbId,
-      attribute: this.id
+      attribute: this.id,
     };
     const type = this.type === 'number' ? HistRouteType.dataNum : HistRouteType.dataCat;
 
     return this.getHistWithStorage(type, params);
   }
 
-  async getHistWithStorage(histType: HistRouteType, params: ICohortDBHistDataParms | ICohortDBHistScoreParms | ICohortDBHistScoreDepletionParms | ICohortDBHistPanelParms): Promise<{bin: string, count: number}[]> {
+  async getHistWithStorage(
+    histType: HistRouteType,
+    params: ICohortDBHistDataParms | ICohortDBHistScoreParms | ICohortDBHistScoreDepletionParms | ICohortDBHistPanelParms,
+  ): Promise<{ bin: string; count: number }[]> {
     // define storagekey as cohort dbId and attribute label
     const storageKey = `${params.cohortId}#${this.label}`;
-    let histData: {bin: string, count: number}[] = getSessionStorageItem(storageKey); // get histogram from session storage
+    let histData: { bin: string; count: number }[] = getSessionStorageItem(storageKey); // get histogram from session storage
 
     // check if histogram was saved in sesison storage
     if (histData === null) {
@@ -144,7 +173,7 @@ export abstract class Attribute implements IAttribute {
   }
 
   getCount(cohortDbId: number, filters?: IAllFilters) {
-    return getCohortSize({cohortId: cohortDbId});
+    return getCohortSize({ cohortId: cohortDbId });
   }
 
   abstract filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort>;
@@ -153,30 +182,26 @@ export abstract class Attribute implements IAttribute {
 }
 
 export class ServerColumnAttribute extends Attribute {
+  resolvedDataType: { dataType: IDataTypeConfig; dataSubType: IDataSubtypeConfig };
 
-  resolvedDataType: {dataType: IDataTypeConfig; dataSubType: IDataSubtypeConfig;};
-
-  constructor(public readonly id: string,
-    public readonly view: string,
-    public readonly database: string,
-    readonly serverColumn: IServerColumn) {
+  constructor(public readonly id: string, public readonly view: string, public readonly database: string, readonly serverColumn: IServerColumn) {
     super(id, view, database, serverColumn.type);
     this.label = niceName(serverColumn.label);
-    this.categories = (serverColumn.categories as (Partial<string | ICategory>[])).map((c) => (c as ICategory).label ?? (c as ICategory).name ?? String(c));
+    //this.categories = (serverColumn.categories as (Partial<string | ICategory>[])).map((c) => (c as ICategory).label ?? (c as ICategory).name ?? String(c));
+    this.categories = serverColumn.categories as string[];
   }
 
   async filter(cht: Cohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort> {
     if (Array.isArray(filter)) {
       // TODO label
       // const label = rangeLabel ? rangeLabel : filter.map((a) => labelFromFilter(a, this)).join(' / ');
-      const label = rangeLabel ? rangeLabel : filter.map((a) => easyLabelFromFilter(a, this.label)).join(' / ');
+      const label = rangeLabel || filter.map((a) => easyLabelFromFilter(a, this.label)).join(' / ');
       return createCohortWithNumFilter(cht, niceName(this.id), label, this.id, filter);
-    } else {
-      // TODO label
-      // const label = rangeLabel ? rangeLabel : labelFromFilter(filter, this);
-      const label = rangeLabel ? rangeLabel : easyLabelFromFilter(filter, this.label);
-      return createCohortWithEqualsFilter(cht, niceName(this.id), label, this.id, this.type === 'number' ? 'true' : 'false', filter.values);
     }
+    // TODO label
+    // const label = rangeLabel ? rangeLabel : labelFromFilter(filter, this);
+    const label = rangeLabel || easyLabelFromFilter(filter, this.label);
+    return createCohortWithEqualsFilter(cht, niceName(this.id), label, this.id, this.type === 'number' ? 'true' : 'false', filter.values);
   }
 
   toJSON(): IAttributeJSON {
@@ -186,25 +211,24 @@ export class ServerColumnAttribute extends Attribute {
       optionText: null,
       optionData: {
         serverColumn: this.serverColumn,
-      }
+      },
     };
     return {
       option,
       currentDB: this.database,
-      currentView: this.view
+      currentView: this.view,
     };
   }
-
 }
 
-
 export class SpecialAttribute extends Attribute {
-
-  constructor(public readonly id: string,
+  constructor(
+    public readonly id: string,
     public readonly view: string,
     public readonly database: string,
     public readonly spAttribute: ISpecialAttribute,
-    public readonly attrOption: string) {
+    public readonly attrOption: string,
+  ) {
     super(id, view, database, spAttribute.type);
 
     this.spAttribute.attributeOption = this.attrOption;
@@ -216,17 +240,16 @@ export class SpecialAttribute extends Attribute {
     let rows = [];
     if (this.spAttribute.overrideGetData) {
       rows = await this.spAttribute.getData(cohortDbId);
-    } //else {
+    } // else {
     //   rows = await super.getData(cohortDbId, filters);
     // }
 
     return rows;
   }
 
-  async getHist(dbId: number, filters?: IAllFilters, bins?: number): Promise<{bin: string, count: number}[]> {
-
+  async getHist(dbId: number, filters?: IAllFilters, bins?: number): Promise<{ bin: string; count: number }[]> {
     if (this.spAttribute.overrideGetHist) {
-      return await this.spAttribute.getHist(dbId, filters, bins);
+      return this.spAttribute.getHist(dbId, filters, bins);
     }
     return null;
   }
@@ -235,11 +258,11 @@ export class SpecialAttribute extends Attribute {
     if (this.spAttribute.overrideFilter) {
       // this.spAttribute.attributeOption = this.attrOption;
       // TODO label
-      //const label = rangeLabel ? rangeLabel : labelFromFilterArray(filter, this);
+      // const label = rangeLabel ? rangeLabel : labelFromFilterArray(filter, this);
       const filterLabel = easyLabelFromFilterArray(filter, this.label);
-      const label = rangeLabel ? rangeLabel : filterLabel;
-      return await this.spAttribute.filter(cht, filter, label);
-    } //else {
+      const label = rangeLabel || filterLabel;
+      return this.spAttribute.filter(cht, filter, label);
+    } // else {
     //   rows = await super.filter(cht, filter);
     // }
 
@@ -254,24 +277,18 @@ export class SpecialAttribute extends Attribute {
       optionData: {
         spAttribute: this.spAttribute,
         attrOprtion: this.attrOption,
-      }
+      },
     };
     return {
       option,
       currentDB: this.database,
-      currentView: this.view
+      currentView: this.view,
     };
   }
-
 }
 
-
 export abstract class AScoreAttribute extends Attribute {
-
-  constructor(public readonly id: string,
-    public readonly view: string,
-    public readonly database: string,
-    public readonly type: AttributeType) {
+  constructor(public readonly id: string, public readonly view: string, public readonly database: string, public readonly type: AttributeType) {
     super(id, view, database, type);
   }
 
@@ -291,18 +308,19 @@ function getDepletionscreen(subTypeID: string): 'Avana' | 'Drive' {
  * TODO: Compare with  SingleDepletionScore in tdp_publicdb/src/scores/SingleScore.ts
  */
 export class GeneScoreAttribute extends AScoreAttribute {
+  resolvedDataType: { dataType: IDataTypeConfig; dataSubType: IDataSubtypeConfig };
 
-  resolvedDataType: {dataType: IDataTypeConfig; dataSubType: IDataSubtypeConfig;};
-
-  constructor(public readonly id: string,
+  constructor(
+    public readonly id: string,
     public readonly gene: string,
     public readonly view: string,
     public readonly database: string,
     readonly scoreType: ScoreType,
-    readonly scoreSubType: IDataSubtypeConfig) {
+    readonly scoreSubType: IDataSubtypeConfig,
+  ) {
     super(id, view, database, subType2Type(scoreSubType.type));
 
-    this.label = gene + ': ' + scoreSubType.name;
+    this.label = `${gene}: ${scoreSubType.name}`;
 
     this.preferLog = this.scoreType === 'expression';
 
@@ -329,7 +347,7 @@ export class GeneScoreAttribute extends AScoreAttribute {
         table: param.table,
         attribute: param.attribute,
         ensg: param.name,
-        depletionscreen: getDepletionscreen(this.scoreSubType.id)
+        depletionscreen: getDepletionscreen(this.scoreSubType.id),
       };
       scores = await getCohortDepletionScore(params);
     } else {
@@ -337,7 +355,7 @@ export class GeneScoreAttribute extends AScoreAttribute {
         cohortId: cohortDbId,
         table: param.table,
         attribute: param.attribute,
-        ensg: param.name
+        ensg: param.name,
       };
       scores = await getCohortGeneScore('tissue', params);
     }
@@ -345,7 +363,7 @@ export class GeneScoreAttribute extends AScoreAttribute {
     // rename score property to <id>:
     // BUT:Id is the same for relative copy number, tpm, etc --> we need a suffix
     return scores.map((score) => {
-      const enhancedObj = Object.assign(score, {[this.dataKey]: score.score});
+      const enhancedObj = Object.assign(score, { [this.dataKey]: score.score });
       delete enhancedObj.score; // remove score as it was stored at dataKey
       return enhancedObj;
     });
@@ -356,19 +374,26 @@ export class GeneScoreAttribute extends AScoreAttribute {
     if (Array.isArray(filter)) {
       // TODO label
       // const label = rangeLabel ? rangeLabel : filter.map((a) => labelFromFilter(a, this)).join(' / ');
-      const label = rangeLabel ? rangeLabel : filter.map((a) => easyLabelFromFilter(a, this.label)).join(' / ');
+      const label = rangeLabel || filter.map((a) => easyLabelFromFilter(a, this.label)).join(' / ');
       if (this.scoreType === 'depletion') {
         const depletionscreen = getDepletionscreen(this.scoreSubType.id);
         return createCohortWithDepletionScoreFilter(cht, niceName(this.label), label, param.table, param.attribute, param.name, depletionscreen, filter);
-      } else {
-        return createCohortWithGeneNumFilter(cht, niceName(this.label), label, param.table, param.attribute, param.name, filter);
       }
-    } else {
-      // TODO label
-      // const label = rangeLabel ? rangeLabel : labelFromFilter(filter, this);
-      const label = rangeLabel ? rangeLabel : easyLabelFromFilter(filter, this.label);
-      return createCohortWithGeneEqualsFilter(cht, niceName(this.label), label, param.table, param.attribute, param.name, this.type === 'number' ? 'true' : 'false', filter.values);
+      return createCohortWithGeneNumFilter(cht, niceName(this.label), label, param.table, param.attribute, param.name, filter);
     }
+    // TODO label
+    // const label = rangeLabel ? rangeLabel : labelFromFilter(filter, this);
+    const label = rangeLabel || easyLabelFromFilter(filter, this.label);
+    return createCohortWithGeneEqualsFilter(
+      cht,
+      niceName(this.label),
+      label,
+      param.table,
+      param.attribute,
+      param.name,
+      this.type === 'number' ? 'true' : 'false',
+      filter.values,
+    );
   }
 
   /**
@@ -380,7 +405,7 @@ export class GeneScoreAttribute extends AScoreAttribute {
       attribute: this.resolvedDataType.dataSubType.id,
       name: this.id,
       species: 'human',
-      target: niceName(this.view)
+      target: niceName(this.view),
     };
   }
 
@@ -388,9 +413,9 @@ export class GeneScoreAttribute extends AScoreAttribute {
    * depletion views are a bit special
    */
   getView() {
-    let scoreView = this.view + '_gene_single_score';
+    let scoreView = `${this.view}_gene_single_score`;
     if (this.scoreType === 'depletion') {
-      scoreView = 'depletion_' + scoreView; // necessary prefix
+      scoreView = `depletion_${scoreView}`; // necessary prefix
     }
     return scoreView;
   }
@@ -406,25 +431,25 @@ export class GeneScoreAttribute extends AScoreAttribute {
         filters.normal.depletionscreen = depletionscreen;
       } else {
         filters = {
-          normal: {depletionscreen},
+          normal: { depletionscreen },
           lt: {},
           lte: {},
           gt: {},
-          gte: {}
+          gte: {},
         };
       }
     }
     return filters;
   }
 
-  async getHist(dbId: number, filters?: IAllFilters, bins?: number): Promise<{bin: string, count: number}[]> {
+  async getHist(dbId: number, filters?: IAllFilters, bins?: number): Promise<{ bin: string; count: number }[]> {
     const param = this.getParam();
 
     let params: ICohortDBHistScoreParms = {
       cohortId: dbId,
       attribute: param.attribute,
       table: param.table,
-      ensg: param.name
+      ensg: param.name,
     };
     let type = this.type === 'number' ? HistRouteType.geneScoreNum : HistRouteType.geneScoreCat;
 
@@ -447,39 +472,38 @@ export class GeneScoreAttribute extends AScoreAttribute {
       optionText: this.gene,
       optionData: {
         type: this.scoreType,
-        subType: this.scoreSubType
-      }
+        subType: this.scoreSubType,
+      },
     };
     return {
       option,
       currentDB: this.database,
-      currentView: this.view
+      currentView: this.view,
     };
   }
 }
 
 export class PanelScoreAttribute extends AScoreAttribute {
-
   async getData(cohortDbId: number, filters?: IAllFilters): Promise<IdValuePair[]> {
     const params: ICohortDBPanelAnnotationParams = {
       cohortId: cohortDbId,
-      panel: this.id
+      panel: this.id,
     };
     const scores = await getCohortPanelAnnotation('tissue', params);
 
     // rename score property to <id>:
     // BUT:Id is the same for relative copy number, tpm, etc --> we need a suffix
     return scores.map((score) => {
-      const enhancedObj = Object.assign(score, {[this.dataKey]: score.score});
+      const enhancedObj = Object.assign(score, { [this.dataKey]: score.score });
       delete enhancedObj.score; // remove score as it was stored at dataKey
       return enhancedObj;
     });
   }
 
-  async getHist(dbId: number, filters?: IAllFilters, bins?: number): Promise<{bin: string, count: number}[]> {
+  async getHist(dbId: number, filters?: IAllFilters, bins?: number): Promise<{ bin: string; count: number }[]> {
     const params: ICohortDBHistPanelParms = {
       cohortId: dbId,
-      panel: this.id
+      panel: this.id,
     };
     const type = HistRouteType.panelAnnotation;
 
@@ -492,8 +516,8 @@ export class PanelScoreAttribute extends AScoreAttribute {
     } else {
       // TODO label
       // const label = rangeLabel ? rangeLabel : labelFromFilter(filter, this);
-      const label = rangeLabel ? rangeLabel : easyLabelFromFilter(filter, this.label);
-      const stringValues = (filter.values as any[]).map((item: number | string) => item.toString()); //convert potential numbers to string
+      const label = rangeLabel || easyLabelFromFilter(filter, this.label);
+      const stringValues = (filter.values as any[]).map((item: number | string) => item.toString()); // convert potential numbers to string
       return createCohortWithPanelAnnotationFilter(cht, niceName(this.id), label, this.id, stringValues);
     }
   }
@@ -507,11 +531,10 @@ export class PanelScoreAttribute extends AScoreAttribute {
     return {
       option,
       currentDB: this.database,
-      currentView: this.view
+      currentView: this.view,
     };
   }
 }
-
 
 export function toAttribute(option: IOption, currentDB, currentView): IAttribute {
   if (option.optionType === 'dbc') {
@@ -520,23 +543,32 @@ export function toAttribute(option: IOption, currentDB, currentView): IAttribute
       // if (option.optionData.spA === 'treatment') {
       log.debug('create special Attribute: ', option.optionId);
       log.debug('special Attribute object: ', option.optionData.spAttribute);
-      return new SpecialAttribute(option.optionId, currentView, currentDB, (option as ISpecialOption).optionData.spAttribute, (option as ISpecialOption).optionData.attrOption);
-    } else {
-      // Create Attribute
-      return new ServerColumnAttribute(option.optionId, currentView, currentDB, (option as IServerColumnOption).optionData.serverColumn);
+      return new SpecialAttribute(
+        option.optionId,
+        currentView,
+        currentDB,
+        (option as ISpecialOption).optionData.spAttribute,
+        (option as ISpecialOption).optionData.attrOption,
+      );
     }
-  } else {
-    // Create ScoreAttribute
-    if (option.optionType === 'gene') {
-      return new GeneScoreAttribute(option.optionId, option.optionText, currentView, currentDB, (option as IScoreOption).optionData.type, (option as IScoreOption).optionData.subType);
-    } else if (option.optionType === 'panel') {
-      return new PanelScoreAttribute(option.optionId, currentView, currentDB, 'categorical');
-    }
+    // Create Attribute
+    return new ServerColumnAttribute(option.optionId, currentView, currentDB, (option as IServerColumnOption).optionData.serverColumn);
+  }
+  // Create ScoreAttribute
+  if (option.optionType === 'gene') {
+    return new GeneScoreAttribute(
+      option.optionId,
+      option.optionText,
+      currentView,
+      currentDB,
+      (option as IScoreOption).optionData.type,
+      (option as IScoreOption).optionData.subType,
+    );
+  }
+  if (option.optionType === 'panel') {
+    return new PanelScoreAttribute(option.optionId, currentView, currentDB, 'categorical');
   }
 }
-
-
-
 
 function subType2Type(subType: string): AttributeType {
   // one of number, string, cat, boxplot
@@ -548,18 +580,19 @@ function subType2Type(subType: string): AttributeType {
       return 'categorical';
     case 'boxplot':
     default:
-      throw new Error('No Support for type: ' + subType);
+      throw new Error(`No Support for type: ${subType}`);
   }
 }
-
-
 
 export async function multiFilter(baseCohort: Cohort, attributes: IAttribute[], filters: Array<IEqualsList | INumRange[]>): Promise<Cohort> {
   if (attributes.length !== filters.length) {
     throw new Error(`Number of filters has to match the number of attribtues`);
   }
 
-  return multiAttributeFilter(baseCohort, attributes.map((attr, i) => ({attr, range: filters[i]})));
+  return multiAttributeFilter(
+    baseCohort,
+    attributes.map((attr, i) => ({ attr, range: filters[i] })),
+  );
 }
 
 export async function multiAttributeFilter(baseCohort: Cohort, filters: IAttributeFilter[]): Promise<Cohort> {

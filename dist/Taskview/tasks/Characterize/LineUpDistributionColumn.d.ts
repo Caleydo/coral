@@ -123,3 +123,4 @@ export declare function isUnknown(v?: number | null): boolean;
 export declare function isDummyNumberFilter(filter: INumberFilter): boolean;
 export declare function restoreMapping(desc: IMapAbleDesc, factory: ITypeFactory): IMappingFunction;
 export declare function restoreNumberFilter(v: INumberFilter): INumberFilter;
+//# sourceMappingURL=LineUpDistributionColumn.d.ts.map

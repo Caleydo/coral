@@ -12,3 +12,4 @@ export declare class ProbabilityScatterplot {
     constructor(data: any, cohorts: any, lineup: LineUpJS.Taggle);
     getSpec(): VegaSpec;
 }
+//# sourceMappingURL=ProbabilityScatterplot.d.ts.map

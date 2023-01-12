@@ -4,7 +4,7 @@
 export class Option {
   public group: OptionGroup;
 
-  constructor(public label: string, public selected: boolean = false) { }
+  constructor(public label: string, public selected: boolean = false) {}
 }
 
 /**
@@ -44,5 +44,5 @@ export class VisConfig {
    * @param label
    * @param groups
    */
-  constructor(public icon: string, public label: string, public groups: OptionGroup[]) { }
+  constructor(public icon: string, public label: string, public groups: OptionGroup[]) {}
 }

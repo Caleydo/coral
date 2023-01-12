@@ -1,9 +1,9 @@
 import {select, Selection} from 'd3v7';
 import * as logger from 'loglevel';
-import {NotificationHandler} from 'tdp_core';
-import {ICohort} from './CohortInterfaces';
-import {IAttribute} from './data/Attribute';
-import {IEqualsList, INumRange} from './rest';
+import { NotificationHandler } from 'tdp_core';
+import { ICohort } from './CohortInterfaces';
+import { IAttribute } from './data/Attribute';
+import { IEqualsList, INumRange } from './rest';
 
 logger.setDefaultLevel(logger.levels.INFO);
 export const log = logger;
@@ -27,11 +27,13 @@ export const deepCopy = <T>(target: T): T => {
   }
   if (target instanceof Array) {
     const cp = [] as any[];
-    (target as any[]).forEach((v) => {cp.push(v);});
+    (target as any[]).forEach((v) => {
+      cp.push(v);
+    });
     return cp.map((n: any) => deepCopy<any>(n)) as any;
   }
   if (typeof target === 'object' && target !== {}) {
-    const cp = {...(target as {[key: string]: any})} as {[key: string]: any};
+    const cp = { ...(target as { [key: string]: any }) } as { [key: string]: any };
     Object.keys(cp).forEach((k) => {
       cp[k] = deepCopy<any>(cp[k]);
     });
@@ -39,7 +41,6 @@ export const deepCopy = <T>(target: T): T => {
   }
   return target;
 };
-
 
 export function handleDataLoadError(e): void {
   let msg = 'Data could not be loaded.';
@@ -59,9 +60,9 @@ export function handleDataSaveError(e): void {
   NotificationHandler.pushNotification('error', msg, 4000);
 }
 
-
 export class ScrollLinker {
   isSyncingScrollA: boolean;
+
   isSyncingScrollB: boolean;
 
   constructor(private divA: HTMLDivElement, private divB: HTMLDivElement, private enabled = true) {
@@ -109,7 +110,7 @@ export class ScrollLinker {
 export function removeFromArray<T>(array: Array<T>, toRemove: T): boolean {
   const index = array.indexOf(toRemove);
   if (index > -1) {
-    array.splice(index, 1); //remove one element at <index>
+    array.splice(index, 1); // remove one element at <index>
     return true;
   }
 
@@ -131,14 +132,12 @@ export function pushUnique<T>(array: Array<T>, toPush: T): boolean {
   return false;
 }
 
-
-
 export enum SortType {
   Default = 'default',
   Alpha_AZ = 'alpha_az',
   Alpha_ZA = 'alpha_za',
   Size_19 = 'size_19',
-  Size_91 = 'size_91'
+  Size_91 = 'size_91',
 }
 
 export interface IFilterDesc {
@@ -169,27 +168,52 @@ export function getAnimatedLoadingBars(): HTMLDivElement {
   const numBars = 5;
   for (let i = 0; i < numBars; i++) {
     const spanBar = document.createElement('div');
-    spanBar.style.setProperty('--n', '' + i);
+    spanBar.style.setProperty('--n', `${i}`);
     loadingContainer.appendChild(spanBar);
   }
   return loadingContainer;
 }
 
-
 const category20 = [
-  //Based on Category20: https://vega.github.io/vega/docs/schemes/#category20
-  //Saturated
-  '#1f77b4', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22',
-  //unsaturated
-  '#aec7e8', '#98df8a', '#ff9896', '#c5b0d5', '#c49c94', '#f7b6d2', '#c7c7c7', '#dbdb8d',
+  // Based on Category20: https://vega.github.io/vega/docs/schemes/#category20
+  // Saturated
+  '#1f77b4',
+  '#2ca02c',
+  '#d62728',
+  '#9467bd',
+  '#8c564b',
+  '#e377c2',
+  '#7f7f7f',
+  '#bcbd22',
+  // unsaturated
+  '#aec7e8',
+  '#98df8a',
+  '#ff9896',
+  '#c5b0d5',
+  '#c49c94',
+  '#f7b6d2',
+  '#c7c7c7',
+  '#dbdb8d',
 ];
 
 const tableau20 = [
-  //Based on Tableau20: https://vega.github.io/vega/docs/schemes/#tableau20
-  //Saturated
-  '#4c78a8', '#54a24b', '#e45756', '#79706e', '#d67195', '#b279a2', '#9e765f',
-  //unsaturated
-  '#9ecae9', '#88d27a', '#ff9d98', '#bab0ac', '#fcbfd2', '#d6a5c9', '#d8b5a5'
+  // Based on Tableau20: https://vega.github.io/vega/docs/schemes/#tableau20
+  // Saturated
+  '#4c78a8',
+  '#54a24b',
+  '#e45756',
+  '#79706e',
+  '#d67195',
+  '#b279a2',
+  '#9e765f',
+  // unsaturated
+  '#9ecae9',
+  '#88d27a',
+  '#ff9d98',
+  '#bab0ac',
+  '#fcbfd2',
+  '#d6a5c9',
+  '#d8b5a5',
 ];
 
 const pastel1 = [
@@ -211,7 +235,7 @@ const pastel2 = [
   '#fdcdac' /* p2:orange */,
   '#cbd5e8' /* p2:blue */,
   '#f4cae4' /* p2:pink */,
-  '#e6f5c9' /* p2:light green*/,
+  '#e6f5c9' /* p2:light green */,
   '#fff2ae' /* p2:yellow */,
   '#f1e2cc' /* p2:brown */,
   '#cccccc' /* p2:grey */,
@@ -250,14 +274,21 @@ const set3 = [
 
 const combination = [
   // combination of different set: set3, tableau20, pastel1 & 2
-  '#80b1d3' /* set3:blue */, '#fb8072' /* set3:red */,
-  '#b3de69' /* set3:green */, '#bc80bd' /* set3:lila */, '#ffed6f' /* set3:yellow */, '#fcbfd2' /* t20:light pink */, '#d8b5a5' /* t20: light brown */,
-  '#e6f5c9' /* p2:light green*/, '#decbe4' /* p1:lila */, '#ffffb3' /* set3:light yellow */, '#fddaec' /* p1:pink */, '#f1e2cc' /* p2:brown */,
+  '#80b1d3' /* set3:blue */,
+  '#fb8072' /* set3:red */,
+  '#b3de69' /* set3:green */,
+  '#bc80bd' /* set3:lila */,
+  '#ffed6f' /* set3:yellow */,
+  '#fcbfd2' /* t20:light pink */,
+  '#d8b5a5' /* t20: light brown */,
+  '#e6f5c9' /* p2:light green */,
+  '#decbe4' /* p1:lila */,
+  '#ffffb3' /* set3:light yellow */,
+  '#fddaec' /* p1:pink */,
+  '#f1e2cc' /* p2:brown */,
 ];
 
-
 export class CohortColorSchema {
-
   static readonly COLOR_SCHEME = set3;
 
   static get(index: number): string {
@@ -284,15 +315,14 @@ export function selectLast(d3Elem: Selection<HTMLDivElement, any, null, undefine
 }
 
 export function inRange(value, interval) {
-  const lower = Math.min(...interval),
-    upper = Math.max(...interval);
+  const lower = Math.min(...interval);
+  const upper = Math.max(...interval);
 
   return value >= lower && value <= upper;
 }
 
 export function hasCookie(cookieID) {
-  return document.cookie.split(';')
-    .some((item) => item.trim().startsWith(`${cookieID}=`));
+  return document.cookie.split(';').some((item) => item.trim().startsWith(`${cookieID}=`));
 }
 
 export function createHTMLElementWithClasses(htmlElem: string, classes: string[]): HTMLElement {
@@ -302,7 +332,6 @@ export function createHTMLElementWithClasses(htmlElem: string, classes: string[]
 }
 
 export class DebugTools {
-
   /**
    * lets the execution pause for the given amount of milliseconds.
    * Use with await keyword.

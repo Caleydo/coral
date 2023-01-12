@@ -1,13 +1,11 @@
-
 import vegaEmbed from 'vega-embed';
-import {TopLevelSpec as VegaLiteSpec} from 'vega-lite';
-import {Cohort} from '../../Cohort';
-import {colors} from '../../colors';
-import {getAnimatedLoadingBars} from '../../util';
-import {ADataColumn} from './AColumn';
+import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
+import { Cohort } from '../../Cohort';
+import { colors } from '../../colors';
+import { getAnimatedLoadingBars } from '../../util';
+import { ADataColumn } from './AColumn';
 
 export default class PrevalenceColumn extends ADataColumn {
-
   constructor(private reference: Cohort, $container: HTMLDivElement) {
     super(`% [${reference.label}]`, $container);
     this.$column.classList.add('prevalence');
@@ -18,11 +16,11 @@ export default class PrevalenceColumn extends ADataColumn {
   }
 }
 
-
 class PrevalenceBar {
-
   readonly $node: HTMLDivElement;
+
   readonly $loader: HTMLDivElement;
+
   readonly $hist: HTMLDivElement;
 
   constructor(private cht: Cohort, private reference: Cohort) {
@@ -51,7 +49,7 @@ class PrevalenceBar {
     this.$node.appendChild(this.$hist);
     const spec = this.getMinimalVegaSpec(size, refSize);
 
-    vegaEmbed(this.$hist, this.getMinimalVegaSpec(size, refSize), {actions: false});
+    vegaEmbed(this.$hist, this.getMinimalVegaSpec(size, refSize), { actions: false });
   }
 
   public getNode() {
@@ -65,44 +63,44 @@ class PrevalenceBar {
   public getMinimalVegaSpec(length: number, maxLength: number): VegaLiteSpec {
     return {
       $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
-      width: 'container', //responsive width
+      width: 'container', // responsive width
       height: 50,
-      autosize: {type: 'fit', contains: 'padding'}, //plots fit a bit better, if though they are specified as responsive
-      data: {values: [length / maxLength]},
+      autosize: { type: 'fit', contains: 'padding' }, // plots fit a bit better, if though they are specified as responsive
+      data: { values: [length / maxLength] },
       mark: 'bar',
       encoding: {
         x: {
           field: 'data',
           type: 'quantitative',
-          scale: {domain: [0, 1]},
+          scale: { domain: [0, 1] },
           axis: {
             labels: false, // no space for labels
             title: null, // we will have the title in the column header
-            tickCount: 1, //only one tick, i.e. the last one
-            tickExtra: true, //include an extra tick for beginning
+            tickCount: 1, // only one tick, i.e. the last one
+            tickExtra: true, // include an extra tick for beginning
             domain: false,
             ticks: false,
-          }
+          },
         },
         color: {
           value: colors.barColor,
           condition: [
             {
               param: 'highlight',
-              value: colors.hoverColor
-            }
-          ]
+              value: colors.hoverColor,
+            },
+          ],
         },
         tooltip: {
           field: 'data',
           type: 'quantitative',
-          format: '.1%'
-        }
+          format: '.1%',
+        },
       },
       config: {
         view: {
-          stroke: 'transparent' // https://vega.github.io/vega-lite/docs/spec.html#view-background
-        }
+          stroke: 'transparent', // https://vega.github.io/vega-lite/docs/spec.html#view-background
+        },
       },
       params: [
         {
@@ -110,10 +108,10 @@ class PrevalenceBar {
           select: {
             type: 'point',
             on: 'mouseover',
-            clear: 'mouseout'
-          }
-        }
-      ]
+            clear: 'mouseout',
+          },
+        },
+      ],
     };
   }
 }

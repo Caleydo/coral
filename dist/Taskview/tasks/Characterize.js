@@ -112,12 +112,11 @@ export class Characterize extends ATask {
       </div>
     `;
         this.$container.querySelectorAll('button.compare').forEach((btn) => btn.addEventListener('click', () => {
-            var _a, _b, _c;
-            (_a = this.attributeRanking) === null || _a === void 0 ? void 0 : _a.destroy();
+            this.attributeRanking?.destroy();
             this.$container.querySelector('.attribute-ranking').innerHTML = Characterize.spinner;
-            (_b = this.itemRanking) === null || _b === void 0 ? void 0 : _b.destroy();
+            this.itemRanking?.destroy();
             this.$container.querySelector('.item-ranking').innerHTML = Characterize.spinner;
-            (_c = this.chart) === null || _c === void 0 ? void 0 : _c.forEach((view) => view.finalize());
+            this.chart?.forEach((view) => view.finalize());
             this.chart = [];
             this.scatterplot = null;
             this.$container.querySelector('.accuracy-container').innerHTML = Characterize.spinner;
@@ -269,7 +268,6 @@ export class Characterize extends ATask {
         };
         let first = true;
         this.ws.onmessage = async (message) => {
-            var _a, _b;
             const responseData = JSON.parse(message.data);
             if (responseData.trees) {
                 try {
@@ -282,8 +280,8 @@ export class Characterize extends ATask {
                         await this.createItemRanking(responseData.probabilities); // await so its ready for the next response
                     }
                     else {
-                        (_a = this.attributeRankingData) === null || _a === void 0 ? void 0 : _a.setData(responseData.importances);
-                        (_b = this.itemRankingData) === null || _b === void 0 ? void 0 : _b.setData(responseData.probabilities);
+                        this.attributeRankingData?.setData(responseData.importances);
+                        this.itemRankingData?.setData(responseData.probabilities);
                     }
                     this.$container.querySelector('.accuracy-container').innerHTML = `
             <h2>Accuracy:  ${Characterize.formatPercent(responseData.accuracy)}</h2>
@@ -448,7 +446,6 @@ export class Characterize extends ATask {
         this.itemRanking.on('selectionChanged', (dataIndices) => this.lineUpItemSelection(dataIndices));
     }
     lineUpItemSelection(dataIndices) {
-        var _a;
         if (this.scatterplot) {
             const selectedItems = dataIndices.map((i) => this.itemRankingData.data[i][this._entityName]);
             const plotData = this.scatterplot.getData();
@@ -460,7 +457,7 @@ export class Characterize extends ATask {
                     item.selected = false;
                 }
             }
-            (_a = this.scatterplot) === null || _a === void 0 ? void 0 : _a.setData(plotData);
+            this.scatterplot?.setData(plotData);
         }
     }
     addProgressBar() {
@@ -480,8 +477,7 @@ export class Characterize extends ATask {
         wrapper
             .querySelector(('a.run'))
             .addEventListener('click', () => {
-            var _a;
-            (_a = this.ws) === null || _a === void 0 ? void 0 : _a.close();
+            this.ws?.close();
             wrapper.querySelector('.progress-ctrl').remove();
             this.progressBar.textContent = 'Stopped';
             this.fadeOutProgressBar();
@@ -572,11 +568,10 @@ export class MyDistributionRenderer {
         </svg>
       </div>`,
             update: (n, d) => {
-                var _a;
                 if (renderMissingDOM(n, col, d)) {
                     return;
                 }
-                const data = (_a = d.v) === null || _a === void 0 ? void 0 : _a.distribution;
+                const data = d.v?.distribution;
                 if (data && d.v.random === false) {
                     d3.select(n).selectAll('#loading').remove();
                     d3.select(n).select('.xaxis path').attr('stroke', colors.barColor);

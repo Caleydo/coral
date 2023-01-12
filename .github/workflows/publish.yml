@@ -1,0 +1,12 @@
+name: publish
+
+on: workflow_dispatch
+
+jobs:
+  publish:
+    uses: datavisyn/github-workflows/.github/workflows/publish-node-python.yml@main
+    secrets: 
+      DV_DEVOPS: ${{ secrets.DV_DEVOPS }}
+      PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
+      PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}       
