@@ -102,7 +102,9 @@ export class Characterize extends ATask {
         <button class="btn btn-coral compare" id="mutated">Compare by <i>Mutation Frequency</i></button>
         <span>&emsp;</span>
         <input type="checkbox" id="exclude-attributes" checked> Exclude the cohorts' <span class="hint">defining attributes</span></input>
-        <span>&emsp;</span><span>&emsp;</span>
+        <span>&emsp;</span>
+        <input type="checkbox" id="impute-missing" checked> Impute missing values</input>
+        <span>&emsp;</span>
 
 
         <!--
@@ -303,6 +305,7 @@ export class Characterize extends ATask {
       })
       .map((attr) => 'gene' in attr ? (attr as GeneScoreAttribute).gene : attr.id);
 
+    const impute = (this.$container.querySelector('input#impute-missing') as HTMLInputElement).checked;
     const maxDepth = 100; // parseInt((this.$container.querySelector('input#max-depth') as HTMLInputElement).value);
     const minGroupSize = 1; //parseInt((this.$container.querySelector('input#min-group-size') as HTMLInputElement).value);
 
@@ -315,12 +318,13 @@ export class Characterize extends ATask {
         n_estimators: Characterize.TREES,
         max_depth: maxDepth,
         min_samples_leaf: minGroupSize,
+        impute,
         ids: this.ids,
-      })
+      });
       try {
-        this.ws.send(data)
+        this.ws.send(data);
       } catch (e) {
-        log.error('error sending data', e)
+        log.error('error sending data', e);
       }
     };
 
