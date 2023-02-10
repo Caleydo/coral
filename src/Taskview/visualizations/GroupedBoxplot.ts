@@ -1,5 +1,4 @@
-import { format } from 'd3-format';
-import { select } from 'd3-selection';
+import {format, select} from 'd3v7';
 import log from 'loglevel';
 import { Spec as VegaSpec } from 'vega';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
@@ -1125,7 +1124,7 @@ export class GroupedBoxplot extends MultiAttributeVisualization {
               scale: `x`,
               orient: `top`,
               gridScale: `y`,
-              grid: true,
+              grid: false,
               tickCount: { signal: `ceil(child_width/40)` },
               domain: false,
               labels: false,

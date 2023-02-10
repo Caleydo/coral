@@ -1,16 +1,16 @@
 import * as Comlink from 'comlink';
-import { select } from 'd3-selection';
-import { Spec as VegaSpec } from 'vega';
-import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
-import { TopLevel, LayerSpec } from 'vega-lite/build/src/spec';
-import { Field } from 'vega-lite/build/src/channeldef';
-import { Cohort } from '../../Cohort';
-import { AttributeType, IAttribute, IdValuePair, ServerColumnAttribute } from '../../data/Attribute';
-import { NumRangeOperators } from '../../rest';
-import { IFilterDesc, inRange } from '../../util';
-import { FilterEvent } from '../../utilCustomEvents';
-import { DATA_LABEL } from './constants';
-import { AxisType, MultiAttributeVisualization } from './MultiAttributeVisualization';
+import {select} from 'd3v7';
+import {Spec as VegaSpec} from 'vega';
+import {TopLevelSpec as VegaLiteSpec} from 'vega-lite';
+import {Cohort} from '../../Cohort';
+import {AttributeType, IAttribute, IdValuePair, ServerColumnAttribute} from '../../data/Attribute';
+import {NumRangeOperators} from '../../rest';
+import {IFilterDesc, inRange} from '../../util';
+import {FilterEvent} from '../../utilCustomEvents';
+import {DATA_LABEL} from './constants';
+import {AxisType, MultiAttributeVisualization} from './MultiAttributeVisualization';
+import {TopLevel, LayerSpec} from 'vega-lite/build/src/spec';
+import {Field} from 'vega-lite/build/src/channeldef';
 
 export class Scatterplot extends MultiAttributeVisualization {
   static readonly NAME: string = 'Scatterplot';
@@ -743,7 +743,7 @@ export class Scatterplot extends MultiAttributeVisualization {
           scale: `x`,
           orient: `bottom`,
           gridScale: `y`,
-          grid: true,
+          grid: false,
           tickCount: { signal: `ceil(width/40)` },
           domain: false,
           labels: false,
@@ -757,7 +757,7 @@ export class Scatterplot extends MultiAttributeVisualization {
           scale: `y`,
           orient: `left`,
           gridScale: `x`,
-          grid: true,
+          grid: false,
           tickCount: { signal: `ceil(height/40)` },
           domain: false,
           labels: false,
