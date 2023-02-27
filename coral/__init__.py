@@ -5,7 +5,7 @@
 ###############################################################################
 from os import path
 
-from tdp_core.plugin.model import AVisynPlugin, RegHelper
+from visyn_core.plugin.model import AVisynPlugin, RegHelper
 
 from .settings import CoralSettings
 

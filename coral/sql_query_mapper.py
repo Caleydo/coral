@@ -7,7 +7,7 @@ from flask import jsonify
 from sqlalchemy import create_engine, exc, inspect, text
 from sqlalchemy.exc import NoInspectionAvailable
 from sqlalchemy.orm import sessionmaker
-from tdp_core import manager
+from visyn_core import manager
 
 from .settings import get_settings
 from .sql_tables import Cohort
