@@ -25,7 +25,7 @@ export default function (registry: IRegistry) {
   /**
    * Set the base data-set
    */
-  actionFunction('chtSetDataset', 'setDatasetImpl', () => import('./Provenance/General'), {
+  actionFunction('chtSetDataset', 'setDatasetImpl', () => import('./Provenance/General.js'), {
     // setDatasetImpl = function that acutally sets the dataset
     analytics: {
       category: 'data', // this one is a data operation (other options are visual, selections, layout, and analysis)
@@ -39,7 +39,7 @@ export default function (registry: IRegistry) {
   /**
    * Add Cohorts
    */
-  actionFunction('addCohorts', 'addOverviewCohortImpl', () => import('./Provenance/CohortEV').then(), {
+  actionFunction('addCohorts', 'addOverviewCohortImpl', () => import('./Provenance/CohortEV.js').then(), {
     //
     analytics: {
       category: 'data', // this one is a data operation (other options are visual, selections, layout, and analysis)
@@ -50,7 +50,7 @@ export default function (registry: IRegistry) {
   /**
    * Remove Cohorts
    */
-  actionFunction('removeCohorts', 'removeOverviewCohortImpl', () => import('./Provenance/CohortEV').then(), {
+  actionFunction('removeCohorts', 'removeOverviewCohortImpl', () => import('./Provenance/CohortEV.js').then(), {
     //
     analytics: {
       category: 'data', // this one is a data operation (other options are visual, selections, layout, and analysis)
