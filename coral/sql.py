@@ -1,7 +1,7 @@
 import logging
 
 from flask import Flask, abort, jsonify, request
-from tdp_core.security import login_required
+from visyn_core.security import login_required
 
 from .settings import get_settings
 from .sql_query_mapper import QueryElements

@@ -1,4 +1,4 @@
-import { IDType, IServerColumn } from 'tdp_core';
+import { IDType, IServerColumn } from 'visyn_core';
 import { Cohort } from './Cohort';
 import { IAttribute, IAttributeJSON } from './data/Attribute';
 import { IEqualsList, INumRange } from './rest';
