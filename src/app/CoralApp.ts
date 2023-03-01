@@ -1,11 +1,11 @@
 import { select, Selection } from 'd3v7';
 import SplitGrid from 'split-grid';
+import { IServerColumn } from 'visyn_core';
 import {
   AppContext,
   CLUEGraphManager,
   IDatabaseViewDesc,
   IObjectRef,
-  IServerColumn,
   ITDPOptions,
   NotificationHandler,
   ObjectRefUtils,

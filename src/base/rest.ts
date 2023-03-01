@@ -1,4 +1,5 @@
-import { Ajax, AppContext, IParams, IRow } from 'tdp_core';
+import { Ajax, AppContext, IRow } from 'visyn_core';
+import { IParams } from 'tdp_core';
 import { deepCopy, log } from '../util';
 
 export interface ICohortDBParams extends IParams {

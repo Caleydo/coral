@@ -1,4 +1,5 @@
-import { IAllFilters, IDType, IDTypeLike, IDTypeManager, IRow, IServerColumn, UniqueIdManager } from 'tdp_core';
+import { IDType, IDTypeLike, IDTypeManager, IRow, IServerColumn } from 'visyn_core';
+import { IAllFilters, UniqueIdManager } from 'tdp_core';
 import {
   ECloneFilterTypes,
   EElementProvType,

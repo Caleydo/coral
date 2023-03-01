@@ -1,5 +1,6 @@
 import { select } from 'd3v7';
-import { IdTextPair, IServerColumn, RestBaseUtils } from 'tdp_core';
+import { IServerColumn } from 'visyn_core';
+import { IdTextPair, RestBaseUtils } from 'tdp_core';
 import { dataTypes, depletion, IDataSubtypeConfig, IDataTypeConfig } from 'tdp_publicdb';
 import { colors } from '../config/colors';
 import { ScoreType } from '../data/Attribute';

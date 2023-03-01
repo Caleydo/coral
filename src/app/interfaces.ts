@@ -1,4 +1,4 @@
-import type { IAllFilters, IDType, IDTypeLike, IRow, IServerColumn } from 'tdp_core';
+import { IDType, IServerColumn } from 'visyn_core';
 import type { IAttribute, IAttributeJSON } from '../data/Attribute';
 import type {
   ICohortDepletionScoreFilterParams,

@@ -32,7 +32,8 @@ export const deepCopy = <T>(target: T): T => {
     });
     return cp.map((n: any) => deepCopy<any>(n)) as any;
   }
-  if (typeof target === 'object' && target !== {}) {
+  // not empty object
+  if (typeof target === 'object' && Object.keys(target).length > 0) {
     const cp = { ...(target as { [key: string]: any }) } as { [key: string]: any };
     Object.keys(cp).forEach((k) => {
       cp[k] = deepCopy<any>(cp[k]);
