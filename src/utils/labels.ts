@@ -1,5 +1,5 @@
 import { format } from 'd3v7';
-import { IEqualsList, INumRange, isEqualsList, isNumRangeFilter, NumRangeOperators } from '../base/rest';
+import { INumRange, IEqualsList, isNumRangeFilter, isEqualsList, NumRangeOperators } from '../base';
 
 export function niceName(label: string): string {
   return label

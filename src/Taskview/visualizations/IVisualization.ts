@@ -1,5 +1,5 @@
-import { ICohort } from '../../app/interfaces';
-import { IAttribute } from '../../data/Attribute';
+import type { ICohort } from '../../app/interfaces';
+import type { IAttribute } from '../../data/IAttribute';
 
 export interface IVisualization {
   destroy();

@@ -3,12 +3,12 @@ import { select } from 'd3v7';
 import * as LineUpJS from 'lineupjs';
 import { ICohort } from '../../app/interfaces';
 import { colors, CoralColorSchema } from '../../config/colors';
-import { IAttribute } from '../../data/Attribute';
 import { getCohortData } from '../../base/rest';
 import { getAnimatedLoadingText } from '../../util';
 import { getIdTypeFromCohort } from '../../config/entities';
 import { DATA_LABEL } from '../visualizations';
 import { ATask } from './ATask';
+import type { IAttribute } from '../../data/IAttribute';
 
 export class Details extends ATask {
   public label = `Inspect Items`;

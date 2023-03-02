@@ -6,11 +6,12 @@
 
 import { hsl, scaleLinear, select, Selection } from 'd3v7';
 import * as d3v3 from 'd3v3';
-import { IMeasureResult, IMeasureVisualization, ISetParameters, ISimilarityMeasure, MethodManager, SCOPE, Type, WorkerManager } from 'tourdino';
-import { Attribute, IAttribute } from '../../data/Attribute';
+import { IMeasureResult, ISetParameters, ISimilarityMeasure, MethodManager, SCOPE, Type, WorkerManager } from 'tourdino';
+import { Attribute } from '../../data/Attribute';
 import { log } from '../../util';
 import { ATask } from './ATask';
 import { ICohort } from '../../app/interfaces';
+import type { IAttribute } from '../../data/IAttribute';
 
 export class Compare extends ATask {
   public label = `Compare`;

@@ -1,8 +1,8 @@
-import { CoralApp } from './CoralApp';
-import Taskview from '../Taskview/Taskview';
+import type { CoralApp } from './CoralApp';
+import type Taskview from '../Taskview/Taskview';
 import { log, removeFromArray } from '../util';
 import { CohortSelectionEvent, COHORT_SELECTION_EVENT_TYPE } from '../base/events';
-import type { ICohort, IInputCohort } from '.';
+import type { ICohort, IInputCohort } from './interfaces';
 
 export class CohortSelectionListener {
   private static instance: CohortSelectionListener;

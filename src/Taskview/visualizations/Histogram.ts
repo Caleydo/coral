@@ -1,7 +1,7 @@
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { ICohort } from '../../app/interfaces';
-import { IdValuePair } from '../../data/Attribute';
 import { colors } from '../../config/colors';
+import { IdValuePair } from '../../data/IAttribute';
 import { log } from '../../util';
 import { AVegaVisualization, SingleAttributeVisualization } from './AVegaVisualization';
 import { DATA_LABEL } from './constants';

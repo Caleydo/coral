@@ -3,10 +3,10 @@ import log from 'loglevel';
 import { Spec as VegaSpec } from 'vega';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { ICohort } from '../../app/interfaces';
-import { IdValuePair } from '../../data/Attribute';
 import { AVegaVisualization, SingleAttributeVisualization } from './AVegaVisualization';
 import { DATA_LABEL } from './constants';
 import { countConfig, counts } from './config/CountCounfig';
+import {IdValuePair} from '../../data/IAttribute';
 
 export class DensityPlot extends SingleAttributeVisualization {
   static readonly NAME = 'Density Plot';

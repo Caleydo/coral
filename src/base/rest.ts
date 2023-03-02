@@ -4,6 +4,7 @@ import { deepCopy, log } from '../util';
 import {
   CohortRoutes,
   DataMappingDirection,
+  HistRouteType,
   ICohortDBCohortDataParams,
   ICohortDBDataParams,
   ICohortDBDepletionScoreParams,
@@ -372,7 +373,6 @@ export function getCohortPanelAnnotation(
   }
   return null;
 }
-
 
 export interface ICohortDBHistDataParms extends IParams {
   cohortId: number;

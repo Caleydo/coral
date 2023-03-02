@@ -1,8 +1,53 @@
-import { IAllFilters, IParams } from 'tdp_core';
+import { log } from 'vega';
+import { IServerColumn } from 'visyn_core';
 import { EElementProvType, IElement, IElementProvJSON, IElementProvJSONTask, ITask, ITaskRep, TaskType } from './app/interfaces';
-import { IAttribute } from './data/IAttributue';
-import { toAttribute } from './data/interfaces';
-import { deepCopy, log } from './util';
+import { GeneScoreAttribute, PanelScoreAttribute, ServerColumnAttribute, SpecialAttribute } from './data/Attribute';
+import type { IAttribute, IOption, IScoreOption, IServerColumnOption } from './data/IAttribute';
+import type { ISpecialAttribute } from './data/ISpecialAttribute';
+
+export interface ISpecialOption extends IServerColumnOption {
+  optionData: {
+    serverColumn: IServerColumn;
+    sAttrId: string;
+    attrOption: string;
+    spAttribute: ISpecialAttribute;
+  };
+}
+
+export function toAttribute(option: IOption, currentDB, currentView): IAttribute {
+  if (option.optionType === 'dbc') {
+    if (option.optionData && (option as ISpecialOption).optionData.spAttribute) {
+      // Create Special Attribtues
+      // if (option.optionData.spA === 'treatment') {
+      log.debug('create special Attribute: ', option.optionId);
+      log.debug('special Attribute object: ', option.optionData.spAttribute);
+      return new SpecialAttribute(
+        option.optionId,
+        currentView,
+        currentDB,
+        (option as ISpecialOption).optionData.spAttribute,
+        (option as ISpecialOption).optionData.attrOption,
+      );
+    }
+    // Create Attribute
+    return new ServerColumnAttribute(option.optionId, currentView, currentDB, (option as IServerColumnOption).optionData.serverColumn);
+  }
+  // Create ScoreAttribute
+  if (option.optionType === 'gene') {
+    return new GeneScoreAttribute(
+      option.optionId,
+      option.optionText,
+      currentView,
+      currentDB,
+      (option as IScoreOption).optionData.type,
+      (option as IScoreOption).optionData.subType,
+    );
+  }
+  if (option.optionType === 'panel') {
+    return new PanelScoreAttribute(option.optionId, currentView, currentDB, 'categorical');
+  }
+  return null;
+}
 
 export abstract class Task implements ITask {
   id: string;

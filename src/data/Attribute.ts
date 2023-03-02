@@ -32,8 +32,8 @@ import {
 } from '../Cohort';
 import { deepCopy, getSessionStorageItem, IAttributeFilter, setSessionStorageItem } from '../util';
 import { easyLabelFromFilter, easyLabelFromFilterArray, niceName } from '../utils/labels';
-import { AttributeType, IAttribute, IAttributeJSON, IdValuePair, OptionType, ScoreType } from './IAttributue';
-import { ISpecialAttribute } from './ISpecialAttribute';
+import { AttributeType, IAttribute, IAttributeJSON, IdValuePair, OptionType, ScoreType } from './IAttribute';
+import type { ISpecialAttribute } from './ISpecialAttribute';
 
 export abstract class Attribute implements IAttribute {
   public preferLog = false;
@@ -208,6 +208,20 @@ export abstract class AScoreAttribute extends Attribute {
 
   async getCount() {
     return -1; // dummy
+  }
+}
+
+function subType2Type(subType: string): AttributeType {
+  // one of number, string, cat, boxplot
+  switch (subType) {
+    case 'number':
+    case 'string':
+      return subType;
+    case 'cat':
+      return 'categorical';
+    case 'boxplot':
+    default:
+      throw new Error(`No Support for type: ${subType}`);
   }
 }
 
@@ -450,31 +464,6 @@ export class PanelScoreAttribute extends AScoreAttribute {
   }
 }
 
-function subType2Type(subType: string): AttributeType {
-  // one of number, string, cat, boxplot
-  switch (subType) {
-    case 'number':
-    case 'string':
-      return subType;
-    case 'cat':
-      return 'categorical';
-    case 'boxplot':
-    default:
-      throw new Error(`No Support for type: ${subType}`);
-  }
-}
-
-export async function multiFilter(baseCohort: ICohort, attributes: IAttribute[], filters: Array<IEqualsList | INumRange[]>): Promise<ICohort> {
-  if (attributes.length !== filters.length) {
-    throw new Error(`Number of filters has to match the number of attribtues`);
-  }
-
-  return multiAttributeFilter(
-    baseCohort,
-    attributes.map((attr, i) => ({ attr, range: filters[i] })),
-  );
-}
-
 export async function multiAttributeFilter(baseCohort: ICohort, filters: IAttributeFilter[]): Promise<ICohort> {
   let newCohort = baseCohort;
 
@@ -497,4 +486,15 @@ export async function multiAttributeFilter(baseCohort: ICohort, filters: IAttrib
   }
 
   return newCohort;
+}
+
+export async function multiFilter(baseCohort: ICohort, attributes: IAttribute[], filters: Array<IEqualsList | INumRange[]>): Promise<ICohort> {
+  if (attributes.length !== filters.length) {
+    throw new Error(`Number of filters has to match the number of attribtues`);
+  }
+
+  return multiAttributeFilter(
+    baseCohort,
+    attributes.map((attr, i) => ({ attr, range: filters[i] })),
+  );
 }

@@ -4,15 +4,15 @@ import tippy from 'tippy.js';
 import { View as VegaView } from 'vega';
 import vegaEmbed from 'vega-embed';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
-import { Cohort, getCohortLabel } from '../../Cohort';
+import { getCohortLabel } from '../../Cohort';
 import { ICohort } from '../../app/interfaces';
-import { IAttribute, IdValuePair } from '../../data/Attribute';
-import { IEqualsList, INumRange, NumRangeOperators } from '../../base/rest';
 import { IFilterDesc, log } from '../../util';
 import { FilterEvent, SplitEvent } from '../../base/events';
 import { Option, VisConfig } from './config/VisConfig';
 import { DATA_LABEL } from './constants';
 import { IVisualization } from './IVisualization';
+import { IAttribute, IdValuePair } from '../../data/IAttribute';
+import { IEqualsList, INumRange, NumRangeOperators } from '../../base/interfaces';
 
 export const MISSING_VALUES_LABEL = 'Missing Values';
 export const FACETED_CHARTS_WIDTH = 520;
@@ -64,7 +64,7 @@ export abstract class AVegaVisualization implements IVegaVisualization {
 
   protected config: VisConfig[] = [];
 
-  constructor(protected vegaLiteOptions: Object = {}) {}
+  constructor(protected vegaLiteOptions: object = {}) {}
 
   clearSelection() {
     if (this.vegaView) {

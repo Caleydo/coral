@@ -1,5 +1,5 @@
 import * as loMerge from 'lodash.merge';
-import tippy, { hideAll, Props, Instance as TippyInstance } from 'tippy.js';
+import tippy, { Props, Instance as TippyInstance } from 'tippy.js';
 import { CONFIG_ONBOARDING } from './config/onboarding';
 import { log, hasCookie } from './util';
 

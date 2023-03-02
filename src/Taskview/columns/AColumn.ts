@@ -4,11 +4,11 @@ import { EMPTY_COHORT_ID, LOADER_COHORT_ID } from '../../Cohort';
 import { colors } from '../../config/colors';
 import { getAnimatedLoadingBars, log } from '../../util';
 import { ColumnCloseEvent } from '../../base/events';
-import Taskview from '../Taskview';
-import { taskview } from '../../cohortview';
-import { toAttribute } from '../../data/Attribute';
-import { SearchBar } from '../SearchBar';
+import type Taskview from '../Taskview';
+import { CohortContext } from '../../CohortContext';
 import { ICohort, IInputCohort, IOutputCohort } from '../../app/interfaces';
+import { SearchBar } from '../SearchBar';
+import { toAttribute } from '../../Tasks';
 
 function createSearchBarTooltip(elemWithTooltip: HTMLDivElement, cssClassName: string, database: string, view: string, positionStart = true) {
   // start of tooltip content
@@ -32,7 +32,7 @@ function createSearchBarTooltip(elemWithTooltip: HTMLDivElement, cssClassName: s
     // convert options to attributes
     const attributes = options.map((opt) => toAttribute(opt, database, view));
     // add attributes to taskview
-    taskview.addMultipleAttributeColumns(attributes, true, true);
+    CohortContext.taskview.addMultipleAttributeColumns(attributes, true, true);
     // remove options and close tooltip
     elemWithTooltip.click();
   });
@@ -124,6 +124,8 @@ export abstract class ADataColumn extends AColumn {
     this.dataCells = select(this.$column)
       .selectAll<HTMLDivElement, ICohort>('div.data')
       .data(cohorts, (d) => d.id);
+
+    // eslint-disable-next-line @typescript-eslint/no-this-alias, @typescript-eslint/naming-convention
     const _thisColumn = this;
 
     // Update

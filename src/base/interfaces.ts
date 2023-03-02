@@ -1,4 +1,4 @@
-import { IParams } from 'tdp_core';
+import type { IParams } from 'tdp_core';
 
 export interface ICohortDBParams extends IParams {
   name: string;

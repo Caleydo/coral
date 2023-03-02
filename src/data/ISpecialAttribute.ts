@@ -9,7 +9,7 @@ import {
   INumRange,
   IEqualsList,
 } from '../index';
-import { AttributeType, IdValuePair } from './IAttributue';
+import { AttributeType, IdValuePair } from './IAttribute';
 
 export interface ISpecialAttribute {
   readonly overrideSearchBarDetails: boolean;

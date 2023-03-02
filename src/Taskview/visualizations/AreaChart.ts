@@ -2,9 +2,9 @@ import log from 'loglevel';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { getCohortLabels } from '../../Cohort';
 import { ICohort } from '../../app/interfaces';
-import { IdValuePair } from '../../data/Attribute';
 import { DATA_LABEL } from './constants';
 import { MultiAttributeVisualization } from './MultiAttributeVisualization';
+import { IdValuePair } from '../../data/IAttribute';
 
 export class AreaChart extends MultiAttributeVisualization {
   static readonly NAME = 'Area Chart';

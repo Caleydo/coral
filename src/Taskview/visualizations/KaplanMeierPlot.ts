@@ -1,16 +1,16 @@
 import log from 'loglevel';
-import { select } from 'd3v7';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { Spec as VegaSpec, None } from 'vega';
 import { desc, op, from, rolling, table, not } from 'arquero';
 import { OrderKeys, ExprList } from 'arquero/dist/types/table/transformable';
-import { IdValuePair, ServerColumnAttribute } from '../../data/Attribute';
+import { ServerColumnAttribute } from '../../data/Attribute';
 import { DATA_LABEL } from './constants';
 import { getCohortLabel, getCohortLabels } from '../../Cohort';
 import { SingleAttributeVisualization, AVegaVisualization } from './AVegaVisualization';
 import { ICohort } from '../../app/interfaces';
 import { confidenceToggleGroup, confidenceNone } from './config/ConfidenceConfig';
 import confidenceIcon from '../../assets/icons/confidence.svg';
+import { IdValuePair } from '../../data/IAttribute';
 
 export class KaplanMeierPlot extends SingleAttributeVisualization {
   static readonly NAME = 'Kaplan-Meier Plot';

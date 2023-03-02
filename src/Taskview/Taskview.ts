@@ -1,11 +1,5 @@
-import { EMPTY_COHORT_ID, getEmptyCohort, getLoaderCohort, LOADER_COHORT_ID } from '../Cohort';
+import { log } from 'vega';
 import { ICohort, IInputCohort, IOutputCohort, ITaskParams, TaskType } from '../app/interfaces';
-import { RectCohortRep } from '../CohortRepresentations';
-import { IAttribute, multiAttributeFilter } from '../data/Attribute';
-import { RectangleLayout } from '../Overview/OverviewLayout';
-import { log, removeFromArray, SortType } from '../util';
-import { CoralColorSchema } from '../config/colors';
-import { ScrollLinker } from '../utils/ScrollLinker';
 import {
   CohortSelectionEvent,
   COHORT_SELECTION_EVENT_TYPE,
@@ -22,10 +16,18 @@ import {
   SplitEvent,
   SPLIT_EVENT_TYPE,
 } from '../base/events';
-import AddColumnColumn, { AColumn, ADataColumn, EmptyColumn } from './columns/AColumn';
-import AttributeColumn from './columns/AttributeColumn';
-import { InputCohortColumn, OutputCohortColumn } from './columns/CohortColumn';
+import { RectCohortRep } from '../CohortRepresentations';
+import { CoralColorSchema } from '../config/colors';
+import { IAttribute } from '../data/IAttribute';
+import { SortType, removeFromArray } from '../util';
+import { ScrollLinker } from '../utils/ScrollLinker';
 import SearchColumn from './SearchColumn';
+import AddColumnColumn, { AColumn, ADataColumn, EmptyColumn } from './columns/AColumn';
+import { InputCohortColumn, OutputCohortColumn } from './columns/CohortColumn';
+import { EMPTY_COHORT_ID, getEmptyCohort, getLoaderCohort, LOADER_COHORT_ID } from '../Cohort';
+import { multiAttributeFilter } from '../data/Attribute';
+import AttributeColumn from './columns/AttributeColumn';
+import { RectangleLayout } from '../Overview/OverviewLayout';
 
 export default class Taskview {
   public destroy() {
@@ -487,7 +489,7 @@ abstract class TaskviewTable {
       // only adding the new column as first element doesn't reorder column HTML elements
       // because the new one gets added at the end -> set order attribute to define order of columns
       let orderCnt = 0;
-      this.columns.map((elem) => {
+      this.columns.forEach((elem) => {
         if (elem instanceof AttributeColumn) {
           elem.setOrder(orderCnt);
           orderCnt++;

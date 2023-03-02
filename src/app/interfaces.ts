@@ -1,7 +1,7 @@
 import { IDType, IDTypeLike, IRow, IServerColumn } from 'visyn_core';
 import { IAllFilters } from 'tdp_core';
-import type { IAttribute, IAttributeJSON } from '../data/Attribute';
-import type {
+import type { IEntitySourceConfig } from '../config/entities';
+import {
   ICohortDepletionScoreFilterParams,
   ICohortEqualsFilterParams,
   ICohortGeneEqualsFilterParams,
@@ -10,8 +10,8 @@ import type {
   ICohortPanelAnnotationFilterParams,
   IEqualsList,
   INumRange,
-} from '../base/rest';
-import type { IEntitySourceConfig } from '../config/entities';
+} from '../base/interfaces';
+import type { IAttribute, IAttributeJSON } from '../data/IAttribute';
 
 export enum ECloneFilterTypes {
   none,

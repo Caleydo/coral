@@ -5,9 +5,8 @@ import { dataTypes, depletion, IDataSubtypeConfig, IDataTypeConfig } from 'tdp_p
 import { colors } from '../config/colors';
 import { deepCopy, getAnimatedLoadingText, log } from '../util';
 import { niceName } from '../utils/labels';
-import { ISpecialAttribute } from '../data/ISpecialAttribute';
-import { checkSpecialAttribute } from '../data/SpecialAttribute';
-import { ISearchBarGroup, IServerColumnOption, OptionType, IOption, ISpecialOption, IPanelOption } from './interfaces';
+import { IOption, IPanelOption, ISearchBarGroup, IServerColumnOption, OptionType } from '../data/IAttribute';
+import { ISpecialOption } from '../Tasks';
 
 export class SearchBar {
   private _container: HTMLDivElement;

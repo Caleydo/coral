@@ -5,9 +5,9 @@ import { deepCopy, getSessionStorageItem, log, setSessionStorageItem } from '../
 import { niceName } from '../utils/labels';
 import { ICohort } from '../app/interfaces';
 import { createCohortWithTreatmentFilter } from '../Cohort';
-import { getRootCohort } from '../cohortview';
+import { CohortContext } from '../CohortContext';
 import { INumRange, IEqualsList, HistRouteType } from '../base';
-import { AttributeType, IdValuePair } from './IAttributue';
+import { AttributeType, IdValuePair } from './IAttribute';
 import { ISpecialAttribute } from './ISpecialAttribute';
 
 export class SATreatment implements ISpecialAttribute {
@@ -73,7 +73,7 @@ export class SATreatment implements ISpecialAttribute {
     // check if histogram was saved in sesison storage
     if (maxRegimen === null || getSessionStorageItem('treatment#categoriesHist') === null || getSessionStorageItem('treatment#categoriesBaseHist') === null) {
       let calcMaxRegimen = 0;
-      const rootCohort = getRootCohort();
+      const rootCohort = CohortContext.referenceCohort;
       const rows = await getCohortData({ cohortId: rootCohort.dbId, attribute: this.id });
 
       // const maxRegimenNumbRows = Math.max(...rows.map((r) => r.treatment).map((t) => t.REGIMEN_NUMBER));
@@ -338,10 +338,11 @@ export class SATreatment implements ISpecialAttribute {
         return createCohortWithTreatmentFilter(cht, niceName(`${this.id}:${optName}`), label, baseAgent, agent, rgNumb);
       }
     }
+    return null;
   }
 }
 
-const specAttributes: { id: string; getClass: Function }[] = [
+const specAttributes: { id: string; getClass: () => ISpecialAttribute }[] = [
   {
     id: SATreatment.ID,
     getClass: (): ISpecialAttribute => {

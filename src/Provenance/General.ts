@@ -1,5 +1,5 @@
 import { ActionMetaData, ActionUtils, ICmdResult, IObjectRef, ObjectRefUtils } from 'tdp_core';
-import { CoralApp } from '../app/CoralApp';
+import type { CoralApp } from '../app/CoralApp';
 import { IElementProvJSON, IElementProvJSONCohort } from '../app/interfaces';
 import { log } from '../util';
 import { IEntitySourceConfig } from '../config/entities';
@@ -16,6 +16,7 @@ export function setDatasetAction(provider: IObjectRef<CoralApp>, newDataset: IDa
   return ActionUtils.action(
     ActionMetaData.actionMeta('Change Dataset', ObjectRefUtils.category.data, ObjectRefUtils.operation.update),
     'chtSetDataset',
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setDatasetImpl,
     [provider],
     {

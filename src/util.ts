@@ -3,6 +3,7 @@ import * as logger from 'loglevel';
 import { IAllFilters, IParams, NotificationHandler } from 'tdp_core';
 import { ICohort } from './app/interfaces';
 import { INumRange, IEqualsList } from './base/interfaces';
+import type { IAttribute } from './data/IAttribute';
 
 enum FilterType {
   normal,
@@ -178,7 +179,9 @@ export class DebugTools {
    */
   static async sleep(millis: number): Promise<void> {
     log.info('taking a little nap');
-    return new Promise((resolve) => setTimeout(resolve, millis));
+    return new Promise((resolve) => {
+      setTimeout(resolve, millis);
+    });
   }
 }
 

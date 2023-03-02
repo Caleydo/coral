@@ -1,6 +1,6 @@
 import { Selection } from 'd3v7';
 import { ICohort } from '../../app/interfaces';
-import { IAttribute } from '../../data/Attribute';
+import { IAttribute } from '../../data/IAttribute';
 import { getAnimatedLoadingText, log } from '../../util';
 import { AreaChart } from '../visualizations/AreaChart';
 import { AVegaVisualization } from '../visualizations/AVegaVisualization';

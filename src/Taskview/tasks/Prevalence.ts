@@ -1,11 +1,11 @@
 import { format, select, transition } from 'd3v7';
 import tippy from 'tippy.js';
 import { ICohort, IBloodlineElement } from '../../app/interfaces';
-import { getRootCohort } from '../../cohortview';
+import { IEqualsList, INumRange } from '../../base/interfaces';
+import { CohortContext } from '../../CohortContext';
 import { colors } from '../../config/colors';
-import { IAttribute, multiFilter } from '../../data/Attribute';
-import { IEqualsList, INumRange } from '../../base/rest';
-import { Task } from '../../Tasks';
+import { IAttribute, multiFilter } from '../../data';
+import type { Task } from '../../Tasks';
 import { createHTMLElementWithClasses, getSessionStorageItem, setSessionStorageItem } from '../../util';
 import { easyLabelFromFilter } from '../../utils/labels';
 import { ATask } from './ATask';
@@ -1016,7 +1016,7 @@ export class Prevalence extends ATask {
 
   // sets the base cohort on which all task operations will be applied
   private setBaseCohort() {
-    this.baseCohort = getRootCohort();
+    this.baseCohort = CohortContext.referenceCohort;
     this.baseCohortSize = this.baseCohort.getRetrievedSize();
   }
 
