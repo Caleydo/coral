@@ -1,6 +1,6 @@
 import { select, Selection } from 'd3v7';
 import { ICohort } from '../../app/interfaces';
-import { IAttribute } from '../../data/Attribute';
+import { IAttribute } from '../../data/IAttributue';
 import { OnboardingManager } from '../../OnboardingManager';
 
 export const TASK_CLOSE_EVENT_TYPE = 'task:close';

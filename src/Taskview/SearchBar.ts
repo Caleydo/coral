@@ -3,10 +3,11 @@ import { IServerColumn } from 'visyn_core';
 import { IdTextPair, RestBaseUtils } from 'tdp_core';
 import { dataTypes, depletion, IDataSubtypeConfig, IDataTypeConfig } from 'tdp_publicdb';
 import { colors } from '../config/colors';
-import { ScoreType } from '../data/Attribute';
-import { checkSpecialAttribute, ISpecialAttribute } from '../data/SpecialAttribute';
 import { deepCopy, getAnimatedLoadingText, log } from '../util';
 import { niceName } from '../utils/labels';
+import { ISpecialAttribute } from '../data/ISpecialAttribute';
+import { checkSpecialAttribute } from '../data/SpecialAttribute';
+import { ISearchBarGroup, IServerColumnOption, OptionType, IOption, ISpecialOption, IPanelOption } from './interfaces';
 
 export class SearchBar {
   private _container: HTMLDivElement;
@@ -1085,50 +1086,4 @@ export class SearchBar {
     this._addAndRemoveClearAll();
     this._setPlaceholder();
   }
-}
-
-export interface ISearchBarGroup {
-  groupLabel: string;
-  data: Array<IOption>;
-}
-
-export type OptionType = 'dbc' | 'gene' | 'panel';
-
-export interface IOption {
-  // id: string;
-  optionId: string; // e.g. gender or ensg00000141510
-  optionType: OptionType; // e.g. dbc or gene
-  optionText: string; // e.g. Gender or TP53
-  optionData?: {
-    [key: string]: any; // keys are always strings, so we just specify it to be key/value pairs with values of any type
-  };
-}
-
-export interface IPanelOption extends IOption {
-  optionData: {
-    description: string; // e.g. "Cancer Cell Line Encyclopedia"
-    species: string; // e.g. human
-  };
-}
-
-export interface IScoreOption extends IOption {
-  optionData: {
-    type: ScoreType; // id of = IDataTypeConfig;
-    subType: IDataSubtypeConfig;
-  };
-}
-
-export interface IServerColumnOption extends IOption {
-  optionData: {
-    serverColumn: IServerColumn;
-  };
-}
-
-export interface ISpecialOption extends IServerColumnOption {
-  optionData: {
-    serverColumn: IServerColumn;
-    sAttrId: string;
-    attrOption: string;
-    spAttribute: ISpecialAttribute;
-  };
 }
