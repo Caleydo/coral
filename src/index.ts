@@ -3,7 +3,6 @@ export * from './data';
 export * from './Overview';
 export * from './Taskview';
 
-export * from './app';
 export * from './Cohort';
 export * from './CohortRepresentations';
 export * from './cohortview';
