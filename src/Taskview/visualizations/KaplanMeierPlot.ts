@@ -56,7 +56,8 @@ export class KaplanMeierPlot extends SingleAttributeVisualization {
     }
 
     const dataPromises = this.cohorts.map((cht) => {
-      // TODO:fix me
+      // TODO: fix me
+      // eslint-disable-next-line no-async-promise-executor
       const promise = new Promise(async (resolve, reject) => {
         const chtDataPromises = attributes.map((attr) => attr.getData(cht.dbId));
         try {

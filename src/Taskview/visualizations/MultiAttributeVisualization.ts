@@ -38,6 +38,7 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
     // Create an array, with on entry per cohort, which contains an array with one entry per attribute, i.e. for 2 cohorts and 2 attributes (A1,A2) we get [[A1, A2], [A1, A2]]
     const dataPromises = cohorts.map((cht, chtIndex) => {
       // TODO: fix me
+      // eslint-disable-next-line no-async-promise-executor
       const promise = new Promise(async (resolve, reject) => {
         const chtDataPromises = this.attributes.map((attr) => attr.getData(cht.dbId));
         try {

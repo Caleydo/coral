@@ -223,6 +223,8 @@ export class Compare extends ATask {
 
         for (const [rowIndex, rowCht] of cohorts.entries()) {
           // Get the data of 'attr' for the rows inside 'rowCht'
+          // TODO: fix me
+          // eslint-disable-next-line no-await-in-loop
           const rowData = (await attr.getData(rowCht.dbId)).map((item) => item[attr.dataKey]);
           for (const [colIndex, colCht] of cohorts.entries()) {
             const colIndexOffset = rowIndex === 0 ? 2 : 1; // Two columns if the attribute label is in the same line, (otherwise 1 (because rowspan))
@@ -233,6 +235,8 @@ export class Compare extends ATask {
             } else if (rowIndex4col[rowIndex] >= 0 && rowIndex4col[colIndex] >= 0 && rowIndex4col[colIndex] < rowIndex) {
               // the cht is also part of the colGroups array, and the colGrp is one of the previous rowGroups --> i.e. already calculated in a table row above the current one
             } else {
+              // TODO: fix me
+              // eslint-disable-next-line no-await-in-loop
               const colData = (await attr.getData(colCht.dbId)).map((item) => item[attr.dataKey]);
               const setParameters = {
                 setA: rowData,

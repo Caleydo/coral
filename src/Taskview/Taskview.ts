@@ -399,6 +399,7 @@ export default class Taskview {
         const outputOrder = this.output.cohortOrders.filter((order) => order.inputCht === inCht.dbId);
         const defaultOrder = outputOrder.length === 1 ? outputOrder[0].cohorts : currOutChts.map((cht) => cht.dbId);
         // TODO: fix me
+        // eslint-disable-next-line no-await-in-loop
         await this.sortCohorts(sortDetail.type, currOutChts, defaultOrder);
         const sizeOutCht = currOutChts.length;
         // define the first and last cohort
@@ -605,6 +606,7 @@ export default class Taskview {
           chtPromises.push(multiAttributeFilter(cht, bin.filter));
         }
         // TODO: fix me
+        // eslint-disable-next-line no-await-in-loop
         const newChts = await Promise.all(chtPromises);
         if (currentEv !== this.currentEvent) {
           return;
@@ -629,6 +631,7 @@ export default class Taskview {
           cht.outputCohorts.push(newOutCht); // Add new output cohort to existing cohorts
         }
         // TODO: fix me
+        // eslint-disable-next-line no-await-in-loop
         await Promise.all(chtSizes); // wait for the cohort sizes to properly display the representation
       } else {
         cht.outputCohorts.push(getEmptyCohort(cht) as IOutputCohort);

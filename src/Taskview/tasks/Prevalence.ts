@@ -806,6 +806,8 @@ export class Prevalence extends ATask {
       for (const at of activeTasks) {
         const attValue = taskpair.filter((elem) => elem.taskId === at.id)[0].values;
         // create new cohort in db with the attribute and value
+        // TODO: fix me
+        // eslint-disable-next-line no-await-in-loop
         newBaseCohort = await multiFilter(oldBaseCohort, at.attributes, attValue);
         oldBaseCohort = newBaseCohort;
       }
@@ -816,6 +818,9 @@ export class Prevalence extends ATask {
         for (const nat of notActiveTasks) {
           // log.debug('not active Task pair: ', {attribute: nat.attribute, value: valExclMVForTask});
           // create new cohort in db with the attribute and value
+
+          // TODO: fix me
+          // eslint-disable-next-line no-await-in-loop
           newBaseCohort = await multiFilter(oldBaseCohort, nat.attributes, new Array(nat.attributes.length).fill(valExclMVForTask));
           oldBaseCohort = newBaseCohort;
         }

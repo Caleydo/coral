@@ -472,6 +472,8 @@ export async function multiAttributeFilter(baseCohort: ICohort, filters: IAttrib
   const values = [];
 
   for (const attrFilter of filters) {
+    // TODO: fix me
+    // eslint-disable-next-line no-await-in-loop
     newCohort = await attrFilter.attr.filter(newCohort, attrFilter.range);
     labelOne.push(newCohort.labelOne);
     labelTwo.push(newCohort.labelTwo);

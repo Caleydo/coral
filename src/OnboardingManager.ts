@@ -17,7 +17,7 @@ export class OnboardingManager {
     const tipConfig = CONFIG_ONBOARDING.tooltips[tipId];
     let tip;
     if (tipConfig) {
-      this.tooltips.forEach((tip) => tip.clearDelayTimeouts());
+      this.tooltips.forEach((ttip) => ttip.clearDelayTimeouts());
       const cookieID = `${tipId}_onboarded`;
       const showOnCreate = !hasCookie(cookieID) || forceShow; // show if there is no cookie
       tip = tippy(elem, {
@@ -26,6 +26,7 @@ export class OnboardingManager {
         showOnCreate,
       });
       this.tooltips.set(tipId, tip);
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       setOnboardingCookie(cookieID);
     } else {
       log.warn('No config for tooltip', tipId, 'Skip tooltip creation');
