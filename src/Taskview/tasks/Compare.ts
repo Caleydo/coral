@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
+/* eslint-disable @typescript-eslint/no-use-before-define */
 /* *****************************************************************************
  * Caleydo - Visualization for Molecular Biology - http://caleydo.org
  * Copyright (c) The Caleydo Team. All rights reserved.
@@ -83,8 +85,8 @@ export class Compare extends ATask {
     const colHeadsChtSpan = colHeadsCht.enter().append('th').attr('class', 'head rotate').append('div').append('span').append('span'); // th.head are the column headers
 
     const that = this; // for the function below
-    const updateTableBody = (bodyData: Array<Array<Array<IScoreCell>>>, timestamp: string) => {
-      if (that.body.attr('data-timestamp') !== timestamp) {
+    const updateTableBody = (bodyData: Array<Array<Array<IScoreCell>>>, timestampArg: string) => {
+      if (that.body.attr('data-timestamp') !== timestampArg) {
         return; // skip outdated result
       }
 
@@ -317,6 +319,7 @@ export class Compare extends ATask {
   }
 
   toScoreCell(score: IMeasureResult, measure: ISimilarityMeasure, setParameters: ISetParameters): IScoreCell {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     let color = score2color(score.pValue);
     let cellLabel = score.pValue.toFixed(3);
 
@@ -384,7 +387,8 @@ export class Compare extends ATask {
       const category = rowCategories.pop();
       const isColTask = category === row;
       const cellData = select(tableCell).datum() as IScoreCell;
-      const scoreValue = typeof cellData.score.scoreValue === 'number' && !isNaN(cellData.score.scoreValue) ? cellData.score.scoreValue.toFixed(3) : 'n/a';
+      const scoreValue =
+        typeof cellData.score.scoreValue === 'number' && !Number.isNaN(cellData.score.scoreValue) ? cellData.score.scoreValue.toFixed(3) : 'n/a';
       let scorePvalue: string | number = cellData.score.pValue;
       if (scorePvalue === -1) {
         scorePvalue = 'n/a';
@@ -546,7 +550,7 @@ export class Compare extends ATask {
     detailSetInfo.append('span').html(`${setBLabel} `).append('span').text(`[${measureResult.setSizeB}]`);
 
     // test value + p-value
-    const scoreValue = typeof measureResult.scoreValue === 'number' && !isNaN(measureResult.scoreValue) ? measureResult.scoreValue.toFixed(3) : 'n/a';
+    const scoreValue = typeof measureResult.scoreValue === 'number' && !Number.isNaN(measureResult.scoreValue) ? measureResult.scoreValue.toFixed(3) : 'n/a';
     const pValue = measureResult.pValue === -1 ? 'n/a' : (measureResult.pValue as number).toExponential(3);
     const detailInfoValues = divDetailInfo.append('div').classed('detailDiv', true);
     // .text(`Test-Value: ${scoreValue}, p-Value: ${pValue}`);

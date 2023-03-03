@@ -1,5 +1,5 @@
-import { log } from 'vega';
 import { IServerColumn } from 'visyn_core';
+import { log } from './util';
 import { EElementProvType, IElement, IElementProvJSON, IElementProvJSONTask, ITask, ITaskRep, TaskType } from './app/interfaces';
 import { GeneScoreAttribute, PanelScoreAttribute, ServerColumnAttribute, SpecialAttribute } from './data/Attribute';
 import type { IAttribute, IOption, IScoreOption, IServerColumnOption } from './data/IAttribute';

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import * as aq from 'arquero';
 import { format, select } from 'd3v7';
 import tippy from 'tippy.js';
@@ -36,6 +37,7 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
     this.attributes = attributes;
     // Create an array, with on entry per cohort, which contains an array with one entry per attribute, i.e. for 2 cohorts and 2 attributes (A1,A2) we get [[A1, A2], [A1, A2]]
     const dataPromises = cohorts.map((cht, chtIndex) => {
+      // TODO: fix me
       const promise = new Promise(async (resolve, reject) => {
         const chtDataPromises = this.attributes.map((attr) => attr.getData(cht.dbId));
         try {
@@ -339,10 +341,10 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
       const scale = this.vegaView.scale(axis);
 
       // if one or both ranges are set, replace with values
-      if (range[0] !== undefined && !isNaN(range[0])) {
+      if (range[0] !== undefined && !Number.isNaN(range[0])) {
         scaledRange[0] = scale(range[0]); // get min value from input
       }
-      if (range[1] !== undefined && !isNaN(range[1])) {
+      if (range[1] !== undefined && !Number.isNaN(range[1])) {
         scaledRange[1] = scale(range[1]); // get max value from input
         if (range[0] === range[1]) {
           scaledRange[1] = scale(range[1]) + 10 ** -10; // the 10^(-10) are independent of the attribute domain (i.e. values of 0 to 1 or in millions) because we add it after scaling (its a fraction of a pixel)
@@ -363,11 +365,11 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
       parseFloat((select(this.controls).select(`input.maximum[data-axis="${axis}"]`).node() as HTMLInputElement).value),
     ];
 
-    if (range.some((rangeNum) => rangeNum === undefined || isNaN(rangeNum))) {
+    if (range.some((rangeNum) => rangeNum === undefined || Number.isNaN(rangeNum))) {
       const domain = this.vegaView.scale(axis).domain();
 
       for (const i in range) {
-        if (range[i] === undefined || isNaN(range[i])) {
+        if (range[i] === undefined || Number.isNaN(range[i])) {
           range[i] = domain[i];
         }
       }

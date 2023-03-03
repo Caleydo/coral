@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { format, select } from 'd3v7';
 import log from 'loglevel';
 import { Spec as VegaSpec } from 'vega';
@@ -21,7 +22,7 @@ export class GroupedBoxplot extends MultiAttributeVisualization {
 
   brushData: object[] = [];
 
-  constructor(vegaLiteOptions: Object = {}) {
+  constructor(vegaLiteOptions: object = {}) {
     super(vegaLiteOptions);
 
     this.config = [{ icon: '<i class="fas fa-sitemap fa-rotate-270"></i>', label: 'Group', groups: [groupByConfig] }];
@@ -67,10 +68,10 @@ export class GroupedBoxplot extends MultiAttributeVisualization {
     const newRange = scale.domain();
 
     // if one or both ranges are set, replace with values
-    if (range[0] !== undefined && !isNaN(range[0])) {
+    if (range[0] !== undefined && !Number.isNaN(range[0])) {
       newRange[0] = range[0]; // get min value from input
     }
-    if (range[1] !== undefined && !isNaN(range[1])) {
+    if (range[1] !== undefined && !Number.isNaN(range[1])) {
       newRange[1] = range[1]; // get max value from input
       if (range[0] === range[1]) {
         newRange[1] = scale.invert(scale(range[1]) + 10 ** -10); // the 10^(-10) are independent of the attribute domain (i.e. values of 0 to 1 or in millions) because we add it after scaling (its a fraction of a pixel)

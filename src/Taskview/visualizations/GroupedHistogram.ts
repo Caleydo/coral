@@ -18,7 +18,7 @@ export class VegaGroupedHistogram extends VegaHistogram {
 
   protected readonly type = 'nominal';
 
-  constructor(vegaLiteOptions: Object = {}) {
+  constructor(vegaLiteOptions: object = {}) {
     super(vegaLiteOptions);
 
     this.config = [

@@ -160,11 +160,11 @@ export class Filter extends ATask {
         .classed('selected', (vis) => (vis as any).NAME === (this.vis.constructor as any).NAME)
         .append('a')
         .text((vis) => (vis as any).NAME) // cast to any to access static property
-        .on('click', (event, visClass) => {
-          if ((visClass as any).NAME !== (this.vis.constructor as any).NAME) {
+        .on('click', (event, VisClass) => {
+          if ((VisClass as any).NAME !== (this.vis.constructor as any).NAME) {
             // check if vis has changed
-            this.header.selectAll('.vis-selector .vis-type li').classed('selected', (vis) => (vis as any).NAME === (visClass as any).NAME);
-            this.showWithVis(new visClass());
+            this.header.selectAll('.vis-selector .vis-type li').classed('selected', (vis) => (vis as any).NAME === (VisClass as any).NAME);
+            this.showWithVis(new VisClass());
           }
         });
     }

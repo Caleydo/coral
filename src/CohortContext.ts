@@ -8,4 +8,8 @@ export interface ICohortContext {
   referenceCohort: ICohort;
 }
 
-export const CohortContext: ICohortContext = null;
+export const CohortContext: ICohortContext = {
+  cohortOverview: null,
+  taskview: null,
+  referenceCohort: null,
+};

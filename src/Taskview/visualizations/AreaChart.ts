@@ -9,7 +9,7 @@ import { IdValuePair } from '../../data/IAttribute';
 export class AreaChart extends MultiAttributeVisualization {
   static readonly NAME = 'Area Chart';
 
-  constructor(vegaLiteOptions: Object = {}) {
+  constructor(vegaLiteOptions: object = {}) {
     super(vegaLiteOptions);
   }
 

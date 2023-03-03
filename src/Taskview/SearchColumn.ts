@@ -138,6 +138,7 @@ export default class SearchColumn {
   private enableAddButtons(enable: boolean): void {
     if (enable) {
       // add eventListeners
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
       const that = this;
       select(this.$searchColumn)
         .selectAll('div.action.add')

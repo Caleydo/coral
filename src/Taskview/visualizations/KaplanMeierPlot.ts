@@ -24,7 +24,7 @@ export class KaplanMeierPlot extends SingleAttributeVisualization {
 
   protected readonly type = 'quantitative';
 
-  constructor(vegaLiteOptions: Object = {}) {
+  constructor(vegaLiteOptions: object = {}) {
     super(vegaLiteOptions);
 
     this.config = [
@@ -56,6 +56,7 @@ export class KaplanMeierPlot extends SingleAttributeVisualization {
     }
 
     const dataPromises = this.cohorts.map((cht) => {
+      // TODO:fix me
       const promise = new Promise(async (resolve, reject) => {
         const chtDataPromises = attributes.map((attr) => attr.getData(cht.dbId));
         try {

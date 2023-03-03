@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { format, select } from 'd3v7';
 import { cloneDeep } from 'lodash';
 import tippy from 'tippy.js';
@@ -472,60 +473,58 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
             },
           ],
         });
-      } else {
+      } else if (this.attribute.type === 'number') {
         // 1 cohort, multiple categories, or one category, multiple cohorts
-        if (this.attribute.type === 'number') {
-          // n cohorts, one range (can't be more because we use one interval selection)
-          const chtRanges: { cht: ICohort; ranges: { from: number; to: number }[] }[] = []; // create a list of chts and their filtered categories
-          for (const bin of bins) {
-            const chtRange = chtRanges.find((elem) => elem.cht.id === bin.cohort.id);
-            if (chtRange !== undefined) {
-              // I handled this cohort before
-              chtRange.ranges.push({ from: bin.from as number, to: bin.to as number }); // add range  to exisiting list
-            } else {
-              // new cht, create object and init range array
-              chtRanges.push({ cht: bin.cohort, ranges: [{ from: bin.from as number, to: bin.to as number }] });
-            }
+        // n cohorts, one range (can't be more because we use one interval selection)
+        const chtRanges: { cht: ICohort; ranges: { from: number; to: number }[] }[] = []; // create a list of chts and their filtered categories
+        for (const bin of bins) {
+          const chtRange = chtRanges.find((elem) => elem.cht.id === bin.cohort.id);
+          if (chtRange !== undefined) {
+            // I handled this cohort before
+            chtRange.ranges.push({ from: bin.from as number, to: bin.to as number }); // add range  to exisiting list
+          } else {
+            // new cht, create object and init range array
+            chtRanges.push({ cht: bin.cohort, ranges: [{ from: bin.from as number, to: bin.to as number }] });
           }
-          // get a filter for the categories per cohort
-          filterDesc = chtRanges.map((elem) => {
-            const filters = [];
-            for (const rg of elem.ranges) {
-              filters.push(this.getNumericalFilterAllInclusive(rg.from as number, rg.to as number));
-            }
-            return {
-              cohort: elem.cht,
-              filter: [
-                {
-                  attr: this.attribute,
-                  range: filters,
-                },
-              ],
-            };
-          });
-        } else {
-          const chtCats: { cht: ICohort; cats: string[] }[] = []; // create a list of chts and their filtered categories
-          for (const bin of bins) {
-            const chtCat = chtCats.find((elem) => elem.cht.id === bin.cohort.id);
-            if (chtCat !== undefined) {
-              // I handled this cohort before
-              chtCat.cats.push(String(bin.from)); // add category to exisiting list
-            } else {
-              // new cht, create object and init category array
-              chtCats.push({ cht: bin.cohort, cats: [String(bin.from)] });
-            }
+        }
+        // get a filter for the categories per cohort
+        filterDesc = chtRanges.map((elem) => {
+          const filters = [];
+          for (const rg of elem.ranges) {
+            filters.push(this.getNumericalFilterAllInclusive(rg.from as number, rg.to as number));
           }
-          // get a filter for the categories per cohort
-          filterDesc = chtCats.map((elem) => ({
+          return {
             cohort: elem.cht,
             filter: [
               {
                 attr: this.attribute,
-                range: this.getCategoricalFilter(elem.cats),
+                range: filters,
               },
             ],
-          }));
+          };
+        });
+      } else {
+        const chtCats: { cht: ICohort; cats: string[] }[] = []; // create a list of chts and their filtered categories
+        for (const bin of bins) {
+          const chtCat = chtCats.find((elem) => elem.cht.id === bin.cohort.id);
+          if (chtCat !== undefined) {
+            // I handled this cohort before
+            chtCat.cats.push(String(bin.from)); // add category to exisiting list
+          } else {
+            // new cht, create object and init category array
+            chtCats.push({ cht: bin.cohort, cats: [String(bin.from)] });
+          }
         }
+        // get a filter for the categories per cohort
+        filterDesc = chtCats.map((elem) => ({
+          cohort: elem.cht,
+          filter: [
+            {
+              attr: this.attribute,
+              range: this.getCategoricalFilter(elem.cats),
+            },
+          ],
+        }));
       }
       log.debug('show filter description: ', filterDesc);
       this.container.dispatchEvent(new FilterEvent(filterDesc));
@@ -825,11 +824,11 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     const scale = this.vegaView.scale('x');
 
     // if one or both ranges are set, replace with values
-    if (range[0] !== undefined && !isNaN(range[0])) {
+    if (range[0] !== undefined && !Number.isNaN(range[0])) {
       scaledRange[0] = scale(range[0]); // get min value from input
     }
 
-    if (range[1] !== undefined && !isNaN(range[1])) {
+    if (range[1] !== undefined && !Number.isNaN(range[1])) {
       scaledRange[1] = scale(range[1]); // get max value from input
       if (range[0] === range[1]) {
         scaledRange[1] = scale(range[1]) + 10 ** -10; // the 10^(-10) are independent of the attribute domain (i.e. values of 0 to 1 or in millions) because we add it after scaling (its a fraction of a pixel)

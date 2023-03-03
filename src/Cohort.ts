@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import { IDType, IDTypeLike, IDTypeManager, IRow, IServerColumn } from 'visyn_core';
 import { IAllFilters, UniqueIdManager } from 'tdp_core';
 import {
