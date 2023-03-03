@@ -33,6 +33,7 @@ export abstract class ATask {
   abstract showSearchBar(): boolean;
 
   show(columnHeader: HTMLDivElement, container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]) {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const task = this;
     select(container).selectAll('*').remove();
     select(columnHeader).selectAll('.task-title').remove();
@@ -56,6 +57,7 @@ export abstract class ATask {
         ${this.label}`,
       )
       .on('click', function () {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const clickedBtn = this;
         clickedBtn.dispatchEvent(new TaskCloseEvent(task));
       });

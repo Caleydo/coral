@@ -8,7 +8,7 @@ import { createCohortWithTreatmentFilter } from '../Cohort';
 import { CohortContext } from '../CohortContext';
 import { INumRange, IEqualsList, HistRouteType } from '../base';
 import { AttributeType, IdValuePair } from './IAttribute';
-import { ISpecialAttribute } from './ISpecialAttribute';
+import type { ISpecialAttribute } from './ISpecialAttribute';
 
 export class SATreatment implements ISpecialAttribute {
   readonly overrideSearchBarDetails: boolean = true;

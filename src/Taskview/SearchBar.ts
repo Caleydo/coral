@@ -7,6 +7,8 @@ import { deepCopy, getAnimatedLoadingText, log } from '../util';
 import { niceName } from '../utils/labels';
 import { IOption, IPanelOption, ISearchBarGroup, IServerColumnOption, OptionType } from '../data/IAttribute';
 import { ISpecialOption } from '../Tasks';
+import type { ISpecialAttribute } from '../data/ISpecialAttribute';
+import { checkSpecialAttribute } from '../data/SpecialAttribute';
 
 export class SearchBar {
   private _container: HTMLDivElement;
@@ -393,7 +395,7 @@ export class SearchBar {
     };
 
     switch (type) {
-      case 'dbc':
+      case 'dbc': {
         const spAttr: ISpecialAttribute = checkSpecialAttribute(option.optionId);
         if (spAttr) {
           (option as ISpecialOption).optionData = {
@@ -407,6 +409,7 @@ export class SearchBar {
         }
 
         break;
+      }
       case 'gene':
         // Nothing to do here, added in clickHandler
         break;
@@ -415,6 +418,8 @@ export class SearchBar {
           description: data.description,
           species: data.species,
         };
+        break;
+      default:
         break;
     }
 
@@ -920,15 +925,15 @@ export class SearchBar {
           .enter()
           .append('div')
           .attr('class', 'detail-info-option option-element')
-          .attr('data-optid', (d: IDataSubtypeConfig) => {
-            return this._composeGeneDataTypeOptId(optionId, d.id);
+          .attr('data-optid', (v: IDataSubtypeConfig) => {
+            return this._composeGeneDataTypeOptId(optionId, v.id);
           })
-          .classed('option-selected', (d: IDataSubtypeConfig) => {
-            return badgeIds.indexOf(this._composeGeneDataTypeOptId(optionId, d.id)) !== -1;
+          .classed('option-selected', (v: IDataSubtypeConfig) => {
+            return badgeIds.indexOf(this._composeGeneDataTypeOptId(optionId, v.id)) !== -1;
           })
-          .html((d: IDataSubtypeConfig) => d.name)
-          .on('click', (event, d: IDataSubtypeConfig) => {
-            const badgeName = this._composeGeneDataTypeName(data.optionText, d.name);
+          .html((v: IDataSubtypeConfig) => v.name)
+          .on('click', (event, v: IDataSubtypeConfig) => {
+            const badgeName = this._composeGeneDataTypeName(data.optionText, v.name);
             const badgeData = deepCopy(data);
             badgeData.optionData = { subType: d, type: (d as any).dataTypeId };
             this._clickHandlerDetail(data, badgeData, badgeName, event as MouseEvent, event.currentTarget as HTMLElement);
@@ -953,8 +958,7 @@ export class SearchBar {
     const detailText = document.createElement('p');
     detailText.classList.add('option-element');
     detail.appendChild(detailText);
-    detailText.innerHTML =
-      `<span class="option-element">ID:</span> ${option.optionId}</br>` + `<span class="option-element">Description:</span> ${option.optionData.description}`;
+    detailText.innerHTML = `<span class="option-element">ID:</span> ${option.optionId}</br><span class="option-element">Description:</span> ${option.optionData.description}`;
     return detail;
   }
 
