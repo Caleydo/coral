@@ -1,4 +1,6 @@
-import { IAllFilters, IDType, IDTypeLike, IDTypeManager, IRow, IServerColumn, UniqueIdManager } from 'tdp_core';
+/* eslint-disable @typescript-eslint/no-use-before-define */
+import { IDType, IDTypeLike, IDTypeManager, IRow, IServerColumn } from 'visyn_core';
+import { IAllFilters, UniqueIdManager } from 'tdp_core';
 import {
   ECloneFilterTypes,
   EElementProvType,
@@ -30,6 +32,17 @@ import {
   dataDBCohortWithNumFilter,
   getCohortData,
   getCohortSize,
+  sizeDBCohortDepletionScoreFilter,
+  sizeDBCohortGeneWithEqualsFilter,
+  sizeDBCohortGeneWithNumFilter,
+  sizeDBCohortPanelAnnotationFilter,
+  sizeDBCohortWithEqualsFilter,
+  sizeDBCohortWithNumFilter,
+  updateCohortName,
+} from './base/rest';
+import type { Task } from './Tasks';
+import { deepCopy, handleDataLoadError, handleDataSaveError, log, mergeTwoAllFilters } from './util';
+import {
   ICohortDBDataParams,
   ICohortDBParams,
   ICohortDBSizeParams,
@@ -49,17 +62,8 @@ import {
   ICohortRow,
   IEqualsList,
   INumRange,
-  sizeDBCohortDepletionScoreFilter,
-  sizeDBCohortGeneWithEqualsFilter,
-  sizeDBCohortGeneWithNumFilter,
-  sizeDBCohortPanelAnnotationFilter,
-  sizeDBCohortWithEqualsFilter,
-  sizeDBCohortWithNumFilter,
-  updateCohortName,
   valueListDelimiter,
-} from './base/rest';
-import { mergeTwoAllFilters, Task } from './Tasks';
-import { deepCopy, handleDataLoadError, handleDataSaveError, log } from './util';
+} from './base/interfaces';
 
 type ICreateMethod<T> = (
   params:

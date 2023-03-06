@@ -1,6 +1,6 @@
 import { IObjectRef, ObjectRefUtils, ProvenanceGraph, UniqueIdManager, IDatabaseViewDesc } from 'tdp_core';
 import tippy from 'tippy.js';
-import { CoralApp } from '../app/CoralApp';
+import type { CoralApp } from '../app/CoralApp';
 import { Cohort, createCohortFromDB } from '../Cohort';
 import {
   EElementProvType,
@@ -15,8 +15,6 @@ import {
   TaskType,
 } from '../app/interfaces';
 import { RectCohortRep } from '../CohortRepresentations';
-import { IAttribute } from '../data/Attribute';
-import { addOverviewCohortAction, removeOverviewCohortAction } from '../Provenance/CohortEV';
 import { getDBCohortData } from '../base/rest';
 import { RectTaskRep } from '../TaskRepresentations';
 import { createTaskFromProvJSON, Task, TaskFilter, TaskSplit } from '../Tasks';
@@ -34,6 +32,8 @@ import {
 } from '../base/events';
 import { niceName } from '../utils/labels';
 import { RectangleLayout } from './OverviewLayout';
+import { IAttribute } from '../data/IAttribute';
+import { addOverviewCohortAction, removeOverviewCohortAction } from '../Provenance/CohortEV';
 
 export class CohortOverview {
   private root: ICohort;

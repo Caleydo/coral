@@ -12,7 +12,7 @@ export class OneHotEncoder {
   encode(data: Array<any>, attributes: Array<IAttribute>) {
     const hotData = [];
 
-    if (data?.length ?? 0 > 0) {
+    if (data?.length > 0) {
       // gather categories of the categorical attributes
       for (const attr of attributes) {
         for (const item of data) {

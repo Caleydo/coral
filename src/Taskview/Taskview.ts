@@ -1,11 +1,4 @@
-import { EMPTY_COHORT_ID, getEmptyCohort, getLoaderCohort, LOADER_COHORT_ID } from '../Cohort';
 import { ICohort, IInputCohort, IOutputCohort, ITaskParams, TaskType } from '../app/interfaces';
-import { RectCohortRep } from '../CohortRepresentations';
-import { IAttribute, multiAttributeFilter } from '../data/Attribute';
-import { RectangleLayout } from '../Overview/OverviewLayout';
-import { log, removeFromArray, SortType } from '../util';
-import { CoralColorSchema } from '../config/colors';
-import { ScrollLinker } from '../utils/ScrollLinker';
 import {
   CohortSelectionEvent,
   COHORT_SELECTION_EVENT_TYPE,
@@ -22,375 +15,18 @@ import {
   SplitEvent,
   SPLIT_EVENT_TYPE,
 } from '../base/events';
-import AddColumnColumn, { AColumn, ADataColumn, EmptyColumn } from './columns/AColumn';
-import AttributeColumn from './columns/AttributeColumn';
-import { InputCohortColumn, OutputCohortColumn } from './columns/CohortColumn';
+import { RectCohortRep } from '../CohortRepresentations';
+import { CoralColorSchema } from '../config/colors';
+import { IAttribute } from '../data/IAttribute';
+import { SortType, removeFromArray, log } from '../util';
+import { ScrollLinker } from '../utils/ScrollLinker';
 import SearchColumn from './SearchColumn';
-
-export default class Taskview {
-  public destroy() {
-    this.$node.removeEventListener(FILTER_EVENT_TYPE, this.filterListener);
-    this.$node.removeEventListener(SPLIT_EVENT_TYPE, this.splitListener);
-    this.$node.removeEventListener(CONFIRM_OUTPUT_EVENT_TYPE, this.confirmListener);
-
-    this.scrollLink.destroy();
-
-    this.search.destroy();
-    this.input.destroy();
-    this.output.destroy();
-
-    this.$node.classList.remove('task-view');
-    while (this.$node.hasChildNodes()) {
-      this.$node.removeChild(this.$node.lastChild);
-    }
-  }
-
-  clearOutput() {
-    this.output.clear();
-    this.input.update();
-  }
-
-  private input: TaskviewInput;
-
-  private search: SearchColumn;
-
-  private output: TaskviewOutput;
-
-  private scrollLink: ScrollLinker;
-
-  private taskParams: ITaskParams[];
-
-  private taskAttributes: IAttribute[];
-
-  private filterListener: EventListenerOrEventListenerObject = (ev) => this.handleFilterEvent(ev as FilterEvent);
-
-  private splitListener: EventListenerOrEventListenerObject = (ev) => this.handleFilterEvent(ev as SplitEvent);
-
-  private confirmListener: EventListenerOrEventListenerObject = (ev) => this.confirmTask(); // event data (cohorts) currently ignored
-
-  private columnSortListener: EventListenerOrEventListenerObject = (ev) => this.handleColumnSortEvent(ev as ColumnSortEvent);
-
-  constructor(public readonly $node: HTMLDivElement, private reference: ICohort) {
-    this.$node.classList.add('task-view');
-
-    const inNode = document.createElement('div');
-    this.input = new TaskviewInput(inNode, this.reference, this);
-    this.$node.appendChild(inNode);
-
-    const searchNode = document.createElement('div');
-    this.search = new SearchColumn(searchNode, this.reference, this);
-    this.$node.appendChild(searchNode);
-
-    const outNode = document.createElement('div');
-    this.output = new TaskviewOutput(outNode, this.reference, this);
-    this.$node.appendChild(outNode);
-
-    this.scrollLink = new ScrollLinker(inNode.querySelector('div.task-view-scroll-wrapper'), outNode.querySelector('div.task-view-scroll-wrapper'));
-
-    // Listen to cohort creation events fired by histograms in the input part
-    this.$node.addEventListener(FILTER_EVENT_TYPE, this.filterListener);
-    this.$node.addEventListener(SPLIT_EVENT_TYPE, this.splitListener);
-
-    // confirmation event that adds the cohrots to cohort graph
-    this.$node.addEventListener(CONFIRM_OUTPUT_EVENT_TYPE, this.confirmListener);
-
-    // sort event that sorts the input cohorts
-    this.$node.addEventListener(COLUMN_SORT_EVENT_TYPE, this.columnSortListener);
-  }
-
-  public async handleColumnSortEvent(ev: ColumnSortEvent) {
-    const sortDetail = ev.detail;
-    const inputChts = this.getInputCohorts() as IInputCohort[];
-    if (sortDetail.sortInputChts) {
-      // sort input cohort
-      const defaultOrder = this.input.cohortOrder;
-      await this.sortCohorts(sortDetail.type, inputChts, defaultOrder);
-    } else {
-      // sort output cohort for each input cohort
-      for (const inCht of inputChts) {
-        const currOutChts = inCht.outputCohorts as IOutputCohort[];
-        const outputOrder = this.output.cohortOrders.filter((order) => order.inputCht === inCht.dbId);
-        const defaultOrder = outputOrder.length === 1 ? outputOrder[0].cohorts : currOutChts.map((cht) => cht.dbId);
-        await this.sortCohorts(sortDetail.type, currOutChts, defaultOrder);
-        const sizeOutCht = currOutChts.length;
-        // define the first and last cohort
-        for (let i = 0; i < sizeOutCht; i++) {
-          const currCht = currOutChts[i];
-          currCht.isFirstOutputCohort = false;
-          currCht.isLastOutputCohort = false;
-          // first cohort
-          if (i === 0) {
-            currCht.isFirstOutputCohort = true;
-          }
-          // last cohort
-          if (i === sizeOutCht - 1) {
-            currCht.isLastOutputCohort = true;
-          }
-        }
-      }
-    }
-
-    this.orderCohorts();
-  }
-
-  private async sortCohorts(type: SortType, cohortsToSort: ICohort[], defaultOrder: number[]) {
-    if (type === SortType.Default) {
-      // sort by default
-      const sortingArray = defaultOrder;
-      cohortsToSort.sort((a, b) => this.sortWithDbIdArray(a.dbId, b.dbId, sortingArray)); // default
-    } else if (type === SortType.Alpha_AZ) {
-      // sort by label name
-      cohortsToSort.sort((a, b) => this.sortLabelAlpha(a, b)); // A -> Z
-    } else if (type === SortType.Alpha_ZA) {
-      cohortsToSort.sort((a, b) => this.sortLabelAlpha(b, a)); // Z -> A
-    } else if (type === SortType.Size_19) {
-      // sort by cohort size
-      await this.sortCohortsBySize(false, cohortsToSort);
-    } else if (type === SortType.Size_91) {
-      // sort by cohort size
-      await this.sortCohortsBySize(true, cohortsToSort);
-    }
-  }
-
-  private sortWithDbIdArray(a, b, sortingArr) {
-    return sortingArr.indexOf(a) - sortingArr.indexOf(b);
-  }
-
-  private sortLabelAlpha(a, b) {
-    if (a.label < b.label) {
-      return -1;
-    }
-    if (a.label > b.label) {
-      return 1;
-    }
-    return 0;
-  }
-
-  private sortSizeNum(a, b) {
-    if (a.size > b.size) {
-      return -1;
-    }
-    if (a.size < b.size) {
-      return 1;
-    }
-    return 0;
-  }
-
-  private async sortCohortsBySize(descending: boolean, cohortsToSort: ICohort[]) {
-    const chtSizes = [];
-    for (const cht of cohortsToSort) {
-      const currSize = await cht.size;
-      chtSizes.push({ id: cht.id, size: currSize });
-    }
-
-    if (descending) {
-      chtSizes.sort((a, b) => this.sortSizeNum(a, b)); // 9 -> 1
-    } else {
-      chtSizes.sort((a, b) => this.sortSizeNum(b, a)); // 1 -> 9
-    }
-
-    cohortsToSort.sort(function (a, b) {
-      const aId = a.id;
-      const bId = b.id;
-      const chtSizesIds = chtSizes.map((elem) => elem.id);
-      if (chtSizesIds.indexOf(aId) > chtSizesIds.indexOf(bId)) {
-        return 1;
-      }
-      if (chtSizesIds.indexOf(aId) < chtSizesIds.indexOf(bId)) {
-        return -1;
-      }
-      return 0;
-    });
-  }
-
-  public orderCohorts() {
-    // order input side
-    const inputColumns: ADataColumn[] = this.input.columns as any;
-    inputColumns.forEach((element) => element.orderCohorts(this.getInputCohorts()));
-    // order input side
-    const outputColumns: ADataColumn[] = this.output.columns as any;
-    const outChts = [].concat(...this.input.cohorts.map((cht) => cht.outputCohorts));
-    outputColumns.forEach((element) => element.orderCohorts(outChts));
-  }
-
-  public confirmTask() {
-    this.search.clear();
-    this.removeAttributeColumns();
-    this.$node.dispatchEvent(new ConfirmTaskEvent(this.taskParams, this.taskAttributes));
-  }
-
-  public setInputCohorts(cohorts: ICohort[]): void {
-    this.input.setCohorts(cohorts as IInputCohort[]);
-    this.search.updateTasks();
-    const outChts = [].concat(...this.input.cohorts.map((cht) => cht.outputCohorts));
-    this.setOutputCohorts(outChts);
-  }
-
-  public updateInput() {
-    this.input.update(); // adjust height after removing output cohorts
-  }
-
-  public getInputCohorts(): IInputCohort[] {
-    return this.input.cohorts;
-  }
-
-  public getOutputCohorts(): ICohort[] {
-    return this.output ? this.output.cohorts : [];
-  }
-
-  public setOutputCohorts(cohorts: ICohort[]): void {
-    this.output.setCohorts(cohorts);
-  }
-
-  public setReference(reference: ICohort): void {
-    this.reference = reference;
-  }
-
-  public addMultipleAttributeColumns(dArray: IAttribute[], allowDuplicates = false, pinned = false) {
-    dArray.forEach((d) => this.addAttributeColumn(d, allowDuplicates, pinned));
-  }
-
-  public addAttributeColumn(d: IAttribute, allowDuplicates = false, pinned = false) {
-    if (this.reference.idColumn.column !== d.id) {
-      this.addAttributeColumnForInput(d, allowDuplicates, pinned);
-      this.addAttributeColumnForOutput(d, allowDuplicates, pinned);
-    }
-  }
-
-  public addAttributeColumnForInput(d: IAttribute, allowDuplicates = false, pinned = false) {
-    this.input.addAttributeColumn(d, allowDuplicates, pinned); // function is overwritten in and does not need the onInputCohortSide = true variable
-  }
-
-  public addAttributeColumnForOutput(d: IAttribute, allowDuplicates = false, pinned = false) {
-    this.output.addAttributeColumn(d, allowDuplicates, false, false, pinned);
-  }
-
-  public removeAttributeColumns() {
-    this.input.getUnpinnedAttributeColumns().forEach((col) => col.close());
-    this.output.getUnpinnedAttributeColumns().forEach((col) => col.close());
-  }
-
-  public getTaskParams(): ITaskParams[] {
-    return this.taskParams;
-  }
-
-  public getTaskAttributes(): IAttribute[] {
-    return this.taskAttributes;
-  }
-
-  private currentEvent = 0;
-
-  async handleFilterEvent(ev: FilterEvent | SplitEvent) {
-    const currentEv = ++this.currentEvent;
-    let outputCohorts: IOutputCohort[] = []; // Stores the output cohorts in correct order, will replace the array currently used
-    const taskWithSelectedOutput: ITaskParams[] = [];
-    this.taskParams = [];
-    this.taskAttributes = ev.detail.desc[0].filter.map((filter) => filter.attr);
-
-    for (const inCht of this.input.cohorts) {
-      const chtBins = ev.detail.desc.filter((bin) => inCht.id === bin.cohort.id);
-      const outChts: IOutputCohort[] = new Array(Math.max(chtBins.length, 1)).fill(null).map(() => getLoaderCohort(inCht) as unknown as IOutputCohort);
-
-      outChts[outChts.length - 1].isLastOutputCohort = true;
-      outChts[0].isFirstOutputCohort = true;
-
-      inCht.outputCohorts = outChts;
-      outputCohorts.push(...outChts);
-    }
-
-    // Update the input cohorts
-    this.updateInput();
-    // Add the new cohorts to the output side
-    this.setOutputCohorts(outputCohorts);
-
-    // await DebugTools.sleep(1500);
-    outputCohorts = [];
-
-    // For each input cohort, create a new output cohort
-    for (const cht of this.input.cohorts) {
-      log.debug('filter/split event: ', ev);
-      cht.outputCohorts = [];
-      const chtBins = ev.detail.desc.filter((bin) => cht.id === bin.cohort.id);
-      if (chtBins.length > 0) {
-        const chtPromises = [];
-        for (const bin of chtBins) {
-          chtPromises.push(multiAttributeFilter(cht, bin.filter));
-        }
-
-        const newChts = await Promise.all(chtPromises);
-        if (currentEv !== this.currentEvent) {
-          return;
-        }
-
-        const chtSizes = [];
-        newChts.sort((a, b) => this.sortLabelAlpha(a, b)); // sort output cohorts: A -> Z
-        for (const newOutCht of newChts) {
-          // Set representation of new cohort
-          const layout = new RectangleLayout();
-          newOutCht.representation = new RectCohortRep(newOutCht, layout.rowHeight, layout.cohortWidth);
-          const sizePromises = [newOutCht.size, this.reference.size];
-          chtSizes.push(...sizePromises);
-          Promise.all(sizePromises).then(([newSize, refSize]) => {
-            newOutCht.representation.setSize(newSize, refSize);
-            if (newSize > 0) {
-              newOutCht.selected = true;
-            }
-          });
-
-          newOutCht.setCohortParents([cht]);
-          cht.outputCohorts.push(newOutCht); // Add new output cohort to existing cohorts
-        }
-
-        await Promise.all(chtSizes); // wait for the cohort sizes to properly display the representation
-      } else {
-        cht.outputCohorts.push(getEmptyCohort(cht) as IOutputCohort);
-      }
-
-      // the async/time instensive stuff is done now, check if we should continue:
-      if (currentEv !== this.currentEvent) {
-        return;
-      }
-
-      cht.outputCohorts[cht.outputCohorts.length - 1].isLastOutputCohort = true;
-      cht.outputCohorts[0].isFirstOutputCohort = true;
-      outputCohorts.push(...cht.outputCohorts); // add all output cohorts of current input cohorts (ensures correct order in output side)
-
-      if (chtBins.length > 0) {
-        // create current task params
-        const currTaskParam: ITaskParams = {
-          inputCohorts: [cht],
-          outputCohorts: cht.outputCohorts,
-          type: ev instanceof FilterEvent ? TaskType.Filter : TaskType.Split,
-          label: ev.detail.desc[0].filter.map((filter) => filter.attr.label).join(', '),
-        };
-        // save all curertn possibel task params
-        this.taskParams.push(currTaskParam);
-        // check if a task generates selected output cohorts
-        if (cht.outputCohorts.filter((elem) => elem.selected === true).length >= 1) {
-          // initially onyl selected output cohorts will be shown in overview
-          taskWithSelectedOutput.push(currTaskParam);
-        }
-      }
-    }
-
-    // Update the input cohorts
-    this.updateInput();
-
-    // show the preview for the current task
-    this.$node.dispatchEvent(new PreviewChangeEvent(taskWithSelectedOutput, this.taskAttributes));
-
-    // Add the new cohorts to the output side
-    this.setOutputCohorts(outputCohorts);
-    ev.detail.desc[0].filter.forEach((filter) => this.addAttributeColumn(filter.attr));
-  }
-
-  showOutput(show: boolean) {
-    const hide = !show;
-    // this.output.$node.style.display = hide ? 'none' : 'flex'; // setting hidden does not work with flexbox
-
-    this.$node.classList.toggle('no-output', hide);
-  }
-}
+import AddColumnColumn, { AColumn, ADataColumn, EmptyColumn } from './columns/AColumn';
+import { InputCohortColumn, OutputCohortColumn } from './columns/CohortColumn';
+import { EMPTY_COHORT_ID, getEmptyCohort, getLoaderCohort, LOADER_COHORT_ID } from '../Cohort';
+import { multiAttributeFilter } from '../data/Attribute';
+import AttributeColumn from './columns/AttributeColumn';
+import { RectangleLayout } from '../Overview/OverviewLayout';
 
 abstract class TaskviewTable {
   $node: HTMLDivElement;
@@ -487,7 +123,7 @@ abstract class TaskviewTable {
       // only adding the new column as first element doesn't reorder column HTML elements
       // because the new one gets added at the end -> set order attribute to define order of columns
       let orderCnt = 0;
-      this.columns.map((elem) => {
+      this.columns.forEach((elem) => {
         if (elem instanceof AttributeColumn) {
           elem.setOrder(orderCnt);
           orderCnt++;
@@ -675,5 +311,374 @@ class TaskviewOutput extends TaskviewTable {
       }
     }
     this.outputCohortCol.setDefaultSort();
+  }
+}
+
+export default class Taskview {
+  public destroy() {
+    this.$node.removeEventListener(FILTER_EVENT_TYPE, this.filterListener);
+    this.$node.removeEventListener(SPLIT_EVENT_TYPE, this.splitListener);
+    this.$node.removeEventListener(CONFIRM_OUTPUT_EVENT_TYPE, this.confirmListener);
+
+    this.scrollLink.destroy();
+
+    this.search.destroy();
+    this.input.destroy();
+    this.output.destroy();
+
+    this.$node.classList.remove('task-view');
+    while (this.$node.hasChildNodes()) {
+      this.$node.removeChild(this.$node.lastChild);
+    }
+  }
+
+  clearOutput() {
+    this.output.clear();
+    this.input.update();
+  }
+
+  private input: TaskviewInput;
+
+  private search: SearchColumn;
+
+  private output: TaskviewOutput;
+
+  private scrollLink: ScrollLinker;
+
+  private taskParams: ITaskParams[];
+
+  private taskAttributes: IAttribute[];
+
+  private filterListener: EventListenerOrEventListenerObject = (ev) => this.handleFilterEvent(ev as FilterEvent);
+
+  private splitListener: EventListenerOrEventListenerObject = (ev) => this.handleFilterEvent(ev as SplitEvent);
+
+  private confirmListener: EventListenerOrEventListenerObject = (ev) => this.confirmTask(); // event data (cohorts) currently ignored
+
+  private columnSortListener: EventListenerOrEventListenerObject = (ev) => this.handleColumnSortEvent(ev as ColumnSortEvent);
+
+  constructor(public readonly $node: HTMLDivElement, private reference: ICohort) {
+    this.$node.classList.add('task-view');
+
+    const inNode = document.createElement('div');
+    this.input = new TaskviewInput(inNode, this.reference, this);
+    this.$node.appendChild(inNode);
+
+    const searchNode = document.createElement('div');
+    this.search = new SearchColumn(searchNode, this.reference, this);
+    this.$node.appendChild(searchNode);
+
+    const outNode = document.createElement('div');
+    this.output = new TaskviewOutput(outNode, this.reference, this);
+    this.$node.appendChild(outNode);
+
+    this.scrollLink = new ScrollLinker(inNode.querySelector('div.task-view-scroll-wrapper'), outNode.querySelector('div.task-view-scroll-wrapper'));
+
+    // Listen to cohort creation events fired by histograms in the input part
+    this.$node.addEventListener(FILTER_EVENT_TYPE, this.filterListener);
+    this.$node.addEventListener(SPLIT_EVENT_TYPE, this.splitListener);
+
+    // confirmation event that adds the cohrots to cohort graph
+    this.$node.addEventListener(CONFIRM_OUTPUT_EVENT_TYPE, this.confirmListener);
+
+    // sort event that sorts the input cohorts
+    this.$node.addEventListener(COLUMN_SORT_EVENT_TYPE, this.columnSortListener);
+  }
+
+  public async handleColumnSortEvent(ev: ColumnSortEvent) {
+    const sortDetail = ev.detail;
+    const inputChts = this.getInputCohorts() as IInputCohort[];
+    if (sortDetail.sortInputChts) {
+      // sort input cohort
+      const defaultOrder = this.input.cohortOrder;
+      await this.sortCohorts(sortDetail.type, inputChts, defaultOrder);
+    } else {
+      // sort output cohort for each input cohort
+      for (const inCht of inputChts) {
+        const currOutChts = inCht.outputCohorts as IOutputCohort[];
+        const outputOrder = this.output.cohortOrders.filter((order) => order.inputCht === inCht.dbId);
+        const defaultOrder = outputOrder.length === 1 ? outputOrder[0].cohorts : currOutChts.map((cht) => cht.dbId);
+        // TODO: fix me
+        // eslint-disable-next-line no-await-in-loop
+        await this.sortCohorts(sortDetail.type, currOutChts, defaultOrder);
+        const sizeOutCht = currOutChts.length;
+        // define the first and last cohort
+        for (let i = 0; i < sizeOutCht; i++) {
+          const currCht = currOutChts[i];
+          currCht.isFirstOutputCohort = false;
+          currCht.isLastOutputCohort = false;
+          // first cohort
+          if (i === 0) {
+            currCht.isFirstOutputCohort = true;
+          }
+          // last cohort
+          if (i === sizeOutCht - 1) {
+            currCht.isLastOutputCohort = true;
+          }
+        }
+      }
+    }
+
+    this.orderCohorts();
+  }
+
+  private async sortCohorts(type: SortType, cohortsToSort: ICohort[], defaultOrder: number[]) {
+    if (type === SortType.Default) {
+      // sort by default
+      const sortingArray = defaultOrder;
+      cohortsToSort.sort((a, b) => this.sortWithDbIdArray(a.dbId, b.dbId, sortingArray)); // default
+    } else if (type === SortType.Alpha_AZ) {
+      // sort by label name
+      cohortsToSort.sort((a, b) => this.sortLabelAlpha(a, b)); // A -> Z
+    } else if (type === SortType.Alpha_ZA) {
+      cohortsToSort.sort((a, b) => this.sortLabelAlpha(b, a)); // Z -> A
+    } else if (type === SortType.Size_19) {
+      // sort by cohort size
+      await this.sortCohortsBySize(false, cohortsToSort);
+    } else if (type === SortType.Size_91) {
+      // sort by cohort size
+      await this.sortCohortsBySize(true, cohortsToSort);
+    }
+  }
+
+  private sortWithDbIdArray(a, b, sortingArr) {
+    return sortingArr.indexOf(a) - sortingArr.indexOf(b);
+  }
+
+  private sortLabelAlpha(a, b) {
+    if (a.label < b.label) {
+      return -1;
+    }
+    if (a.label > b.label) {
+      return 1;
+    }
+    return 0;
+  }
+
+  private sortSizeNum(a, b) {
+    if (a.size > b.size) {
+      return -1;
+    }
+    if (a.size < b.size) {
+      return 1;
+    }
+    return 0;
+  }
+
+  private async sortCohortsBySize(descending: boolean, cohortsToSort: ICohort[]) {
+    const chtSizes = await Promise.all(
+      cohortsToSort.map(async (cht) => {
+        const currSize = await cht.size;
+        return { id: cht.id, size: currSize };
+      }),
+    );
+    if (descending) {
+      chtSizes.sort((a, b) => this.sortSizeNum(a, b)); // 9 -> 1
+    } else {
+      chtSizes.sort((a, b) => this.sortSizeNum(b, a)); // 1 -> 9
+    }
+
+    cohortsToSort.sort(function (a, b) {
+      const aId = a.id;
+      const bId = b.id;
+      const chtSizesIds = chtSizes.map((elem) => elem.id);
+      if (chtSizesIds.indexOf(aId) > chtSizesIds.indexOf(bId)) {
+        return 1;
+      }
+      if (chtSizesIds.indexOf(aId) < chtSizesIds.indexOf(bId)) {
+        return -1;
+      }
+      return 0;
+    });
+  }
+
+  public orderCohorts() {
+    // order input side
+    const inputColumns: ADataColumn[] = this.input.columns as any;
+    inputColumns.forEach((element) => element.orderCohorts(this.getInputCohorts()));
+    // order input side
+    const outputColumns: ADataColumn[] = this.output.columns as any;
+    const outChts = [].concat(...this.input.cohorts.map((cht) => cht.outputCohorts));
+    outputColumns.forEach((element) => element.orderCohorts(outChts));
+  }
+
+  public confirmTask() {
+    this.search.clear();
+    this.removeAttributeColumns();
+    this.$node.dispatchEvent(new ConfirmTaskEvent(this.taskParams, this.taskAttributes));
+  }
+
+  public setInputCohorts(cohorts: ICohort[]): void {
+    this.input.setCohorts(cohorts as IInputCohort[]);
+    this.search.updateTasks();
+    const outChts = [].concat(...this.input.cohorts.map((cht) => cht.outputCohorts));
+    this.setOutputCohorts(outChts);
+  }
+
+  public updateInput() {
+    this.input.update(); // adjust height after removing output cohorts
+  }
+
+  public getInputCohorts(): IInputCohort[] {
+    return this.input.cohorts;
+  }
+
+  public getOutputCohorts(): ICohort[] {
+    return this.output ? this.output.cohorts : [];
+  }
+
+  public setOutputCohorts(cohorts: ICohort[]): void {
+    this.output.setCohorts(cohorts);
+  }
+
+  public setReference(reference: ICohort): void {
+    this.reference = reference;
+  }
+
+  public addMultipleAttributeColumns(dArray: IAttribute[], allowDuplicates = false, pinned = false) {
+    dArray.forEach((d) => this.addAttributeColumn(d, allowDuplicates, pinned));
+  }
+
+  public addAttributeColumn(d: IAttribute, allowDuplicates = false, pinned = false) {
+    if (this.reference.idColumn.column !== d.id) {
+      this.addAttributeColumnForInput(d, allowDuplicates, pinned);
+      this.addAttributeColumnForOutput(d, allowDuplicates, pinned);
+    }
+  }
+
+  public addAttributeColumnForInput(d: IAttribute, allowDuplicates = false, pinned = false) {
+    this.input.addAttributeColumn(d, allowDuplicates, pinned); // function is overwritten in and does not need the onInputCohortSide = true variable
+  }
+
+  public addAttributeColumnForOutput(d: IAttribute, allowDuplicates = false, pinned = false) {
+    this.output.addAttributeColumn(d, allowDuplicates, false, false, pinned);
+  }
+
+  public removeAttributeColumns() {
+    this.input.getUnpinnedAttributeColumns().forEach((col) => col.close());
+    this.output.getUnpinnedAttributeColumns().forEach((col) => col.close());
+  }
+
+  public getTaskParams(): ITaskParams[] {
+    return this.taskParams;
+  }
+
+  public getTaskAttributes(): IAttribute[] {
+    return this.taskAttributes;
+  }
+
+  private currentEvent = 0;
+
+  async handleFilterEvent(ev: FilterEvent | SplitEvent) {
+    const currentEv = ++this.currentEvent;
+    let outputCohorts: IOutputCohort[] = []; // Stores the output cohorts in correct order, will replace the array currently used
+    const taskWithSelectedOutput: ITaskParams[] = [];
+    this.taskParams = [];
+    this.taskAttributes = ev.detail.desc[0].filter.map((filter) => filter.attr);
+
+    for (const inCht of this.input.cohorts) {
+      const chtBins = ev.detail.desc.filter((bin) => inCht.id === bin.cohort.id);
+      const outChts: IOutputCohort[] = new Array(Math.max(chtBins.length, 1)).fill(null).map(() => getLoaderCohort(inCht) as unknown as IOutputCohort);
+
+      outChts[outChts.length - 1].isLastOutputCohort = true;
+      outChts[0].isFirstOutputCohort = true;
+
+      inCht.outputCohorts = outChts;
+      outputCohorts.push(...outChts);
+    }
+
+    // Update the input cohorts
+    this.updateInput();
+    // Add the new cohorts to the output side
+    this.setOutputCohorts(outputCohorts);
+
+    // await DebugTools.sleep(1500);
+    outputCohorts = [];
+
+    // For each input cohort, create a new output cohort
+    for (const cht of this.input.cohorts) {
+      log.debug('filter/split event: ', ev);
+      cht.outputCohorts = [];
+      const chtBins = ev.detail.desc.filter((bin) => cht.id === bin.cohort.id);
+      if (chtBins.length > 0) {
+        const chtPromises = [];
+        for (const bin of chtBins) {
+          chtPromises.push(multiAttributeFilter(cht, bin.filter));
+        }
+        // TODO: fix me
+        // eslint-disable-next-line no-await-in-loop
+        const newChts = await Promise.all(chtPromises);
+        if (currentEv !== this.currentEvent) {
+          return;
+        }
+
+        const chtSizes = [];
+        newChts.sort((a, b) => this.sortLabelAlpha(a, b)); // sort output cohorts: A -> Z
+        for (const newOutCht of newChts) {
+          // Set representation of new cohort
+          const layout = new RectangleLayout();
+          newOutCht.representation = new RectCohortRep(newOutCht, layout.rowHeight, layout.cohortWidth);
+          const sizePromises = [newOutCht.size, this.reference.size];
+          chtSizes.push(...sizePromises);
+          Promise.all(sizePromises).then(([newSize, refSize]) => {
+            newOutCht.representation.setSize(newSize, refSize);
+            if (newSize > 0) {
+              newOutCht.selected = true;
+            }
+          });
+
+          newOutCht.setCohortParents([cht]);
+          cht.outputCohorts.push(newOutCht); // Add new output cohort to existing cohorts
+        }
+        // TODO: fix me
+        // eslint-disable-next-line no-await-in-loop
+        await Promise.all(chtSizes); // wait for the cohort sizes to properly display the representation
+      } else {
+        cht.outputCohorts.push(getEmptyCohort(cht) as IOutputCohort);
+      }
+
+      // the async/time instensive stuff is done now, check if we should continue:
+      if (currentEv !== this.currentEvent) {
+        return;
+      }
+
+      cht.outputCohorts[cht.outputCohorts.length - 1].isLastOutputCohort = true;
+      cht.outputCohorts[0].isFirstOutputCohort = true;
+      outputCohorts.push(...cht.outputCohorts); // add all output cohorts of current input cohorts (ensures correct order in output side)
+
+      if (chtBins.length > 0) {
+        // create current task params
+        const currTaskParam: ITaskParams = {
+          inputCohorts: [cht],
+          outputCohorts: cht.outputCohorts,
+          type: ev instanceof FilterEvent ? TaskType.Filter : TaskType.Split,
+          label: ev.detail.desc[0].filter.map((filter) => filter.attr.label).join(', '),
+        };
+        // save all curertn possibel task params
+        this.taskParams.push(currTaskParam);
+        // check if a task generates selected output cohorts
+        if (cht.outputCohorts.filter((elem) => elem.selected === true).length >= 1) {
+          // initially onyl selected output cohorts will be shown in overview
+          taskWithSelectedOutput.push(currTaskParam);
+        }
+      }
+    }
+
+    // Update the input cohorts
+    this.updateInput();
+
+    // show the preview for the current task
+    this.$node.dispatchEvent(new PreviewChangeEvent(taskWithSelectedOutput, this.taskAttributes));
+
+    // Add the new cohorts to the output side
+    this.setOutputCohorts(outputCohorts);
+    ev.detail.desc[0].filter.forEach((filter) => this.addAttributeColumn(filter.attr));
+  }
+
+  showOutput(show: boolean) {
+    const hide = !show;
+    // this.output.$node.style.display = hide ? 'none' : 'flex'; // setting hidden does not work with flexbox
+
+    this.$node.classList.toggle('no-output', hide);
   }
 }

@@ -1,14 +1,15 @@
 import { select } from 'd3v7';
 import * as $ from 'jquery';
 import tippy from 'tippy.js';
-import { ICohort } from '../app';
-import { IAttribute, toAttribute } from '../data/Attribute';
+import type { ICohort } from '../app/interfaces';
+import { IAttribute } from '../data/IAttribute';
+import { toAttribute } from '../Tasks';
 import searchHtml from '../templates/SearchColumn.html'; // webpack imports html to variable
 import { log } from '../util';
 import { SearchBar } from './SearchBar';
 import { ATask, TaskCloseEvent, TASK_CLOSE_EVENT_TYPE } from './tasks/ATask';
 import { TASKLIST } from './tasks/TaskList';
-import Taskview from './Taskview';
+import type Taskview from './Taskview';
 
 export default class SearchColumn {
   private $searchColumn: HTMLDivElement;
@@ -137,6 +138,7 @@ export default class SearchColumn {
   private enableAddButtons(enable: boolean): void {
     if (enable) {
       // add eventListeners
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
       const that = this;
       select(this.$searchColumn)
         .selectAll('div.action.add')

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
+/* eslint-disable @typescript-eslint/no-use-before-define */
 /* *****************************************************************************
  * Caleydo - Visualization for Molecular Biology - http://caleydo.org
  * Copyright (c) The Caleydo Team. All rights reserved.
@@ -6,11 +8,12 @@
 
 import { hsl, scaleLinear, select, Selection } from 'd3v7';
 import * as d3v3 from 'd3v3';
-import { IMeasureResult, IMeasureVisualization, ISetParameters, ISimilarityMeasure, MethodManager, SCOPE, Type, WorkerManager } from 'tourdino';
-import { Attribute, IAttribute } from '../../data/Attribute';
+import { IMeasureResult, ISetParameters, ISimilarityMeasure, MethodManager, SCOPE, Type, WorkerManager } from 'tourdino';
+import { Attribute } from '../../data/Attribute';
 import { log } from '../../util';
 import { ATask } from './ATask';
 import { ICohort } from '../../app/interfaces';
+import type { IAttribute } from '../../data/IAttribute';
 
 export class Compare extends ATask {
   public label = `Compare`;
@@ -82,8 +85,8 @@ export class Compare extends ATask {
     const colHeadsChtSpan = colHeadsCht.enter().append('th').attr('class', 'head rotate').append('div').append('span').append('span'); // th.head are the column headers
 
     const that = this; // for the function below
-    const updateTableBody = (bodyData: Array<Array<Array<IScoreCell>>>, timestamp: string) => {
-      if (that.body.attr('data-timestamp') !== timestamp) {
+    const updateTableBody = (bodyData: Array<Array<Array<IScoreCell>>>, timestampArg: string) => {
+      if (that.body.attr('data-timestamp') !== timestampArg) {
         return; // skip outdated result
       }
 
@@ -220,6 +223,8 @@ export class Compare extends ATask {
 
         for (const [rowIndex, rowCht] of cohorts.entries()) {
           // Get the data of 'attr' for the rows inside 'rowCht'
+          // TODO: fix me
+          // eslint-disable-next-line no-await-in-loop
           const rowData = (await attr.getData(rowCht.dbId)).map((item) => item[attr.dataKey]);
           for (const [colIndex, colCht] of cohorts.entries()) {
             const colIndexOffset = rowIndex === 0 ? 2 : 1; // Two columns if the attribute label is in the same line, (otherwise 1 (because rowspan))
@@ -230,6 +235,8 @@ export class Compare extends ATask {
             } else if (rowIndex4col[rowIndex] >= 0 && rowIndex4col[colIndex] >= 0 && rowIndex4col[colIndex] < rowIndex) {
               // the cht is also part of the colGroups array, and the colGrp is one of the previous rowGroups --> i.e. already calculated in a table row above the current one
             } else {
+              // TODO: fix me
+              // eslint-disable-next-line no-await-in-loop
               const colData = (await attr.getData(colCht.dbId)).map((item) => item[attr.dataKey]);
               const setParameters = {
                 setA: rowData,
@@ -316,6 +323,7 @@ export class Compare extends ATask {
   }
 
   toScoreCell(score: IMeasureResult, measure: ISimilarityMeasure, setParameters: ISetParameters): IScoreCell {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     let color = score2color(score.pValue);
     let cellLabel = score.pValue.toFixed(3);
 
@@ -383,7 +391,8 @@ export class Compare extends ATask {
       const category = rowCategories.pop();
       const isColTask = category === row;
       const cellData = select(tableCell).datum() as IScoreCell;
-      const scoreValue = typeof cellData.score.scoreValue === 'number' && !isNaN(cellData.score.scoreValue) ? cellData.score.scoreValue.toFixed(3) : 'n/a';
+      const scoreValue =
+        typeof cellData.score.scoreValue === 'number' && !Number.isNaN(cellData.score.scoreValue) ? cellData.score.scoreValue.toFixed(3) : 'n/a';
       let scorePvalue: string | number = cellData.score.pValue;
       if (scorePvalue === -1) {
         scorePvalue = 'n/a';
@@ -545,7 +554,7 @@ export class Compare extends ATask {
     detailSetInfo.append('span').html(`${setBLabel} `).append('span').text(`[${measureResult.setSizeB}]`);
 
     // test value + p-value
-    const scoreValue = typeof measureResult.scoreValue === 'number' && !isNaN(measureResult.scoreValue) ? measureResult.scoreValue.toFixed(3) : 'n/a';
+    const scoreValue = typeof measureResult.scoreValue === 'number' && !Number.isNaN(measureResult.scoreValue) ? measureResult.scoreValue.toFixed(3) : 'n/a';
     const pValue = measureResult.pValue === -1 ? 'n/a' : (measureResult.pValue as number).toExponential(3);
     const detailInfoValues = divDetailInfo.append('div').classed('detailDiv', true);
     // .text(`Test-Value: ${scoreValue}, p-Value: ${pValue}`);

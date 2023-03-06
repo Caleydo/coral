@@ -1,7 +1,7 @@
 import { hsl } from 'd3v7';
 import tippy from 'tippy.js';
 import { IBloodlineElement, ICohort, IElement, IRectCohortRep } from './app/interfaces';
-import { getRootCohort } from './cohortview';
+import { CohortContext } from './CohortContext';
 import { log } from './util';
 import { CohortRemoveEvent, CohortSelectionEvent } from './base/events';
 import { labelFromFilter } from './utils/labels';
@@ -136,7 +136,7 @@ export class RectCohortRep implements IRectCohortRep {
     container.addEventListener('mouseenter', (event) => {
       event.stopPropagation();
       // remove icon (=trash can)
-      const isRoot = this._cohort.dbId === getRootCohort().dbId;
+      const isRoot = this._cohort.dbId === CohortContext.referenceCohort?.dbId;
       const isPreview = this._representation.classList.contains('preview');
       // onyl if it is not a preview
       if (!isPreview) {
@@ -507,9 +507,9 @@ export class RectCohortRep implements IRectCohortRep {
         log.debug('cohortValues: ', cohortValues);
         const detailedLabelArray = [];
         const labels = cohortObj.labelOne.split(', ');
-        for (let i = 0; i < cohortValues.length; i++) {
-          const val = cohortValues[i];
-          const label = labels[i];
+        for (let j = 0; j < cohortValues.length; j++) {
+          const val = cohortValues[j];
+          const label = labels[j];
           let labelpart = '';
           if (Array.isArray(val)) {
             labelpart = val.map((a) => labelFromFilter(a, label)).join(' / ');
@@ -517,7 +517,7 @@ export class RectCohortRep implements IRectCohortRep {
             labelpart = labelFromFilter(val, label);
           }
           detailedLabelArray.push(labelpart);
-          ttInfo.attr.push({ name: attrLabel[i], value: labelpart });
+          ttInfo.attr.push({ name: attrLabel[j], value: labelpart });
         }
         const detailedLabel = detailedLabelArray.join(', ');
         const valueLabel = detailedLabel.replace(htmlLte, '<=').replace(htmlLt, '<').replace(htmlGte, '>=').replace(htmlGt, '>');
@@ -568,21 +568,22 @@ export class RectCohortRep implements IRectCohortRep {
 
       // cohort info
       // name
-      const currChtInfo = ttInfo[ttInfo.length - 1];
-      const chtName = document.createElement('div');
-      chtName.innerHTML = currChtInfo.chtName;
-      chtName.style.fontWeight = 'bold';
-      // values
-      const chtValues = document.createElement('div');
-      for (const a of currChtInfo.attr) {
-        const currAttr = document.createElement('div');
-        currAttr.innerHTML = `${a.name}: ${a.value}`;
-        currAttr.style.paddingLeft = '15px';
-        chtValues.appendChild(currAttr);
+      {
+        const currChtInfo = ttInfo[ttInfo.length - 1];
+        const chtName = document.createElement('div');
+        chtName.innerHTML = currChtInfo.chtName;
+        chtName.style.fontWeight = 'bold';
+        // values
+        const chtValues = document.createElement('div');
+        for (const a of currChtInfo.attr) {
+          const currAttr = document.createElement('div');
+          currAttr.innerHTML = `${a.name}: ${a.value}`;
+          currAttr.style.paddingLeft = '15px';
+          chtValues.appendChild(currAttr);
+        }
+        ctrCohort.appendChild(chtName);
+        ctrCohort.appendChild(chtValues);
       }
-      ctrCohort.appendChild(chtName);
-      ctrCohort.appendChild(chtValues);
-
       if (!root) {
         // provenance
         // label for provenance

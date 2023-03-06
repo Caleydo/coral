@@ -1,7 +1,7 @@
-import { ICohort, ITaskParams } from '../app/interfaces';
-import { IAttribute } from '../data/Attribute';
-import { Task } from '../Tasks';
-import { AColumn } from '../Taskview/columns/AColumn';
+import type { ICohort, ITaskParams } from '../app/interfaces';
+import type { IAttribute } from '../data/IAttribute';
+import type { Task } from '../Tasks';
+import type { AColumn } from '../Taskview/columns/AColumn';
 import { IFilterDesc, SortType } from '../util';
 
 export const COHORT_REMOVE_EVENT_TYPE = 'cht:remove';

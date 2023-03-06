@@ -1,62 +1,14 @@
 import _ from 'lodash';
 import { IAllFilters } from 'tdp_core';
-import { Cohort, createCohortWithTreatmentFilter } from '../Cohort';
-import { getRootCohort } from '../cohortview';
-import {
-  getCohortData,
-  HistRouteType,
-  ICohortDBHistDataParms,
-  ICohortDBHistPanelParms,
-  ICohortDBHistScoreDepletionParms,
-  ICohortDBHistScoreParms,
-  IEqualsList,
-  INumRange,
-} from '../base/rest';
+import { getCohortData, ICohortDBHistDataParms, ICohortDBHistPanelParms, ICohortDBHistScoreDepletionParms, ICohortDBHistScoreParms } from '../base/rest';
 import { deepCopy, getSessionStorageItem, log, setSessionStorageItem } from '../util';
 import { niceName } from '../utils/labels';
-import { AttributeType, IdValuePair } from './Attribute';
 import { ICohort } from '../app/interfaces';
-
-export interface ISpecialAttribute {
-  readonly overrideSearchBarDetails: boolean;
-  readonly overrideGetData: boolean;
-  readonly overrideGetHist: boolean;
-  readonly overrideGetCount: boolean;
-  readonly overrideFilter: boolean;
-
-  /**
-   * id database access the data
-   */
-  readonly id: string;
-
-  label: string;
-  type: AttributeType;
-  dataKey: string;
-  /**
-   * Possible options the attribute could be formated
-   */
-  options: { id: string; name: string }[];
-
-  /**
-   * Option that is should be used to format the data
-   */
-  attributeOption: string;
-
-  getDetailForSearchBar(): HTMLDivElement;
-
-  getData(cohortDbId: number, filters?: IAllFilters): Promise<IdValuePair[]>; // IRow has _id but IScoreRow has not
-
-  getHist(dbId: number, filters?: IAllFilters, bins?: number): Promise<{ bin: string; count: number }[]>;
-
-  getHistWithStorage(
-    histType: HistRouteType,
-    params: ICohortDBHistDataParms | ICohortDBHistScoreParms | ICohortDBHistScoreDepletionParms | ICohortDBHistPanelParms,
-  ): Promise<{ bin: string; count: number }[]>;
-
-  getCount(cohortDbId: number, filters?: IAllFilters): Promise<number>;
-
-  filter(cht: ICohort, filter: INumRange[] | IEqualsList, label: string): Promise<ICohort>;
-}
+import { createCohortWithTreatmentFilter } from '../Cohort';
+import { CohortContext } from '../CohortContext';
+import { INumRange, IEqualsList, HistRouteType } from '../base';
+import { AttributeType, IdValuePair } from './IAttribute';
+import type { ISpecialAttribute } from './ISpecialAttribute';
 
 export class SATreatment implements ISpecialAttribute {
   readonly overrideSearchBarDetails: boolean = true;
@@ -121,7 +73,7 @@ export class SATreatment implements ISpecialAttribute {
     // check if histogram was saved in sesison storage
     if (maxRegimen === null || getSessionStorageItem('treatment#categoriesHist') === null || getSessionStorageItem('treatment#categoriesBaseHist') === null) {
       let calcMaxRegimen = 0;
-      const rootCohort = getRootCohort();
+      const rootCohort = CohortContext.referenceCohort;
       const rows = await getCohortData({ cohortId: rootCohort.dbId, attribute: this.id });
 
       // const maxRegimenNumbRows = Math.max(...rows.map((r) => r.treatment).map((t) => t.REGIMEN_NUMBER));
@@ -386,10 +338,11 @@ export class SATreatment implements ISpecialAttribute {
         return createCohortWithTreatmentFilter(cht, niceName(`${this.id}:${optName}`), label, baseAgent, agent, rgNumb);
       }
     }
+    return null;
   }
 }
 
-const specAttributes: { id: string; getClass: Function }[] = [
+const specAttributes: { id: string; getClass: () => ISpecialAttribute }[] = [
   {
     id: SATreatment.ID,
     getClass: (): ISpecialAttribute => {

@@ -1,11 +1,11 @@
 import { select, Selection } from 'd3v7';
 import SplitGrid from 'split-grid';
+import { IServerColumn } from 'visyn_core';
 import {
   AppContext,
   CLUEGraphManager,
   IDatabaseViewDesc,
   IObjectRef,
-  IServerColumn,
   ITDPOptions,
   NotificationHandler,
   ObjectRefUtils,
@@ -15,8 +15,8 @@ import {
 import { cellline, tissue } from 'tdp_publicdb';
 import { Instance as TippyInstance } from 'tippy.js';
 import { createCohort, createCohortFromDB } from '../Cohort';
-import { IElementProvJSON, IElementProvJSONCohort, ITaskParams, ICohort, IDatasetDesc, IPanelDesc } from './interfaces';
-import { cohortOverview, createCohortOverview, destroyOld, loadViewDescription, taskview } from '../cohortview';
+import type { IElementProvJSON, IElementProvJSONCohort, ITaskParams, ICohort, IDatasetDesc, IPanelDesc } from './interfaces';
+import { createCohortOverview, destroyOld, loadViewDescription } from '../cohortview';
 import { PanelScoreAttribute } from '../data/Attribute';
 import { OnboardingManager } from '../OnboardingManager';
 import { CohortOverview } from '../Overview';
@@ -24,13 +24,14 @@ import { setDatasetAction } from '../Provenance/General';
 import { getDBCohortData } from '../base/rest';
 import { Task } from '../Tasks';
 import Taskview from '../Taskview/Taskview';
-import deleteModal from './templates/DeleteModal.html';
-import welcomeHtml from './templates/Welcome.html';
+import deleteModal from '../templates/DeleteModal.html';
+import welcomeHtml from '../templates/Welcome.html';
 import { getAnimatedLoadingText, handleDataLoadError, log } from '../util';
 import { CohortSelectionEvent, ConfirmTaskEvent, CONFIRM_TASK_EVENT_TYPE, PreviewConfirmEvent } from '../base/events';
 import { idCellline, idCovid19, idStudent, idTissue, IEntitySourceConfig } from '../config/entities';
 import { niceName } from '../utils/labels';
 import { CohortSelectionListener } from './CoralSelectionListener';
+import { CohortContext } from '../CohortContext';
 
 /**
  * The Cohort app that does the acutal stuff.
@@ -109,8 +110,8 @@ export class CoralApp {
     // confirm the current preview as the result of the task
     this.$node.node().dispatchEvent(new PreviewConfirmEvent(taskParams, taskAttributes));
     // get the new added task (the ones confirmed from the preview)
-    const tasks: Task[] = cohortOverview.getLastAddedTasks();
-    taskview.clearOutput(); // clear taskview output
+    const tasks: Task[] = CohortContext.cohortOverview.getLastAddedTasks();
+    CohortContext.taskview.clearOutput(); // clear taskview output
 
     // set output as new input
     let replace = true;
@@ -245,6 +246,8 @@ export class CoralApp {
     dropdown.append('li').attr('role', 'separator').classed('dropdown-divider', true);
     dropdown.append('li').classed('dropdown-header', true).text('Predefined Sets');
 
+    // TODO: check if this can be removed in the future
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
     dropdown
       .selectAll('li.data-panel')
@@ -259,8 +262,8 @@ export class CoralApp {
       .on('click', async function (event, d) {
         // click subset
         // don't toggle data by checkging what is selected in dropdown
-        const dataSourcesAndPanels = select(this.parentNode.parentNode).datum() as { source: IEntitySourceConfig; panels: IPanelDesc[] }; // a -> parent = li -> parent = dropdown = ul
-        const newDataset = { source: dataSourcesAndPanels.source, panel: d, rootCohort: null, chtOverviewElements: null };
+        const currDataSourcesAndPanels = select(this.parentNode.parentNode).datum() as { source: IEntitySourceConfig; panels: IPanelDesc[] }; // a -> parent = li -> parent = dropdown = ul
+        const newDataset = { source: currDataSourcesAndPanels.source, panel: d, rootCohort: null, chtOverviewElements: null };
         that.handleDatasetClick.bind(that)(newDataset);
       });
 

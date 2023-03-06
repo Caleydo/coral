@@ -1,11 +1,11 @@
 import { format, select, transition } from 'd3v7';
 import tippy from 'tippy.js';
 import { ICohort, IBloodlineElement } from '../../app/interfaces';
-import { getRootCohort } from '../../cohortview';
+import { IEqualsList, INumRange } from '../../base/interfaces';
+import { CohortContext } from '../../CohortContext';
 import { colors } from '../../config/colors';
-import { IAttribute, multiFilter } from '../../data/Attribute';
-import { IEqualsList, INumRange } from '../../base/rest';
-import { Task } from '../../Tasks';
+import { IAttribute, multiFilter } from '../../data';
+import type { Task } from '../../Tasks';
 import { createHTMLElementWithClasses, getSessionStorageItem, setSessionStorageItem } from '../../util';
 import { easyLabelFromFilter } from '../../utils/labels';
 import { ATask } from './ATask';
@@ -806,6 +806,8 @@ export class Prevalence extends ATask {
       for (const at of activeTasks) {
         const attValue = taskpair.filter((elem) => elem.taskId === at.id)[0].values;
         // create new cohort in db with the attribute and value
+        // TODO: fix me
+        // eslint-disable-next-line no-await-in-loop
         newBaseCohort = await multiFilter(oldBaseCohort, at.attributes, attValue);
         oldBaseCohort = newBaseCohort;
       }
@@ -816,6 +818,9 @@ export class Prevalence extends ATask {
         for (const nat of notActiveTasks) {
           // log.debug('not active Task pair: ', {attribute: nat.attribute, value: valExclMVForTask});
           // create new cohort in db with the attribute and value
+
+          // TODO: fix me
+          // eslint-disable-next-line no-await-in-loop
           newBaseCohort = await multiFilter(oldBaseCohort, nat.attributes, new Array(nat.attributes.length).fill(valExclMVForTask));
           oldBaseCohort = newBaseCohort;
         }
@@ -1016,7 +1021,7 @@ export class Prevalence extends ATask {
 
   // sets the base cohort on which all task operations will be applied
   private setBaseCohort() {
-    this.baseCohort = getRootCohort();
+    this.baseCohort = CohortContext.referenceCohort;
     this.baseCohortSize = this.baseCohort.getRetrievedSize();
   }
 

@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import { ActionMetaData, ActionUtils, ICmdResult, IObjectRef, ObjectRefUtils } from 'tdp_core';
-import { CoralApp } from '../app/CoralApp';
+import type { CoralApp } from '../app/CoralApp';
 import { IElementProvJSON } from '../app/interfaces';
-import { CohortOverview } from '../Overview/CohortOverview';
+import type { CohortOverview } from '../Overview/CohortOverview';
 import { log } from '../util';
 
 /** *********************************************

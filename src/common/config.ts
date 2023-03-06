@@ -3,7 +3,8 @@
  */
 
 import { Categories } from 'tdp_publicdb';
-import { IServerColumn, ColumnDescUtils, IAdditionalColumnDesc } from 'tdp_core';
+import { IServerColumn } from 'visyn_core';
+import { ColumnDescUtils, IAdditionalColumnDesc } from 'tdp_core';
 
 /**
  * maximal number of rows in which just the subset if fetched instead of all
@@ -172,6 +173,10 @@ export const tissue: IDataSourceConfig = {
   },
 };
 
+function toLineUpCategories(arr: { name: string; value: any; color: string }[]) {
+  return arr.map((a) => ({ label: a.name, name: String(a.value), color: a.color }));
+}
+
 function toChromosomes(categories: string[]) {
   const order = new Map<string, number>();
   for (let i = 1; i <= 22; ++i) {
@@ -257,6 +262,8 @@ export function chooseDataSource(desc: any): IDataSourceConfig {
       return tissue;
     case gene.name:
       return gene;
+    default:
+      return null;
   }
 }
 
@@ -495,19 +502,6 @@ export const drug: IDataSourceConfig = {
 
 export const dataTypes: IDataTypeConfig[] = [expression, copyNumber, mutation];
 
-function toLineUpCategories(arr: { name: string; value: any; color: string }[]) {
-  return arr.map((a) => ({ label: a.name, name: String(a.value), color: a.color }));
-}
-
-/**
- * splits strings in the form of "DATA_TYPE-DATA_SUBTYPE" and returns the corresponding DATA_TYPE and DATA_SUBTYPE objects
- */
-export function splitTypes(toSplit: string): { dataType: IDataTypeConfig; dataSubType: IDataSubtypeConfig } {
-  console.assert(toSplit.includes('-'), 'The splitTypes method requires the string to contain a dash ("-")');
-  const [type, subtype] = toSplit.split('-');
-  return resolveDataTypes(type, subtype);
-}
-
 export function resolveDataTypes(dataTypeId: string, dataSubTypeId: string) {
   let dataType: IDataTypeConfig;
 
@@ -527,10 +521,21 @@ export function resolveDataTypes(dataTypeId: string, dataSubTypeId: string) {
     case drugScreen.id:
       dataType = drugScreen;
       break;
+    default:
+      dataType = null;
   }
-  const dataSubType = dataType.dataSubtypes.find((element) => element.id === dataSubTypeId);
+  const dataSubType = dataType?.dataSubtypes?.find((element) => element.id === dataSubTypeId);
   return {
     dataType,
     dataSubType,
   };
+}
+
+/**
+ * splits strings in the form of "DATA_TYPE-DATA_SUBTYPE" and returns the corresponding DATA_TYPE and DATA_SUBTYPE objects
+ */
+export function splitTypes(toSplit: string): { dataType: IDataTypeConfig; dataSubType: IDataSubtypeConfig } {
+  console.assert(toSplit.includes('-'), 'The splitTypes method requires the string to contain a dash ("-")');
+  const [type, subtype] = toSplit.split('-');
+  return resolveDataTypes(type, subtype);
 }

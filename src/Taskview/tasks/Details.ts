@@ -3,12 +3,12 @@ import { select } from 'd3v7';
 import * as LineUpJS from 'lineupjs';
 import { ICohort } from '../../app/interfaces';
 import { colors, CoralColorSchema } from '../../config/colors';
-import { IAttribute } from '../../data/Attribute';
 import { getCohortData } from '../../base/rest';
 import { getAnimatedLoadingText } from '../../util';
 import { getIdTypeFromCohort } from '../../config/entities';
 import { DATA_LABEL } from '../visualizations';
 import { ATask } from './ATask';
+import type { IAttribute } from '../../data/IAttribute';
 
 export class Details extends ATask {
   public label = `Inspect Items`;
@@ -65,15 +65,14 @@ export class Details extends ATask {
     const idType = getIdTypeFromCohort(cohorts[0] as ICohort);
     this._entityName = idType.entityName;
 
-    const dataPromises = cohorts.map((cht) => {
-      const promise = new Promise(async (resolve, reject) => {
+    const dataPromises = cohorts.map(async (cht) => {
+      const promise = new Promise((resolve, reject) => {
         const chtDataPromises = attributes.map((attr) => attr.getData(cht.dbId));
         if (attributes.length === 0) {
           // If Lineup is empty, add entityName as single attribute to be able to show something
           chtDataPromises.push(getCohortData({ cohortId: cht.dbId, attribute: idType.entityName }));
         }
-        try {
-          const chtData = await Promise.all(chtDataPromises); // array with one entry per attribute, which contains an array with one value for every item in the cohort
+        Promise.all(chtDataPromises).then((chtData) => {
           let joinedData = aq.from(chtData[0]);
           for (let i = 1; i < chtData.length; i++) {
             joinedData = joinedData.join_full(aq.from(chtData[i]));
@@ -81,9 +80,7 @@ export class Details extends ATask {
           const labelTable = aq.table({ [DATA_LABEL]: [[`${cht.dbId}`]], [`id_${cht.dbId}`]: ['true'] });
           joinedData = joinedData.join_left(labelTable, (data, label) => true);
           resolve(joinedData.objects());
-        } catch (e) {
-          reject(e);
-        }
+        });
       });
       return promise;
     });

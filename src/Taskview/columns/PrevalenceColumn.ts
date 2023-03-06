@@ -5,17 +5,6 @@ import { colors } from '../../config/colors';
 import { getAnimatedLoadingBars } from '../../util';
 import { ADataColumn } from './AColumn';
 
-export default class PrevalenceColumn extends ADataColumn {
-  constructor(private reference: ICohort, $container: HTMLDivElement) {
-    super(`% [${reference.label}]`, $container);
-    this.$column.classList.add('prevalence');
-  }
-
-  async setCellContent(cell: HTMLDivElement, cht: ICohort): Promise<void> {
-    cell.appendChild(new PrevalenceBar(cht, this.reference).getNode());
-  }
-}
-
 class PrevalenceBar {
   readonly $node: HTMLDivElement;
 
@@ -35,6 +24,7 @@ class PrevalenceBar {
 
     this.$node.appendChild(this.$hist);
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
     setTimeout(() => that.updateNode.bind(that)(), 0); // run async
   }
@@ -113,5 +103,16 @@ class PrevalenceBar {
         },
       ],
     };
+  }
+}
+
+export default class PrevalenceColumn extends ADataColumn {
+  constructor(private reference: ICohort, $container: HTMLDivElement) {
+    super(`% [${reference.label}]`, $container);
+    this.$column.classList.add('prevalence');
+  }
+
+  async setCellContent(cell: HTMLDivElement, cht: ICohort): Promise<void> {
+    cell.appendChild(new PrevalenceBar(cht, this.reference).getNode());
   }
 }

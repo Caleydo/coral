@@ -3,10 +3,10 @@ import log from 'loglevel';
 import { Spec as VegaSpec } from 'vega';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { ICohort } from '../../app/interfaces';
-import { IdValuePair } from '../../data/Attribute';
 import { AVegaVisualization, SingleAttributeVisualization } from './AVegaVisualization';
 import { DATA_LABEL } from './constants';
 import { countConfig, counts } from './config/CountCounfig';
+import { IdValuePair } from '../../data/IAttribute';
 
 export class DensityPlot extends SingleAttributeVisualization {
   static readonly NAME = 'Density Plot';
@@ -15,7 +15,7 @@ export class DensityPlot extends SingleAttributeVisualization {
 
   protected readonly type = 'quantitative';
 
-  constructor(vegaLiteOptions: Object = {}) {
+  constructor(vegaLiteOptions: object = {}) {
     super(vegaLiteOptions);
 
     this.config = [{ icon: '<i class="fas fa-ruler"></i>', label: 'Density Estimation Method', groups: [countConfig] }];
@@ -383,11 +383,11 @@ export class DensityPlot extends SingleAttributeVisualization {
                 update: {
                   cursor: { value: 'text' },
                   tooltip: {
-                    signal: `{\'${this.attribute.label}\': format(datum[\'value\'], \'\'), \'Density\': format(datum[\'density\'], \'\'), \'value\': format(datum[\'value\'], \'\'), \'${DATA_LABEL}\': isValid(datum[\'${DATA_LABEL}\']) ? datum[\'${DATA_LABEL}\'] : \'\'+datum[\'${DATA_LABEL}\']}`,
+                    signal: `{'${this.attribute.label}': format(datum['value'], ''), 'Density': format(datum['density'], ''), 'value': format(datum['value'], ''), '${DATA_LABEL}': isValid(datum['${DATA_LABEL}']) ? datum['${DATA_LABEL}'] : ''+datum['${DATA_LABEL}']}`,
                   },
                   stroke: { scale: 'color', field: DATA_LABEL },
                   description: {
-                    signal: `\'${this.attribute.label}: \' + (format(datum[\'value\'], \'\')) + \'; Density: \' + (format(datum[\'density\'], \'\')) + \'; value: \' + (format(datum[\'value\'], \'\')) + \'; ${DATA_LABEL}: \' + (isValid(datum[\'${DATA_LABEL}\']) ? datum[\'${DATA_LABEL}\'] : \'\'+datum[\'${DATA_LABEL}\'])`,
+                    signal: `'${this.attribute.label}: ' + (format(datum['value'], '')) + '; Density: ' + (format(datum['density'], '')) + '; value: ' + (format(datum['value'], '')) + '; ${DATA_LABEL}: ' + (isValid(datum['${DATA_LABEL}']) ? datum['${DATA_LABEL}'] : ''+datum['${DATA_LABEL}'])`,
                   },
                   x: { scale: 'x', field: 'value' },
                   y: { scale: 'y', field: 'density' },
