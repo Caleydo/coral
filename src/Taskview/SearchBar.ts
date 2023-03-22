@@ -933,9 +933,11 @@ export class SearchBar {
           })
           .html((v: IDataSubtypeConfig) => v.name)
           .on('click', (event, v: IDataSubtypeConfig) => {
-            const badgeName = this._composeGeneDataTypeName(data.optionText, v.name);
+            // merge subtype with the with d as the d.name is only available in the d variable
+            const dataSubType = { ...d, v };
+            const badgeName = this._composeGeneDataTypeName(data.optionText, dataSubType.name);
             const badgeData = deepCopy(data);
-            badgeData.optionData = { subType: d, type: (d as any).dataTypeId };
+            badgeData.optionData = { subType: dataSubType, type: (dataSubType as any).dataTypeId };
             this._clickHandlerDetail(data, badgeData, badgeName, event as MouseEvent, event.currentTarget as HTMLElement);
             // indicate an change in the options
             this._container.dispatchEvent(new CustomEvent('optionchange'));
