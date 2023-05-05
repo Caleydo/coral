@@ -2,9 +2,8 @@ import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { Field } from 'vega-lite/build/src/channeldef';
 import { TopLevelUnitSpec } from 'vega-lite/build/src/spec/unit';
 import { getCohortLabel } from '../../Cohort';
-import { ICohort } from '../../CohortInterfaces';
-import { colors } from '../../colors';
-import { IdValuePair } from '../../data/Attribute';
+import { ICohort } from '../../app/interfaces';
+import { colors } from '../../config/colors';
 import { log } from '../../util';
 import { AVegaVisualization, FACETED_CHARTS_WIDTH } from './AVegaVisualization';
 import { groupByConfig } from './config/GroupConfig';
@@ -12,13 +11,14 @@ import { dataConfig } from './config/ScaleConfig';
 import { sortByConfig, sortOrderConfig } from './config/SortConfig';
 import { DATA_LABEL } from './constants';
 import { VegaHistogram } from './Histogram';
+import { IdValuePair } from '../../data/IAttribute';
 
 export class VegaGroupedHistogram extends VegaHistogram {
   static readonly COUNT = 'Count';
 
   protected readonly type = 'nominal';
 
-  constructor(vegaLiteOptions: Object = {}) {
+  constructor(vegaLiteOptions: object = {}) {
     super(vegaLiteOptions);
 
     this.config = [

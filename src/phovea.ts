@@ -8,7 +8,7 @@ import type { IRegistry } from 'visyn_core/plugin';
 export default function (registry: IRegistry) {
   // helper functions copied from tdp_core:
   // -------------------------------------------------------------------------------------------------------
-  function actionFunction(id: string, factory: string, loader: () => any, options?: object) {
+  function actionFunction(id: string, factory: string, loader: () => unknown, options?: object) {
     registry.push('actionFunction', id, loader, { factory, ...options });
   }
 

@@ -1,6 +1,6 @@
-import { IRectTaskRep } from './CohortInterfaces';
+import { IRectTaskRep } from './app/interfaces';
 import { Task } from './Tasks';
-import { TaskRemoveEvent } from './utilCustomEvents';
+import { TaskRemoveEvent } from './base/events';
 
 export class RectTaskRep implements IRectTaskRep {
   id: string;
@@ -98,10 +98,10 @@ export class RectTaskRep implements IRectTaskRep {
             delConfirm = modal.querySelector('.confirm-delete');
 
             // add click event to delete button
-            delConfirm.addEventListener('click', (event) => {
+            delConfirm.addEventListener('click', (event2) => {
               // dispatch event to remove task and its children
               container.dispatchEvent(new TaskRemoveEvent(this.task));
-              event.stopPropagation();
+              event2.stopPropagation();
               // hide modal
               ($('#deleteModal') as any).modal('hide');
             });

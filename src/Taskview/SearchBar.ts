@@ -2,11 +2,13 @@ import { select } from 'd3v7';
 import { IServerColumn } from 'visyn_core/base';
 import { IdTextPair, RestBaseUtils } from 'tdp_core';
 import { dataTypes, depletion, IDataSubtypeConfig, IDataTypeConfig } from 'tdp_publicdb';
-import { colors } from '../colors';
-import { ScoreType } from '../data/Attribute';
-import { checkSpecialAttribute, ISpecialAttribute } from '../data/SpecialAttribute';
+import { colors } from '../config/colors';
 import { deepCopy, getAnimatedLoadingText, log } from '../util';
-import { niceName } from '../utilLabels';
+import { niceName } from '../utils/labels';
+import { IOption, IPanelOption, ISearchBarGroup, IServerColumnOption, OptionType } from '../data/IAttribute';
+import { ISpecialOption } from '../Tasks';
+import type { ISpecialAttribute } from '../data/ISpecialAttribute';
+import { checkSpecialAttribute } from '../data/SpecialAttribute';
 
 export class SearchBar {
   private _container: HTMLDivElement;
@@ -393,7 +395,7 @@ export class SearchBar {
     };
 
     switch (type) {
-      case 'dbc':
+      case 'dbc': {
         const spAttr: ISpecialAttribute = checkSpecialAttribute(option.optionId);
         if (spAttr) {
           (option as ISpecialOption).optionData = {
@@ -407,6 +409,7 @@ export class SearchBar {
         }
 
         break;
+      }
       case 'gene':
         // Nothing to do here, added in clickHandler
         break;
@@ -415,6 +418,8 @@ export class SearchBar {
           description: data.description,
           species: data.species,
         };
+        break;
+      default:
         break;
     }
 
@@ -920,17 +925,19 @@ export class SearchBar {
           .enter()
           .append('div')
           .attr('class', 'detail-info-option option-element')
-          .attr('data-optid', (d: IDataSubtypeConfig) => {
-            return this._composeGeneDataTypeOptId(optionId, d.id);
+          .attr('data-optid', (v: IDataSubtypeConfig) => {
+            return this._composeGeneDataTypeOptId(optionId, v.id);
           })
-          .classed('option-selected', (d: IDataSubtypeConfig) => {
-            return badgeIds.indexOf(this._composeGeneDataTypeOptId(optionId, d.id)) !== -1;
+          .classed('option-selected', (v: IDataSubtypeConfig) => {
+            return badgeIds.indexOf(this._composeGeneDataTypeOptId(optionId, v.id)) !== -1;
           })
-          .html((d: IDataSubtypeConfig) => d.name)
-          .on('click', (event, d: IDataSubtypeConfig) => {
-            const badgeName = this._composeGeneDataTypeName(data.optionText, d.name);
+          .html((v: IDataSubtypeConfig) => v.name)
+          .on('click', (event, v: IDataSubtypeConfig) => {
+            // merge subtype with the with d as the d.name is only available in the d variable
+            const dataSubType = { ...d, v };
+            const badgeName = this._composeGeneDataTypeName(data.optionText, dataSubType.name);
             const badgeData = deepCopy(data);
-            badgeData.optionData = { subType: d, type: (d as any).dataTypeId };
+            badgeData.optionData = { subType: dataSubType, type: (dataSubType as any).dataTypeId };
             this._clickHandlerDetail(data, badgeData, badgeName, event as MouseEvent, event.currentTarget as HTMLElement);
             // indicate an change in the options
             this._container.dispatchEvent(new CustomEvent('optionchange'));
@@ -953,8 +960,7 @@ export class SearchBar {
     const detailText = document.createElement('p');
     detailText.classList.add('option-element');
     detail.appendChild(detailText);
-    detailText.innerHTML =
-      `<span class="option-element">ID:</span> ${option.optionId}</br>` + `<span class="option-element">Description:</span> ${option.optionData.description}`;
+    detailText.innerHTML = `<span class="option-element">ID:</span> ${option.optionId}</br><span class="option-element">Description:</span> ${option.optionData.description}`;
     return detail;
   }
 
@@ -1085,50 +1091,4 @@ export class SearchBar {
     this._addAndRemoveClearAll();
     this._setPlaceholder();
   }
-}
-
-export interface ISearchBarGroup {
-  groupLabel: string;
-  data: Array<IOption>;
-}
-
-export type OptionType = 'dbc' | 'gene' | 'panel';
-
-export interface IOption {
-  // id: string;
-  optionId: string; // e.g. gender or ensg00000141510
-  optionType: OptionType; // e.g. dbc or gene
-  optionText: string; // e.g. Gender or TP53
-  optionData?: {
-    [key: string]: any; // keys are always strings, so we just specify it to be key/value pairs with values of any type
-  };
-}
-
-export interface IPanelOption extends IOption {
-  optionData: {
-    description: string; // e.g. "Cancer Cell Line Encyclopedia"
-    species: string; // e.g. human
-  };
-}
-
-export interface IScoreOption extends IOption {
-  optionData: {
-    type: ScoreType; // id of = IDataTypeConfig;
-    subType: IDataSubtypeConfig;
-  };
-}
-
-export interface IServerColumnOption extends IOption {
-  optionData: {
-    serverColumn: IServerColumn;
-  };
-}
-
-export interface ISpecialOption extends IServerColumnOption {
-  optionData: {
-    serverColumn: IServerColumn;
-    sAttrId: string;
-    attrOption: string;
-    spAttribute: ISpecialAttribute;
-  };
 }

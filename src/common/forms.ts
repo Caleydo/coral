@@ -158,7 +158,7 @@ export const FORM_GENE_FILTER = {
           RestBaseUtils.getTDPData<{ text: string }>(gene.db, 'gene_unique_all', {
             column: 'biotype',
             species: SpeciesUtils.getSelectedSpecies(),
-          }).then((r) => r.map((d) => d.text)),
+          }).then((r) => r.map((v) => v.text)),
         ),
         options: {
           placeholder: 'Start typing...',
@@ -247,7 +247,7 @@ function generateTissueSpecificFilter(d: IDataSourceConfig) {
         RestBaseUtils.getTDPData<{ text: string }>(d.db, `${d.base}_unique_all`, {
           column: 'tumortype_adjacent',
           species: SpeciesUtils.getSelectedSpecies(),
-        }).then((r) => r.map((d) => d.text)),
+        }).then((r) => r.map((v) => v.text)),
       ),
       options: {
         placeholder: 'Start typing...',
@@ -263,7 +263,7 @@ function generateTissueSpecificFilter(d: IDataSourceConfig) {
         RestBaseUtils.getTDPData<{ text: string }>(d.db, `${d.base}_unique_all`, {
           column: 'vendorname',
           species: SpeciesUtils.getSelectedSpecies(),
-        }).then((r) => r.map((d) => d.text)),
+        }).then((r) => r.map((v) => v.text)),
       ),
       options: {
         placeholder: 'Start typing...',
@@ -279,7 +279,7 @@ function generateTissueSpecificFilter(d: IDataSourceConfig) {
         RestBaseUtils.getTDPData<{ text: string }>(d.db, `${d.base}_unique_all`, {
           column: 'race',
           species: SpeciesUtils.getSelectedSpecies(),
-        }).then((r) => r.map((d) => d.text)),
+        }).then((r) => r.map((v) => v.text)),
       ),
       options: {
         placeholder: 'Start typing...',
@@ -295,7 +295,7 @@ function generateTissueSpecificFilter(d: IDataSourceConfig) {
         RestBaseUtils.getTDPData<{ text: string }>(d.db, `${d.base}_unique_all`, {
           column: 'ethnicity',
           species: SpeciesUtils.getSelectedSpecies(),
-        }).then((r) => r.map((d) => d.text)),
+        }).then((r) => r.map((v) => v.text)),
       ),
       options: {
         placeholder: 'Start typing...',
@@ -311,7 +311,7 @@ function generateTissueSpecificFilter(d: IDataSourceConfig) {
         RestBaseUtils.getTDPData<{ text: string | boolean }>(d.db, `${d.base}_unique_all`, {
           column: 'vital_status',
           species: SpeciesUtils.getSelectedSpecies(),
-        }).then((r) => r.map((d) => (d.text === true ? 'true' : 'false'))),
+        }).then((r) => r.map((v) => (v.text === true ? 'true' : 'false'))),
       ),
       options: {
         placeholder: 'Start typing...',
@@ -332,7 +332,7 @@ function generateCelllineSpecificFilter(d: IDataSourceConfig) {
         RestBaseUtils.getTDPData<{ text: string }>(d.db, `${d.base}_unique_all`, {
           column: 'age_at_surgery',
           species: SpeciesUtils.getSelectedSpecies(),
-        }).then((r) => r.map((d) => d.text)),
+        }).then((r) => r.map((v) => v.text)),
       ),
       options: {
         placeholder: 'Start typing...',
@@ -348,7 +348,7 @@ function generateCelllineSpecificFilter(d: IDataSourceConfig) {
         RestBaseUtils.getTDPData<{ text: string }>(d.db, `${d.base}_unique_all`, {
           column: 'growth_type',
           species: SpeciesUtils.getSelectedSpecies(),
-        }).then((r) => r.map((d) => d.text)),
+        }).then((r) => r.map((v) => v.text)),
       ),
       options: {
         placeholder: 'Start typing...',
@@ -364,7 +364,7 @@ function generateCelllineSpecificFilter(d: IDataSourceConfig) {
         RestBaseUtils.getTDPData<{ text: string }>(d.db, `${d.base}_unique_all`, {
           column: 'histology_type',
           species: SpeciesUtils.getSelectedSpecies(),
-        }).then((r) => r.map((d) => d.text)),
+        }).then((r) => r.map((v) => v.text)),
       ),
       options: {
         placeholder: 'Start typing...',
@@ -380,7 +380,7 @@ function generateCelllineSpecificFilter(d: IDataSourceConfig) {
         RestBaseUtils.getTDPData<{ text: string }>(d.db, `${d.base}_unique_all`, {
           column: 'metastatic_site',
           species: SpeciesUtils.getSelectedSpecies(),
-        }).then((r) => r.map((d) => d.text)),
+        }).then((r) => r.map((v) => v.text)),
       ),
       options: {
         placeholder: 'Start typing...',
@@ -396,7 +396,7 @@ function generateCelllineSpecificFilter(d: IDataSourceConfig) {
         RestBaseUtils.getTDPData<{ text: string }>(d.db, `${d.base}_unique_all`, {
           column: 'morphology',
           species: SpeciesUtils.getSelectedSpecies(),
-        }).then((r) => r.map((d) => d.text)),
+        }).then((r) => r.map((v) => v.text)),
       ),
       options: {
         placeholder: 'Start typing...',
@@ -433,7 +433,7 @@ function generateFilter(d: IDataSourceConfig) {
             RestBaseUtils.getTDPData<{ text: string }>(d.db, `${d.base}_unique_all`, {
               column: 'tumortype',
               species: SpeciesUtils.getSelectedSpecies(),
-            }).then((r) => r.map((d) => d.text)),
+            }).then((r) => r.map((v) => v.text)),
           ),
           options: {
             placeholder: 'Start typing...',
@@ -449,7 +449,7 @@ function generateFilter(d: IDataSourceConfig) {
             RestBaseUtils.getTDPData<{ text: string }>(d.db, `${d.base}_unique_all`, {
               column: 'organ',
               species: SpeciesUtils.getSelectedSpecies(),
-            }).then((r) => r.map((d) => d.text)),
+            }).then((r) => r.map((v) => v.text)),
           ),
           options: {
             placeholder: 'Start typing...',
@@ -465,7 +465,7 @@ function generateFilter(d: IDataSourceConfig) {
             RestBaseUtils.getTDPData<{ text: string }>(d.db, `${d.base}_unique_all`, {
               column: 'gender',
               species: SpeciesUtils.getSelectedSpecies(),
-            }).then((r) => r.map((d) => d.text)),
+            }).then((r) => r.map((v) => v.text)),
           ),
           options: {
             placeholder: 'Start typing...',
@@ -562,6 +562,24 @@ export const FORM_TISSUE_OR_CELLLINE_FILTER = {
   },
 };
 
+function addEmptyOption(options: IFormSelectOption[]) {
+  return [{ name: 'None', value: '', data: null }].concat(options);
+}
+
+function selectCategoricalColumn(ds: IDataSourceConfig) {
+  const dummy: IServerColumn = {
+    type: 'string',
+    column: '',
+    label: '',
+    categories: [],
+    min: 0,
+    max: 1,
+  };
+  const cats = ds.columns(() => dummy).filter((d) => d.type === 'categorical');
+
+  return cats.map((c) => ({ name: c.label, value: (<any>c).column, data: (<any>c).column }));
+}
+
 export const FORM_COLOR_CODING = {
   type: FormElementType.SELECT,
   label: 'Color Coding',
@@ -582,24 +600,6 @@ export const FORM_COLOR_CODING = {
   },
   useSession: false,
 };
-
-function selectCategoricalColumn(ds: IDataSourceConfig) {
-  const dummy: IServerColumn = {
-    type: 'string',
-    column: '',
-    label: '',
-    categories: [],
-    min: 0,
-    max: 1,
-  };
-  const cats = ds.columns(() => dummy).filter((d) => d.type === 'categorical');
-
-  return cats.map((c) => ({ name: c.label, value: (<any>c).column, data: (<any>c).column }));
-}
-
-function addEmptyOption(options: IFormSelectOption[]) {
-  return [{ name: 'None', value: '', data: null }].concat(options);
-}
 
 export const FORM_DATA_HIERARCHICAL_SUBTYPE = {
   type: FormElementType.SELECT2_MULTIPLE,

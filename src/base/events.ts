@@ -1,13 +1,12 @@
-import { Cohort } from './Cohort';
-import { ITaskParams } from './CohortInterfaces';
-import { IAttribute } from './data/Attribute';
-import { Task } from './Tasks';
-import { AColumn } from './Taskview/columns/AColumn';
-import { IFilterDesc, SortType } from './util';
+import type { ICohort, ITaskParams } from '../app/interfaces';
+import type { IAttribute } from '../data/IAttribute';
+import type { Task } from '../Tasks';
+import type { AColumn } from '../Taskview/columns/AColumn';
+import { IFilterDesc, SortType } from '../util';
 
 export const COHORT_REMOVE_EVENT_TYPE = 'cht:remove';
-export class CohortRemoveEvent extends CustomEvent<{ cohort: Cohort }> {
-  constructor(cohort: Cohort) {
+export class CohortRemoveEvent extends CustomEvent<{ cohort: ICohort }> {
+  constructor(cohort: ICohort) {
     super(COHORT_REMOVE_EVENT_TYPE, { detail: { cohort }, bubbles: true });
   }
 }
@@ -20,8 +19,8 @@ export class TaskRemoveEvent extends CustomEvent<{ task: Task }> {
 }
 
 export const COHORT_SELECTION_EVENT_TYPE = 'cht:select';
-export class CohortSelectionEvent extends CustomEvent<{ cohort: Cohort; replaceSelection: boolean }> {
-  constructor(cohort: Cohort, replaceSelection = false) {
+export class CohortSelectionEvent extends CustomEvent<{ cohort: ICohort; replaceSelection: boolean }> {
+  constructor(cohort: ICohort, replaceSelection = false) {
     super(COHORT_SELECTION_EVENT_TYPE, { detail: { cohort, replaceSelection }, bubbles: true });
   }
 }
@@ -41,8 +40,8 @@ export class ColumnSortEvent extends CustomEvent<{ type: SortType; sortInputChts
 }
 
 export const CREATE_OUTPUT_COHORT_EVENT_TYPE = 'cht:create:output';
-export class CreateOutputCohortEvent extends CustomEvent<{ cohort: Cohort; origin?: Cohort }> {
-  constructor(cohort: Cohort, originCohort?: Cohort) {
+export class CreateOutputCohortEvent extends CustomEvent<{ cohort: ICohort; origin?: ICohort }> {
+  constructor(cohort: ICohort, originCohort?: ICohort) {
     super(CREATE_OUTPUT_COHORT_EVENT_TYPE, { detail: { cohort, origin: originCohort }, bubbles: true });
   }
 }
@@ -66,8 +65,8 @@ export class SplitEvent extends CustomEvent<{ desc: IFilterDesc[] }> {
 }
 
 export const CONFIRM_OUTPUT_EVENT_TYPE = 'cht:output:confirm';
-export class ConfirmOutputEvent extends CustomEvent<{ cohorts: Cohort[] }> {
-  constructor(cohorts: Cohort[]) {
+export class ConfirmOutputEvent extends CustomEvent<{ cohorts: ICohort[] }> {
+  constructor(cohorts: ICohort[]) {
     super(CONFIRM_OUTPUT_EVENT_TYPE, { detail: { cohorts }, bubbles: true });
   }
 }
