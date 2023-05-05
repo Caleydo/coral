@@ -1,5 +1,5 @@
 import { select } from 'd3v7';
-import { IServerColumn } from 'visyn_core';
+import { IServerColumn } from 'visyn_core/base';
 import { IdTextPair, RestBaseUtils } from 'tdp_core';
 import { dataTypes, depletion, IDataSubtypeConfig, IDataTypeConfig } from 'tdp_publicdb';
 import { colors } from '../colors';

@@ -1,4 +1,5 @@
-import { IDType, IServerColumn } from 'visyn_core';
+import { IDType } from 'visyn_core/idtype';
+import { IServerColumn } from 'visyn_core/base';
 import { Cohort } from './Cohort';
 import { IAttribute, IAttributeJSON } from './data/Attribute';
 import { IEqualsList, INumRange } from './rest';

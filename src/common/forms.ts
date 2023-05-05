@@ -3,7 +3,7 @@
  */
 
 import { SpeciesUtils, FormSubtype } from 'tdp_publicdb';
-import { IServerColumn } from 'visyn_core';
+import { IServerColumn } from 'visyn_core/base';
 import { FormElementType, IFormElement, IFormSelectOption, ValueCache, RestStorageUtils, LineupUtils, RestBaseUtils } from 'tdp_core';
 import { gene, IDataSourceConfig, tissue, cellline, dataSources, dataTypes, dataSubtypes, depletion, drugScreen } from './config';
 import { GeneUtils } from './GeneUtils';

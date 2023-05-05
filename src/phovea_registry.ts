@@ -4,7 +4,7 @@
  * Licensed under the new BSD license, available at http://caleydo.org/license
  **************************************************************************** */
 
-import { PluginRegistry } from 'visyn_core';
+import { PluginRegistry } from 'visyn_core/plugin';
 import reg from './phovea';
 
 /**

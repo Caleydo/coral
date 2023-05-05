@@ -1,4 +1,5 @@
-import { IDType, IDTypeLike, IDTypeManager, IRow, IServerColumn } from 'visyn_core';
+import { IDType, IDTypeLike, IDTypeManager } from 'visyn_core/idtype';
+import { IRow, IServerColumn } from 'visyn_core/base';
 import { IAllFilters, UniqueIdManager } from 'tdp_core';
 import { ElementProvType, ICohort, ICohortRep, IElement, IElementProvJSONCohort, IProvAttrAndValuesCohort } from './CohortInterfaces';
 import {
