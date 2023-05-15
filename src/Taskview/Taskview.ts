@@ -179,7 +179,6 @@ class TaskviewInput extends TaskviewTable {
   }
 
   public setCohorts(cohorts: IInputCohort[]) {
-    console.log('setCohorts', cohorts);
     this.clearColorCohorts();
     cohorts.filter((cht) => !cht.outputCohorts).forEach((cht) => (cht.outputCohorts = [])); // handle undefined outputCohort array
 
