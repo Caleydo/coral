@@ -147,7 +147,7 @@ abstract class TaskviewTable {
 class TaskviewInput extends TaskviewTable {
   cohortOrder: number[];
 
-  cohorts: IInputCohort[];
+  cohorts: IInputCohort[] = [];
 
   usedColorsForCohorts = CoralColorSchema.COLOR_SCHEME.map((elem) => {
     return { color: elem, cohorts: [] };
@@ -179,6 +179,7 @@ class TaskviewInput extends TaskviewTable {
   }
 
   public setCohorts(cohorts: IInputCohort[]) {
+    console.log('setCohorts', cohorts);
     this.clearColorCohorts();
     cohorts.filter((cht) => !cht.outputCohorts).forEach((cht) => (cht.outputCohorts = [])); // handle undefined outputCohort array
 
