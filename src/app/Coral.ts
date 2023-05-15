@@ -1,6 +1,7 @@
 import { select } from 'd3v7';
-import { ATDPApplication, CLUEGraphManager, ProvenanceGraph } from 'tdp_core';
-import { CoralApp } from './CoralApp';
+import { IClientConfig } from 'visyn_core/base';
+import { ATDPApplication, CLUEGraphManager, ITDPOptions, ProvenanceGraph } from 'tdp_core';
+import { CoralApp, ICoralClientConfig } from './CoralApp';
 import { log } from '../util';
 
 /**
@@ -30,17 +31,14 @@ export class Coral extends ATDPApplication<CoralApp> {
           href: 'https://github.com/Caleydo/Coral/issues/',
           label: 'report an issue',
         },
-      },
+      } as unknown as IClientConfig,
     });
-
-    console.log('clientConfig', this.options.clientConfig);
-    console.log('clientConfig contact', this.options.clientConfig?.contact);
   }
 
   protected createApp(graph: ProvenanceGraph, manager: CLUEGraphManager, main: HTMLElement): CoralApp | PromiseLike<CoralApp> {
     log.debug('Create App');
     this.replaceHelpIcon();
-    return new CoralApp(graph, manager, main, this.options).init();
+    return new CoralApp(graph, manager, main, <ITDPOptions & { clientConfig: ICoralClientConfig }>this.options).init();
   }
 
   private replaceHelpIcon() {

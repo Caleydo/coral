@@ -23,6 +23,13 @@ import { niceName } from '../utils/labels';
 import { CohortSelectionListener } from './CoralSelectionListener';
 import { CohortContext } from '../CohortContext';
 
+export interface ICoralClientConfig extends Pick<ITDPOptions, 'clientConfig'> {
+  contact?: {
+    href: string;
+    label: string;
+  };
+}
+
 /**
  * The Cohort app that does the acutal stuff.
  */
@@ -62,7 +69,7 @@ export class CoralApp {
     public readonly graph: ProvenanceGraph,
     public readonly graphManager: CLUEGraphManager,
     parent: HTMLElement,
-    public readonly options: ITDPOptions,
+    public readonly options: ITDPOptions & { clientConfig: ICoralClientConfig },
   ) {
     this.name = options.name;
     this.$node = select(parent).append('div').classed('cohort_app', true);
