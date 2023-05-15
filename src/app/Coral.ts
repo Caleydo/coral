@@ -1,6 +1,6 @@
 import { select } from 'd3v7';
-import { IClientConfig } from 'visyn_core/base';
 import { ATDPApplication, CLUEGraphManager, ITDPOptions, ProvenanceGraph } from 'tdp_core';
+import { IClientConfig } from 'visyn_core/base';
 import { CoralApp, ICoralClientConfig } from './CoralApp';
 import { log } from '../util';
 
