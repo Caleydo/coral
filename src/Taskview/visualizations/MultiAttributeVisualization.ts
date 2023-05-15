@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import * as aq from 'arquero';
-import {format, select} from 'd3v7';
+import { format, select } from 'd3v7';
 import tippy from 'tippy.js';
 import vegaEmbed from 'vega-embed';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
-import { Cohort, getCohortLabel } from '../../Cohort';
-import { ICohort } from '../../CohortInterfaces';
-import { IAttribute, IdValuePair } from '../../data/Attribute';
+import { getCohortLabel } from '../../Cohort';
+import { ICohort } from '../../app/interfaces';
+import { IAttribute, IdValuePair } from '../../data';
 import { log, selectLast } from '../../util';
 import { AVegaVisualization } from './AVegaVisualization';
 import { DATA_LABEL } from './constants';
@@ -23,9 +24,9 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
 
   protected colorPalette: string[];
 
-  protected nullValueMap: Map<string, Map<Cohort, number>>;
+  protected nullValueMap: Map<string, Map<ICohort, number>>;
 
-  async show(container: HTMLDivElement, attributes: IAttribute[], cohorts: Cohort[]) {
+  async show(container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]) {
     log.debug('show: ', { container, attributes, cohorts });
     if (attributes.length <= 1) {
       throw new Error('Number of attributes must be at least 2');
@@ -36,6 +37,8 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
     this.attributes = attributes;
     // Create an array, with on entry per cohort, which contains an array with one entry per attribute, i.e. for 2 cohorts and 2 attributes (A1,A2) we get [[A1, A2], [A1, A2]]
     const dataPromises = cohorts.map((cht, chtIndex) => {
+      // TODO: fix me
+      // eslint-disable-next-line no-async-promise-executor
       const promise = new Promise(async (resolve, reject) => {
         const chtDataPromises = this.attributes.map((attr) => attr.getData(cht.dbId));
         try {
@@ -76,7 +79,7 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
     const flatData = <IdValuePair[]>data.flat(1);
 
     // check if all values are null
-    this.nullValueMap = new Map<string, Map<Cohort, number>>(); // Map: Attribute -> Cohort --> number of null values per cohort per attribute
+    this.nullValueMap = new Map<string, Map<ICohort, number>>(); // Map: Attribute -> Cohort --> number of null values per cohort per attribute
     this.attributes.forEach((attr) => this.nullValueMap.set(attr.dataKey, new Map(this.cohorts.map((cht) => [cht, 0])))); // init map with 0 for all attribues
 
     let nullValues = 0;
@@ -339,10 +342,10 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
       const scale = this.vegaView.scale(axis);
 
       // if one or both ranges are set, replace with values
-      if (range[0] !== undefined && !isNaN(range[0])) {
+      if (range[0] !== undefined && !Number.isNaN(range[0])) {
         scaledRange[0] = scale(range[0]); // get min value from input
       }
-      if (range[1] !== undefined && !isNaN(range[1])) {
+      if (range[1] !== undefined && !Number.isNaN(range[1])) {
         scaledRange[1] = scale(range[1]); // get max value from input
         if (range[0] === range[1]) {
           scaledRange[1] = scale(range[1]) + 10 ** -10; // the 10^(-10) are independent of the attribute domain (i.e. values of 0 to 1 or in millions) because we add it after scaling (its a fraction of a pixel)
@@ -363,11 +366,11 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
       parseFloat((select(this.controls).select(`input.maximum[data-axis="${axis}"]`).node() as HTMLInputElement).value),
     ];
 
-    if (range.some((rangeNum) => rangeNum === undefined || isNaN(rangeNum))) {
+    if (range.some((rangeNum) => rangeNum === undefined || Number.isNaN(rangeNum))) {
       const domain = this.vegaView.scale(axis).domain();
 
       for (const i in range) {
-        if (range[i] === undefined || isNaN(range[i])) {
+        if (range[i] === undefined || Number.isNaN(range[i])) {
           range[i] = domain[i];
         }
       }

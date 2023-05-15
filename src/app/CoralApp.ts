@@ -3,7 +3,6 @@ import SplitGrid from 'split-grid';
 import { IServerColumn } from 'visyn_core';
 import {
   AppContext,
-  ATDPApplication,
   CLUEGraphManager,
   IDatabaseViewDesc,
   IObjectRef,
@@ -15,27 +14,37 @@ import {
 } from 'tdp_core';
 import { cellline, tissue } from 'tdp_publicdb';
 import { Instance as TippyInstance } from 'tippy.js';
-import { Cohort, createCohort, createCohortFromDB } from './Cohort';
-import { IElementProvJSON, IElementProvJSONCohort, ITaskParams } from './CohortInterfaces';
-import { cohortOverview, createCohortOverview, destroyOld, loadViewDescription, taskview } from './cohortview';
-import { PanelScoreAttribute } from './data/Attribute';
-import { OnboardingManager } from './OnboardingManager';
-import { CohortOverview } from './Overview';
-import { setDatasetAction } from './Provenance/General';
-import { getDBCohortData } from './rest';
-import { Task } from './Tasks';
-import Taskview, { InputCohort } from './Taskview/Taskview';
-import deleteModal from './templates/DeleteModal.html';
-import welcomeHtml from './templates/Welcome.html'; // webpack imports html to variable
-import { getAnimatedLoadingText, handleDataLoadError, log, removeFromArray } from './util';
-import { CohortSelectionEvent, COHORT_SELECTION_EVENT_TYPE, ConfirmTaskEvent, CONFIRM_TASK_EVENT_TYPE, PreviewConfirmEvent } from './utilCustomEvents';
-import { idCellline, idCovid19, idStudent, idTissue, IEntitySourceConfig } from './utilIdTypes';
-import { niceName } from './utilLabels';
+import { createCohort, createCohortFromDB } from '../Cohort';
+import type { IElementProvJSON, IElementProvJSONCohort, ITaskParams, ICohort, IDatasetDesc, IPanelDesc } from './interfaces';
+import { createCohortOverview, destroyOld, loadViewDescription } from '../cohortview';
+import { PanelScoreAttribute } from '../data/Attribute';
+import { OnboardingManager } from '../OnboardingManager';
+import { CohortOverview } from '../Overview';
+import { setDatasetAction } from '../Provenance/General';
+import { getDBCohortData } from '../base/rest';
+import { Task } from '../Tasks';
+import Taskview from '../Taskview/Taskview';
+import deleteModal from '../templates/DeleteModal.html';
+import welcomeHtml from '../templates/Welcome.html';
+import { getAnimatedLoadingText, handleDataLoadError, log } from '../util';
+import { CohortSelectionEvent, ConfirmTaskEvent, CONFIRM_TASK_EVENT_TYPE, PreviewConfirmEvent } from '../base/events';
+import { idCellline, idCovid19, idStudent, idTissue, IEntitySourceConfig } from '../config/entities';
+import { niceName } from '../utils/labels';
+import { CohortSelectionListener } from './CoralSelectionListener';
+import { CohortContext } from '../CohortContext';
+
+export interface ICoralClientConfig extends Pick<ITDPOptions, 'clientConfig'> {
+  contact?: {
+    href: string;
+    label: string;
+  };
+}
 
 /**
  * The Cohort app that does the acutal stuff.
  */
-export class CohortApp {
+
+export class CoralApp {
   private readonly $node: Selection<HTMLDivElement, any, null, undefined>;
 
   private $overview: HTMLDivElement;
@@ -52,7 +61,7 @@ export class CohortApp {
 
   private _taskview: Taskview = null;
 
-  private rootCohort: Cohort = null;
+  private rootCohort: ICohort = null;
 
   private datasetEventID = 0;
 
@@ -62,15 +71,15 @@ export class CohortApp {
 
   /**
    * IObjectRef to this CohortApp instance
-   * @type {IObjectRef<CohortApp>}
+   * @type {IObjectRef<CoralApp>}
    */
-  readonly ref: IObjectRef<CohortApp>;
+  readonly ref: IObjectRef<CoralApp>;
 
   constructor(
     public readonly graph: ProvenanceGraph,
     public readonly graphManager: CLUEGraphManager,
     parent: HTMLElement,
-    public readonly options: ITDPOptions,
+    public readonly options: ITDPOptions & { clientConfig: ICoralClientConfig },
   ) {
     this.name = options.name;
     this.$node = select(parent).append('div').classed('cohort_app', true);
@@ -101,21 +110,21 @@ export class CohortApp {
     for (const task of taskParams) {
       for (const cht of task.outputCohorts) {
         log.debug('app sets counter to', 1 + this.chtCounter);
-        (cht as Cohort).setLabels(`#${this.chtCounter++} ${(cht as Cohort).labelOne}`, (cht as Cohort).labelTwo);
+        cht.setLabels(`#${this.chtCounter++} ${cht.labelOne}`, cht.labelTwo);
       }
     }
 
     // confirm the current preview as the result of the task
     this.$node.node().dispatchEvent(new PreviewConfirmEvent(taskParams, taskAttributes));
     // get the new added task (the ones confirmed from the preview)
-    const tasks: Task[] = cohortOverview.getLastAddedTasks();
-    taskview.clearOutput(); // clear taskview output
+    const tasks: Task[] = CohortContext.cohortOverview.getLastAddedTasks();
+    CohortContext.taskview.clearOutput(); // clear taskview output
 
     // set output as new input
     let replace = true;
     for (const task of tasks) {
       for (const cht of task.children) {
-        this.$node.node().dispatchEvent(new CohortSelectionEvent(cht as Cohort, replace));
+        this.$node.node().dispatchEvent(new CohortSelectionEvent(cht as ICohort, replace));
         replace = false; // replace old selection with first cohort, then add the others
 
         if (this.firstOutput) {
@@ -244,6 +253,8 @@ export class CohortApp {
     dropdown.append('li').attr('role', 'separator').classed('dropdown-divider', true);
     dropdown.append('li').classed('dropdown-header', true).text('Predefined Sets');
 
+    // TODO: check if this can be removed in the future
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
     dropdown
       .selectAll('li.data-panel')
@@ -258,8 +269,8 @@ export class CohortApp {
       .on('click', async function (event, d) {
         // click subset
         // don't toggle data by checkging what is selected in dropdown
-        const dataSourcesAndPanels = select(this.parentNode.parentNode).datum() as { source: IEntitySourceConfig; panels: IPanelDesc[] }; // a -> parent = li -> parent = dropdown = ul
-        const newDataset = { source: dataSourcesAndPanels.source, panel: d, rootCohort: null, chtOverviewElements: null };
+        const currDataSourcesAndPanels = select(this.parentNode.parentNode).datum() as { source: IEntitySourceConfig; panels: IPanelDesc[] }; // a -> parent = li -> parent = dropdown = ul
+        const newDataset = { source: currDataSourcesAndPanels.source, panel: d, rootCohort: null, chtOverviewElements: null };
         that.handleDatasetClick.bind(that)(newDataset);
       });
 
@@ -348,7 +359,7 @@ export class CohortApp {
     log.debug('retrievedViewDesctiprion', viewDescription);
     const idColumn: IServerColumn = viewDescription.columns.find((col) => col.label === 'id') || { column: 'id', label: 'id', type: 'string' };
     // create root cohort
-    let root: Cohort = await createCohort(
+    let root: ICohort = await createCohort(
       niceName(idTypeConfig.idType),
       'All',
       true,
@@ -369,6 +380,7 @@ export class CohortApp {
       root.setLabels(idTypeConfig.idType, panel.id);
     }
     root.isInitial = true; // set cohort as root
+
     // referenceCohort = reference; // save reference cohort
     this.rootCohort = root;
     const rootAsJSON = root.toProvenanceJSON();
@@ -460,7 +472,6 @@ export class CohortApp {
   //   try {
   //     const databases: Array<any> = await AppContext.getInstance().getAPIJSON('/tdp/db/');
   //     log.debug('Available databases: ', databases);
-
   //     // get all idtypes via the views
   //     if (databases.length > 0) {
   //       for (const db of databases) {
@@ -485,7 +496,6 @@ export class CohortApp {
   //   }
   //   return genericViews;
   // }
-
   private _showChangeLayoutOptions(show: boolean) {
     const screenControls = this.$node.select('.control-bar').select('.screen-controls').node() as HTMLDivElement;
     screenControls.toggleAttribute('hidden', !show);
@@ -579,145 +589,4 @@ export class CohortApp {
 
     this.$node.style('grid-template-rows', gridRowTemplate);
   }
-}
-
-/**
- * The app for this website, embeds our Cohort App
- */
-export class App extends ATDPApplication<CohortApp> {
-  constructor(name: string, loginDialog: string, showCookieDisclaimer = true) {
-    super({
-      prefix: 'coral',
-      name,
-      loginForm: loginDialog,
-      /**
-       * Link to help and show help in `Coral at a Glance` page instead
-       */
-      showHelpLink: `${`${window.location.href.split('app/')[0]}#/help`}`,
-      showCookieDisclaimer,
-      /**
-       * Show content in the `Coral at a Glance` page instead
-       */
-      showAboutLink: false,
-      /**
-       * Show content in the `Coral at a Glance` page instead
-       */
-      showReportBugLink: false,
-      clientConfig: {
-        contact: {
-          href: 'https://github.com/Caleydo/Coral/issues/',
-          label: 'report an issue',
-        },
-      },
-    });
-
-    console.log('clientConfig', this.options.clientConfig);
-    console.log('clientConfig contact', this.options.clientConfig?.contact);
-  }
-
-  protected createApp(graph: ProvenanceGraph, manager: CLUEGraphManager, main: HTMLElement): CohortApp | PromiseLike<CohortApp> {
-    log.debug('Create App');
-    this.replaceHelpIcon();
-    return new CohortApp(graph, manager, main, this.options).init();
-  }
-
-  private replaceHelpIcon() {
-    const helpButton = select(this.header.rightMenu).select('li[data-header="helpLink"]');
-    helpButton.select('span.fa-stack').remove();
-    helpButton.select('a.nav-link').insert('i', ':first-child').attr('class', 'fa fa-question-circle');
-  }
-
-  protected initSessionImpl(app: CohortApp) {
-    log.debug('initSessionImpl. Is Graph empty?', app.graph.isEmpty);
-    this.jumpToStoredOrLastState();
-  }
-}
-
-export class CohortSelectionListener {
-  private static instance: CohortSelectionListener;
-
-  public taskview: Taskview;
-
-  selection: Cohort[] = [];
-
-  firstCohort = true;
-
-  public static get() {
-    return CohortSelectionListener.instance;
-  }
-
-  static init(eventTarget: Node, app: CohortApp) {
-    if (CohortSelectionListener.instance) {
-      CohortSelectionListener.instance.eventTarget.removeEventListener(COHORT_SELECTION_EVENT_TYPE, CohortSelectionListener.instance.handleSelectionEvent); // remove listener
-      CohortSelectionListener.instance.selection.forEach((cht) => (cht.selected = false)); // deselect
-      delete CohortSelectionListener.instance; // destroy
-    }
-    CohortSelectionListener.instance = new CohortSelectionListener(eventTarget, app);
-  }
-
-  static reset() {
-    if (CohortSelectionListener.instance) {
-      CohortSelectionListener.instance.selection = [];
-      CohortSelectionListener.instance.firstCohort = true;
-    }
-  }
-
-  private constructor(private eventTarget: Node, private app: CohortApp) {
-    eventTarget.addEventListener(COHORT_SELECTION_EVENT_TYPE, (ev) => this.handleSelectionEvent(ev as CohortSelectionEvent)); // arrow function to keep "this" working in eventhandler
-  }
-
-  public handleSelectionEvent(ev: CohortSelectionEvent) {
-    const clickedCht = ev.detail.cohort;
-    const { replaceSelection } = ev.detail;
-
-    if (!clickedCht.representation.getRepresentation().classList.contains('preview')) {
-      // if true deselect all current selected cohorts
-      if (replaceSelection) {
-        const toDeselect = this.selection.splice(0, this.selection.length); // clear array and get a copy with cohorts to deselect
-        toDeselect.forEach((cht) => (cht.selected = false)); // deselect all
-      }
-
-      // Update selection array:
-      if (this.selection.indexOf(clickedCht) > -1) {
-        // already selected --> remove
-        removeFromArray(this.selection, clickedCht);
-        clickedCht.colorTaskView = null;
-        clickedCht.selected = false;
-        if ((clickedCht as InputCohort).outputCohorts !== undefined) {
-          delete (clickedCht as InputCohort).outputCohorts;
-        }
-        log.info(`De-Selected "${clickedCht.label}"`);
-      } else {
-        if (this.firstCohort) {
-          // this is the first cohort the user selected
-          this.app.setAppGridLayout('split'); // show bottom
-          this.firstCohort = false;
-        }
-
-        this.selection.push(clickedCht);
-        clickedCht.colorTaskView = null;
-        clickedCht.selected = true;
-        log.info(`Selected "${clickedCht.label}"`);
-      }
-
-      //  set selection in taskview
-      this.taskview.setInputCohorts(this.selection);
-
-      this.selection.forEach((cht) => (cht.selected = true));
-      this.taskview.clearOutput(); // every selection change clears the output cohorts
-    }
-  }
-}
-
-export interface IPanelDesc {
-  id: string;
-  description: string;
-  species: string;
-}
-
-export interface IDatasetDesc {
-  source: IEntitySourceConfig;
-  panel?: IPanelDesc;
-  rootCohort: IElementProvJSONCohort;
-  chtOverviewElements: IElementProvJSON[];
 }

@@ -1,15 +1,14 @@
 import * as aq from 'arquero';
-import {select} from 'd3v7';
+import { select } from 'd3v7';
 import * as LineUpJS from 'lineupjs';
-import { Cohort } from '../../Cohort';
-import { ICohort } from '../../CohortInterfaces';
-import { colors } from '../../colors';
-import { IAttribute } from '../../data/Attribute';
-import { getCohortData } from '../../rest';
-import { CohortColorSchema, getAnimatedLoadingText } from '../../util';
-import { getIdTypeFromCohort } from '../../utilIdTypes';
+import { ICohort } from '../../app/interfaces';
+import { colors, CoralColorSchema } from '../../config/colors';
+import { getCohortData } from '../../base/rest';
+import { getAnimatedLoadingText } from '../../util';
+import { getIdTypeFromCohort } from '../../config/entities';
 import { DATA_LABEL } from '../visualizations';
 import { ATask } from './ATask';
+import type { IAttribute } from '../../data/IAttribute';
 
 export class Details extends ATask {
   public label = `Inspect Items`;
@@ -43,7 +42,7 @@ export class Details extends ATask {
       this.$lineUpContainer.insertAdjacentElement('beforeend', getAnimatedLoadingText('data'));
       select(columnHeader).selectAll('.export').remove();
 
-      const data = await this.getData(attributes, cohorts as Cohort[]);
+      const data = await this.getData(attributes, cohorts as ICohort[]);
       if (eventId !== this.eventID) {
         return;
       }
@@ -62,19 +61,18 @@ export class Details extends ATask {
     }
   }
 
-  async getData(attributes: IAttribute[], cohorts: Cohort[]) {
-    const idType = getIdTypeFromCohort(cohorts[0] as Cohort);
+  async getData(attributes: IAttribute[], cohorts: ICohort[]) {
+    const idType = getIdTypeFromCohort(cohorts[0] as ICohort);
     this._entityName = idType.entityName;
 
-    const dataPromises = cohorts.map((cht) => {
-      const promise = new Promise(async (resolve, reject) => {
+    const dataPromises = cohorts.map(async (cht) => {
+      const promise = new Promise((resolve, reject) => {
         const chtDataPromises = attributes.map((attr) => attr.getData(cht.dbId));
         if (attributes.length === 0) {
           // If Lineup is empty, add entityName as single attribute to be able to show something
           chtDataPromises.push(getCohortData({ cohortId: cht.dbId, attribute: idType.entityName }));
         }
-        try {
-          const chtData = await Promise.all(chtDataPromises); // array with one entry per attribute, which contains an array with one value for every item in the cohort
+        Promise.all(chtDataPromises).then((chtData) => {
           let joinedData = aq.from(chtData[0]);
           for (let i = 1; i < chtData.length; i++) {
             joinedData = joinedData.join_full(aq.from(chtData[i]));
@@ -82,9 +80,7 @@ export class Details extends ATask {
           const labelTable = aq.table({ [DATA_LABEL]: [[`${cht.dbId}`]], [`id_${cht.dbId}`]: ['true'] });
           joinedData = joinedData.join_left(labelTable, (data, label) => true);
           resolve(joinedData.objects());
-        } catch (e) {
-          reject(e);
-        }
+        });
       });
       return promise;
     });
@@ -112,7 +108,7 @@ export class Details extends ATask {
     builder.column(LineUpJS.buildStringColumn(this._entityName).label('Id').width(120)).column(
       LineUpJS.buildCategoricalColumn(
         DATA_LABEL,
-        cohorts.map((cht) => ({ name: `${cht.dbId}`, label: cht.label, color: (cht as Cohort).colorTaskView })),
+        cohorts.map((cht) => ({ name: `${cht.dbId}`, label: cht.label, color: (cht as ICohort).colorTaskView })),
       )
         .renderer('catheatmap', 'categorical')
         .asSet(),
@@ -143,7 +139,7 @@ export class Details extends ATask {
   getCategoryColorsForColumn(mergedDataArray: any[], attr: IAttribute): { name: string; color: string }[] {
     const uniqueCat = Array.from(new Set(mergedDataArray.map((elem) => elem[attr.dataKey])));
     const categoryColors = uniqueCat.map((cat, i) => {
-      return { name: cat, color: CohortColorSchema.get(i) };
+      return { name: cat, color: CoralColorSchema.get(i) };
     });
     return categoryColors;
   }

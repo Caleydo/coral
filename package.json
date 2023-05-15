@@ -32,7 +32,7 @@
     "dist": "mkdir lib && cd dist && tar cvzf ../lib/bundle.tar.gz *",
     "docs": "visyn_scripts docs",
     "lint:fix": "visyn_scripts lint --fix",
-    "lint": "visyn_scripts lint || true",
+    "lint": "visyn_scripts lint",
     "prepack": "yarn run build",
     "start": "visyn_scripts start --env workspace_mode=single",
     "storybook:build": "NODE_OPTIONS=--max_old_space_size=4096 build-storybook",

@@ -1,15 +1,15 @@
-import { IAllFilters, IServerColumn } from 'tdp_core';
-import { IDataSubtypeConfig, IDataTypeConfig, resolveDataTypes } from 'tdp_publicdb';
+import { IAllFilters } from 'tdp_core';
+import { IDataTypeConfig, IDataSubtypeConfig, resolveDataTypes } from 'tdp_publicdb';
+import { IServerColumn } from 'visyn_core';
+import { ICohort } from '../app/interfaces';
 import {
-  Cohort,
-  createCohortWithDepletionScoreFilter,
-  createCohortWithEqualsFilter,
-  createCohortWithGeneEqualsFilter,
-  createCohortWithGeneNumFilter,
-  createCohortWithNumFilter,
-  createCohortWithPanelAnnotationFilter,
-} from '../Cohort';
-import { ICohort } from '../CohortInterfaces';
+  HistRouteType,
+  ICohortDBDepletionScoreParams,
+  ICohortDBGeneScoreParams,
+  ICohortDBPanelAnnotationParams,
+  IEqualsList,
+  INumRange,
+} from '../base/interfaces';
 import {
   getCohortData,
   getCohortDepletionScore,
@@ -17,108 +17,23 @@ import {
   getCohortHist,
   getCohortPanelAnnotation,
   getCohortSize,
-  HistRouteType,
-  ICohortDBDepletionScoreParams,
-  ICohortDBGeneScoreParams,
   ICohortDBHistDataParms,
   ICohortDBHistPanelParms,
   ICohortDBHistScoreDepletionParms,
   ICohortDBHistScoreParms,
-  ICohortDBPanelAnnotationParams,
-  IEqualsList,
-  INumRange,
-} from '../rest';
-import { IOption, IScoreOption, IServerColumnOption, ISpecialOption, OptionType } from '../Taskview/SearchBar';
-import { deepCopy, getSessionStorageItem, IAttributeFilter, log, setSessionStorageItem } from '../util';
-import { easyLabelFromFilter, easyLabelFromFilterArray, niceName } from '../utilLabels';
-import { ISpecialAttribute } from './SpecialAttribute';
-
-export type AttributeType = 'categorical' | 'number' | 'string';
-
-export type ScoreType = 'depletion' | 'expression' | 'copy_number' | 'mutation';
-
-export type IdValuePair = {
-  id: string;
-  [key: string]: any;
-};
-
-export interface IAttributeJSON {
-  option: IOption;
-  currentDB: string;
-  currentView: string;
-}
-
-/**
- * base type for ServerColumns and ScoreColumn
- * id, view, and database are needed for the methods in rest.ts
- */
-export interface IAttribute {
-  /**
-   * id database access the data
-   */
-  id: string;
-
-  /**
-   * datakey with which the attributes data can be accessed frontend
-   * necessary as GeneScoreAttributes have the same id for TPM, Copy Number, etc of the same gene
-   */
-  dataKey: string;
-
-  /**
-   * view to access the data
-   */
-  view: string;
-
-  /**
-   * database to access the data
-   */
-  database: string;
-
-  /**
-   * label of this column for display to the user by default the column name
-   */
-  label: string;
-
-  /**
-   * column type
-   */
-  type: AttributeType;
-
-  /**
-   * the categories in case of type=categorical
-   */
-  categories?: string[];
-
-  /**
-   * the minimal value in case of type=number
-   */
-  min?: number;
-
-  /**
-   * the maxmial value in case of type=number
-   */
-  max?: number;
-
-  /**
-   * wether the attribute is best shown on a log scale
-   */
-  preferLog: boolean;
-
-  getData(cohortDbId: number, filters?: IAllFilters): Promise<IdValuePair[]>; // IRow has _id but IScoreRow has not
-
-  getHist(dbId: number, filters?: IAllFilters, bins?: number): Promise<{ bin: string; count: number }[]>;
-
-  getHistWithStorage(
-    histType: HistRouteType,
-    params: ICohortDBHistDataParms | ICohortDBHistScoreParms | ICohortDBHistScoreDepletionParms | ICohortDBHistPanelParms,
-  ): Promise<{ bin: string; count: number }[]>;
-
-  getCount(cohortDbId: number, filters?: IAllFilters): Promise<number>;
-
-  filter(cht: ICohort, filter: INumRange[] | IEqualsList): Promise<Cohort>;
-
-  toJSON();
-}
+} from '../base/rest';
+import {
+  createCohortWithDepletionScoreFilter,
+  createCohortWithEqualsFilter,
+  createCohortWithGeneEqualsFilter,
+  createCohortWithGeneNumFilter,
+  createCohortWithNumFilter,
+  createCohortWithPanelAnnotationFilter,
+} from '../Cohort';
+import { deepCopy, getSessionStorageItem, IAttributeFilter, setSessionStorageItem } from '../util';
+import { easyLabelFromFilter, easyLabelFromFilterArray, niceName } from '../utils/labels';
+import { AttributeType, IAttribute, IAttributeJSON, IdValuePair, OptionType, ScoreType } from './IAttribute';
+import type { ISpecialAttribute } from './ISpecialAttribute';
 
 export abstract class Attribute implements IAttribute {
   public preferLog = false;
@@ -176,7 +91,7 @@ export abstract class Attribute implements IAttribute {
     return getCohortSize({ cohortId: cohortDbId });
   }
 
-  abstract filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort>;
+  abstract filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<ICohort>;
 
   abstract toJSON(): IAttributeJSON;
 }
@@ -190,7 +105,7 @@ export class ServerColumnAttribute extends Attribute {
     this.categories = serverColumn.categories as string[];
   }
 
-  async filter(cht: Cohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort> {
+  async filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<ICohort> {
     if (Array.isArray(filter)) {
       // TODO label
       // const label = rangeLabel ? rangeLabel : filter.map((a) => labelFromFilter(a, this)).join(' / ');
@@ -253,7 +168,7 @@ export class SpecialAttribute extends Attribute {
     return null;
   }
 
-  async filter(cht: Cohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort> {
+  async filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<ICohort> {
     if (this.spAttribute.overrideFilter) {
       // this.spAttribute.attributeOption = this.attrOption;
       // TODO label
@@ -293,6 +208,20 @@ export abstract class AScoreAttribute extends Attribute {
 
   async getCount() {
     return -1; // dummy
+  }
+}
+
+function subType2Type(subType: string): AttributeType {
+  // one of number, string, cat, boxplot
+  switch (subType) {
+    case 'number':
+    case 'string':
+      return subType;
+    case 'cat':
+      return 'categorical';
+    case 'boxplot':
+    default:
+      throw new Error(`No Support for type: ${subType}`);
   }
 }
 
@@ -368,7 +297,7 @@ export class GeneScoreAttribute extends AScoreAttribute {
     });
   }
 
-  async filter(cht: Cohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort> {
+  async filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<ICohort> {
     const param = this.getParam();
     if (Array.isArray(filter)) {
       // TODO label
@@ -509,7 +438,7 @@ export class PanelScoreAttribute extends AScoreAttribute {
     return this.getHistWithStorage(type, params);
   }
 
-  async filter(cht: Cohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<Cohort> {
+  async filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<ICohort> {
     if (Array.isArray(filter)) {
       throw new Error('not implemented ☠');
     } else {
@@ -535,66 +464,7 @@ export class PanelScoreAttribute extends AScoreAttribute {
   }
 }
 
-export function toAttribute(option: IOption, currentDB, currentView): IAttribute {
-  if (option.optionType === 'dbc') {
-    if (option.optionData && (option as ISpecialOption).optionData.spAttribute) {
-      // Create Special Attribtues
-      // if (option.optionData.spA === 'treatment') {
-      log.debug('create special Attribute: ', option.optionId);
-      log.debug('special Attribute object: ', option.optionData.spAttribute);
-      return new SpecialAttribute(
-        option.optionId,
-        currentView,
-        currentDB,
-        (option as ISpecialOption).optionData.spAttribute,
-        (option as ISpecialOption).optionData.attrOption,
-      );
-    }
-    // Create Attribute
-    return new ServerColumnAttribute(option.optionId, currentView, currentDB, (option as IServerColumnOption).optionData.serverColumn);
-  }
-  // Create ScoreAttribute
-  if (option.optionType === 'gene') {
-    return new GeneScoreAttribute(
-      option.optionId,
-      option.optionText,
-      currentView,
-      currentDB,
-      (option as IScoreOption).optionData.type,
-      (option as IScoreOption).optionData.subType,
-    );
-  }
-  if (option.optionType === 'panel') {
-    return new PanelScoreAttribute(option.optionId, currentView, currentDB, 'categorical');
-  }
-}
-
-function subType2Type(subType: string): AttributeType {
-  // one of number, string, cat, boxplot
-  switch (subType) {
-    case 'number':
-    case 'string':
-      return subType;
-    case 'cat':
-      return 'categorical';
-    case 'boxplot':
-    default:
-      throw new Error(`No Support for type: ${subType}`);
-  }
-}
-
-export async function multiFilter(baseCohort: Cohort, attributes: IAttribute[], filters: Array<IEqualsList | INumRange[]>): Promise<Cohort> {
-  if (attributes.length !== filters.length) {
-    throw new Error(`Number of filters has to match the number of attribtues`);
-  }
-
-  return multiAttributeFilter(
-    baseCohort,
-    attributes.map((attr, i) => ({ attr, range: filters[i] })),
-  );
-}
-
-export async function multiAttributeFilter(baseCohort: Cohort, filters: IAttributeFilter[]): Promise<Cohort> {
+export async function multiAttributeFilter(baseCohort: ICohort, filters: IAttributeFilter[]): Promise<ICohort> {
   let newCohort = baseCohort;
 
   const labelOne = [];
@@ -602,6 +472,8 @@ export async function multiAttributeFilter(baseCohort: Cohort, filters: IAttribu
   const values = [];
 
   for (const attrFilter of filters) {
+    // TODO: fix me
+    // eslint-disable-next-line no-await-in-loop
     newCohort = await attrFilter.attr.filter(newCohort, attrFilter.range);
     labelOne.push(newCohort.labelOne);
     labelTwo.push(newCohort.labelTwo);
@@ -616,4 +488,15 @@ export async function multiAttributeFilter(baseCohort: Cohort, filters: IAttribu
   }
 
   return newCohort;
+}
+
+export async function multiFilter(baseCohort: ICohort, attributes: IAttribute[], filters: Array<IEqualsList | INumRange[]>): Promise<ICohort> {
+  if (attributes.length !== filters.length) {
+    throw new Error(`Number of filters has to match the number of attribtues`);
+  }
+
+  return multiAttributeFilter(
+    baseCohort,
+    attributes.map((attr, i) => ({ attr, range: filters[i] })),
+  );
 }

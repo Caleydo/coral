@@ -1,16 +1,16 @@
 import log from 'loglevel';
-import {select} from 'd3v7';
-import {TopLevelSpec as VegaLiteSpec} from 'vega-lite';
-import {Spec as VegaSpec, None} from 'vega';
-import {IdValuePair, ServerColumnAttribute} from '../../data/Attribute';
-import {DATA_LABEL} from './constants';
-import {desc, op, from, rolling, table, not} from 'arquero';
-import {getCohortLabel, getCohortLabels} from '../../Cohort';
-import {SingleAttributeVisualization, AVegaVisualization} from './AVegaVisualization';
-import {ICohort} from '../../CohortInterfaces';
-import {OrderKeys, ExprList} from 'arquero/dist/types/table/transformable';
-import {confidenceToggleGroup, confidenceNone} from './config/ConfidenceConfig';
+import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
+import { Spec as VegaSpec, None } from 'vega';
+import { desc, op, from, rolling, table, not } from 'arquero';
+import { OrderKeys, ExprList } from 'arquero/dist/types/table/transformable';
+import { ServerColumnAttribute } from '../../data/Attribute';
+import { DATA_LABEL } from './constants';
+import { getCohortLabel, getCohortLabels } from '../../Cohort';
+import { SingleAttributeVisualization, AVegaVisualization } from './AVegaVisualization';
+import { ICohort } from '../../app/interfaces';
+import { confidenceToggleGroup, confidenceNone } from './config/ConfidenceConfig';
 import confidenceIcon from '../../assets/icons/confidence.svg';
+import { IdValuePair } from '../../data/IAttribute';
 
 export class KaplanMeierPlot extends SingleAttributeVisualization {
   static readonly NAME = 'Kaplan-Meier Plot';
@@ -24,7 +24,7 @@ export class KaplanMeierPlot extends SingleAttributeVisualization {
 
   protected readonly type = 'quantitative';
 
-  constructor(vegaLiteOptions: Object = {}) {
+  constructor(vegaLiteOptions: object = {}) {
     super(vegaLiteOptions);
 
     this.config = [
@@ -56,6 +56,8 @@ export class KaplanMeierPlot extends SingleAttributeVisualization {
     }
 
     const dataPromises = this.cohorts.map((cht) => {
+      // TODO: fix me
+      // eslint-disable-next-line no-async-promise-executor
       const promise = new Promise(async (resolve, reject) => {
         const chtDataPromises = attributes.map((attr) => attr.getData(cht.dbId));
         try {

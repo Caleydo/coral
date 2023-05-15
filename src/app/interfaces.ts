@@ -1,8 +1,56 @@
-import { IDType, IServerColumn } from 'visyn_core';
-import { Cohort } from './Cohort';
-import { IAttribute, IAttributeJSON } from './data/Attribute';
-import { IEqualsList, INumRange } from './rest';
-import { InputCohort } from './Taskview/Taskview';
+import { IDType, IDTypeLike, IRow, IServerColumn } from 'visyn_core';
+import { IAllFilters } from 'tdp_core';
+import type { IEntitySourceConfig } from '../config/entities';
+import {
+  ICohortDepletionScoreFilterParams,
+  ICohortEqualsFilterParams,
+  ICohortGeneEqualsFilterParams,
+  ICohortGeneNumFilterParams,
+  ICohortNumFilterParams,
+  ICohortPanelAnnotationFilterParams,
+  IEqualsList,
+  INumRange,
+} from '../base/interfaces';
+import type { IAttribute, IAttributeJSON } from '../data/IAttribute';
+
+export enum ECloneFilterTypes {
+  none,
+  equals,
+  range,
+  geneScoreRange,
+  geneScoreEquals,
+  depletionScoreRange,
+  panelAnnotation,
+}
+
+export interface ICohortClassBasicValues {
+  id: string;
+  dbId: number;
+  labelOne: string;
+  labelTwo: string;
+}
+
+export interface ICohortClassDatabaseValues {
+  database: string;
+  schema: string;
+  table: string;
+  view: string;
+  idType: IDTypeLike;
+  idColumn: IServerColumn;
+}
+
+export interface IPanelDesc {
+  id: string;
+  description: string;
+  species: string;
+}
+
+export interface IDatasetDesc {
+  source: IEntitySourceConfig;
+  panel?: IPanelDesc;
+  rootCohort: IElementProvJSONCohort;
+  chtOverviewElements: IElementProvJSON[];
+}
 
 /**
  * Enumeration for the different types of task
@@ -25,14 +73,14 @@ export enum TaskType {
  * Interface for every element in the overview (except the paths between the elements)
  */
 
-export enum ElementProvType {
+export enum EElementProvType {
   Cohort = 'Cohort',
   TaskSplit = 'Task-Split',
   TaskFilter = 'Task-Filter',
 }
 
 export interface IProvAttrAndValuesCohort {
-  values: Array<INumRange[] | IEqualsList>;
+  values: (INumRange[] | IEqualsList)[];
   view: string;
   database: string;
   idType: IDType;
@@ -47,7 +95,7 @@ export interface IProvAttrAndValuesTask {
 
 export interface IElementProvJSON {
   id: string;
-  type: ElementProvType;
+  type: EElementProvType;
   label: string;
   parent: string[];
   children: string[];
@@ -72,16 +120,87 @@ export interface IElement {
   toProvenanceJSON(): IElementProvJSON;
 }
 
+export interface IBloodlineElement {
+  obj: IElement;
+  elemType: string;
+  label: string;
+  size: number;
+}
+
 /**
  * Interface for a cohort in the overview
  */
 export interface ICohort extends IElement {
+  readonly idType: IDType;
+  readonly idColumn: IServerColumn;
+
+  table: string;
+  selected: boolean;
   representation: ICohortRep;
+  id: string;
   dbId: number;
-  values: Array<INumRange[] | IEqualsList>;
+  database: string;
+  values: (INumRange[] | IEqualsList)[];
   isInitial: boolean;
   sizeReference: number;
+  get size(): Promise<number>;
+  getRetrievedSize(): number;
+  schema: string;
+  view: string;
+  colorTaskView: string;
+  isClone: boolean;
+
+  label: string;
+  setLabels(labelOne: string, labelTwo: string);
+  get labelOne(): string;
+  get labelTwo(): string;
+  getHTMLLabel(): string;
+
   toProvenanceJSON(): IElementProvJSONCohort;
+
+  // getTaskChildren(): Task[]; // TODO create ITask interface and use here
+
+  parents: IElement[];
+  setCohortParents(chtParents: ICohort[]);
+  getCohortParents(): ICohort[];
+
+  children: IElement[];
+  getCohortChildren(): ICohort[];
+
+  filters: IAllFilters;
+  hasfilterConflict(): boolean;
+  usedFilter: ECloneFilterTypes;
+  usedFilterParams:
+    | ICohortEqualsFilterParams
+    | ICohortNumFilterParams
+    | ICohortGeneNumFilterParams
+    | ICohortDepletionScoreFilterParams
+    | ICohortPanelAnnotationFilterParams;
+
+  clone(
+    usedFilter: ECloneFilterTypes,
+    filterParams:
+      | ICohortEqualsFilterParams
+      | ICohortNumFilterParams
+      | ICohortGeneNumFilterParams
+      | ICohortGeneEqualsFilterParams
+      | ICohortDepletionScoreFilterParams
+      | ICohortPanelAnnotationFilterParams,
+  ): ICohort;
+
+  get data(): Promise<IRow[]>;
+
+  getBloodline(): IBloodlineElement[];
+  updateBloodline();
+}
+
+export interface IInputCohort extends ICohort {
+  outputCohorts: IOutputCohort[];
+}
+
+export interface IOutputCohort extends ICohort {
+  isLastOutputCohort: boolean;
+  isFirstOutputCohort: boolean;
 }
 
 /**
@@ -169,8 +288,8 @@ export interface ISetLabelFunc {
 }
 
 export interface ITaskParams {
-  inputCohorts: InputCohort[]; // combine can have multiple
-  outputCohorts: Cohort[];
+  inputCohorts: IInputCohort[]; // combine can have multiple
+  outputCohorts: IOutputCohort[];
   type: TaskType;
   label: string;
 }
