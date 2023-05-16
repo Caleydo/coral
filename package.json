@@ -86,9 +86,6 @@
   "devDependencies": {
     "@types/d3-selection": "^3.0.2",
     "@types/d3-transition": "^3.0.1",
-    "@types/react": "^16.14.6",
-    "@types/react-dom": "^16.9.5",
-    "@types/react-router-dom": "^5.1.7",
     "mkdirp": "0.5.1",
     "tslint": "~5.20.1",
     "worker-loader": "^2.0.0"
