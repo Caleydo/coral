@@ -93,18 +93,11 @@
     "tslint": "~5.20.1",
     "worker-loader": "^2.0.0"
   },
-  "overrides": {
-    "ordino": "git+ssh://git@github.com:Caleydo/ordino#react18",
-    "tourdino": "git+ssh://git@github.com/caleydo/tourdino#react18"
-  },
   "resolutions": {
     "@types/react": "~18.2.0",
     "@types/react-dom": "~18.2.0",
     "react": "~18.2.0",
-    "react-dom": "~18.2.0",
-    "visyn_scripts": "git+ssh://git@github.com/datavisyn/visyn_scripts#react18",
-    "visyn_core": "git+ssh://git@github.com/datavisyn/visyn_core#react18",
-    "tdp_core": "git+ssh://git@github.com:datavisyn/tdp_core#react18"
+    "react-dom": "~18.2.0"
   },
   "browser": {
     "fs": false,
