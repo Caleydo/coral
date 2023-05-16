@@ -1,4 +1,5 @@
-import { IDType, IDTypeLike, IRow, IServerColumn } from 'visyn_core';
+import { IDType, IDTypeLike } from 'visyn_core/idtype';
+import { IServerColumn, IRow } from 'visyn_core/base';
 import { IAllFilters } from 'tdp_core';
 import type { IEntitySourceConfig } from '../config/entities';
 import {

@@ -147,7 +147,7 @@ abstract class TaskviewTable {
 class TaskviewInput extends TaskviewTable {
   cohortOrder: number[];
 
-  cohorts: IInputCohort[];
+  cohorts: IInputCohort[] = [];
 
   usedColorsForCohorts = CoralColorSchema.COLOR_SCHEME.map((elem) => {
     return { color: elem, cohorts: [] };

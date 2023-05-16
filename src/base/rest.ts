@@ -1,4 +1,4 @@
-import { Ajax, AppContext, IRow } from 'visyn_core';
+import { Ajax, AppContext, IRow } from 'visyn_core/base';
 import { IParams } from 'tdp_core';
 import { deepCopy, log } from '../util';
 import {

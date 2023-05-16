@@ -1,17 +1,7 @@
 import { select, Selection } from 'd3v7';
 import SplitGrid from 'split-grid';
-import { IServerColumn } from 'visyn_core';
-import {
-  AppContext,
-  CLUEGraphManager,
-  IDatabaseViewDesc,
-  IObjectRef,
-  ITDPOptions,
-  NotificationHandler,
-  ObjectRefUtils,
-  ProvenanceGraph,
-  RestBaseUtils,
-} from 'tdp_core';
+import { IServerColumn, AppContext } from 'visyn_core/base';
+import { CLUEGraphManager, IDatabaseViewDesc, IObjectRef, ITDPOptions, NotificationHandler, ObjectRefUtils, ProvenanceGraph, RestBaseUtils } from 'tdp_core';
 import { cellline, tissue } from 'tdp_publicdb';
 import { Instance as TippyInstance } from 'tippy.js';
 import { createCohort, createCohortFromDB } from '../Cohort';

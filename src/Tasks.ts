@@ -1,4 +1,4 @@
-import { IServerColumn } from 'visyn_core';
+import type { IServerColumn } from 'visyn_core/base';
 import { log } from './util';
 import { EElementProvType, IElement, IElementProvJSON, IElementProvJSONTask, ITask, ITaskRep, TaskType } from './app/interfaces';
 import { GeneScoreAttribute, PanelScoreAttribute, ServerColumnAttribute, SpecialAttribute } from './data/Attribute';

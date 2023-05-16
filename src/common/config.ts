@@ -3,7 +3,7 @@
  */
 
 import { Categories } from 'tdp_publicdb';
-import { IServerColumn } from 'visyn_core';
+import { IServerColumn } from 'visyn_core/base';
 import { ColumnDescUtils, IAdditionalColumnDesc } from 'tdp_core';
 
 /**

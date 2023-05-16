@@ -1,4 +1,5 @@
-import { IAllFilters, IServerColumn } from 'tdp_core';
+import { IAllFilters } from 'tdp_core';
+import { IServerColumn } from 'visyn_core/base';
 import { IDataSubtypeConfig } from 'tdp_publicdb';
 import { ICohort } from '../app/interfaces';
 import { INumRange, IEqualsList, HistRouteType } from '../base/interfaces';
