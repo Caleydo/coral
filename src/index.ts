@@ -9,3 +9,4 @@ export * from './cohortview';
 export * from './base';
 
 export * from './util';
+export * from './utils';
