@@ -60,7 +60,6 @@
   },
   "dependencies": {
     "@keckelt/tsne": "^1.0.0",
-    "@upsetjs/bundle" : "^1.0.0",
     "arquero": "^4.8.0",
     "clone": "^2.1.2",
     "comlink": "^4.2.0",
@@ -69,7 +68,6 @@
     "lodash.merge": "^4.x",
     "lodash.pick": "^4.4.0",
     "loglevel": "^1.6.4",
-    "ndjson": "^2.0.0",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "react-router-dom": "^5.2.0",
