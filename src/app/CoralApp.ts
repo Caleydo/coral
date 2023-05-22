@@ -370,6 +370,7 @@ export class CoralApp {
       root.setLabels(idTypeConfig.idType, panel.id);
     }
     root.isInitial = true; // set cohort as root
+    
     // referenceCohort = reference; // save reference cohort
     this.rootCohort = root;
     const rootAsJSON = root.toProvenanceJSON();
