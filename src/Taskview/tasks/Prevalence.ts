@@ -1,14 +1,13 @@
-import {format, select, transition} from 'd3v7';
+import { format, select, transition } from 'd3v7';
 import tippy from 'tippy.js';
-import { Cohort, IBloodlineElement } from '../../Cohort';
-import { ICohort } from '../../CohortInterfaces';
-import { getRootCohort } from '../../cohortview';
-import { colors } from '../../colors';
-import { IAttribute, multiFilter } from '../../data/Attribute';
-import { IEqualsList, INumRange } from '../../rest';
-import { Task } from '../../Tasks';
+import { ICohort, IBloodlineElement } from '../../app/interfaces';
+import { IEqualsList, INumRange } from '../../base/interfaces';
+import { CohortContext } from '../../CohortContext';
+import { colors } from '../../config/colors';
+import { IAttribute, multiFilter } from '../../data';
+import type { Task } from '../../Tasks';
 import { createHTMLElementWithClasses, getSessionStorageItem, setSessionStorageItem } from '../../util';
-import { easyLabelFromFilter } from '../../utilLabels';
+import { easyLabelFromFilter } from '../../utils/labels';
 import { ATask } from './ATask';
 
 interface ITaskAttributValue {
@@ -17,7 +16,7 @@ interface ITaskAttributValue {
   values: Array<INumRange[] | IEqualsList>;
 }
 interface ICohortAndTasksConfig {
-  cht: Cohort;
+  cht: ICohort;
   size: number;
   refSize: number;
   attributeValue: ITaskAttributValue[];
@@ -48,7 +47,7 @@ export class Prevalence extends ATask {
 
   private prevalencePacks: IPrevalencePack[] = [];
 
-  private baseCohort: Cohort;
+  private baseCohort: ICohort;
 
   private baseCohortSize: number;
 
@@ -89,11 +88,11 @@ export class Prevalence extends ATask {
       const parentTaskId = parentTaskIDs.length === 0 ? null : parentTaskIDs[0];
 
       // get current cohort
-      let currentCht: Cohort;
+      let currentCht: ICohort;
       if (parentTaskId === null) {
         currentCht = this.baseCohort;
       } else {
-        currentCht = cohorts[chtIndex] as Cohort;
+        currentCht = cohorts[chtIndex] as ICohort;
       }
 
       // create prevalence pack for the current cohort
@@ -192,7 +191,7 @@ export class Prevalence extends ATask {
     await Promise.all(updatePromises);
   }
 
-  private createPrevalenceCohortPack(container: HTMLDivElement, chtIndex: number, parentTaskId: string, cohort: Cohort) {
+  private createPrevalenceCohortPack(container: HTMLDivElement, chtIndex: number, parentTaskId: string, cohort: ICohort) {
     // log.debug('cohort pack: ', {container, chtIndex, parentTaskId, cohort});
 
     const divPrevPack = document.createElement('div');
@@ -218,7 +217,7 @@ export class Prevalence extends ATask {
   }
 
   // crates fot each cohort a cohort and its tasks attribute value pair configuration
-  private createCohortAndTasksConfig(cohort: Cohort, bloodline: IBloodlineElement[], tasks: Task[]): ICohortAndTasksConfig {
+  private createCohortAndTasksConfig(cohort: ICohort, bloodline: IBloodlineElement[], tasks: Task[]): ICohortAndTasksConfig {
     const chtSize = cohort.getRetrievedSize();
     // const refSize = bloodline[bloodline.length - 1].size; // is the root cohort size
     const refSize = chtSize;
@@ -228,7 +227,7 @@ export class Prevalence extends ATask {
       // get the index of the current task in the bloodline
       const currTaskIdx = bloodline.map((bItem) => bItem.obj.id).indexOf(elem.id);
       // the corresponding cohort to the task is always the element before the task in the bloodline
-      const currChild = bloodline[currTaskIdx - 1].obj as Cohort;
+      const currChild = bloodline[currTaskIdx - 1].obj as ICohort;
       const taskAttValue = {
         taskId: elem.id,
         attributes: elem.attributes,
@@ -350,7 +349,7 @@ export class Prevalence extends ATask {
         this.createClickableTasks(d, chtIndex, index, nodes);
       });
 
-    // ### 3. row: cohort
+    // ### 3. row: ICohort
     // row container
     const divChtCreation = document.createElement('div');
     divChtCreation.classList.add('prev-cht-creation', 'prev-row', 'legend-task-row');
@@ -807,6 +806,8 @@ export class Prevalence extends ATask {
       for (const at of activeTasks) {
         const attValue = taskpair.filter((elem) => elem.taskId === at.id)[0].values;
         // create new cohort in db with the attribute and value
+        // TODO: fix me
+        // eslint-disable-next-line no-await-in-loop
         newBaseCohort = await multiFilter(oldBaseCohort, at.attributes, attValue);
         oldBaseCohort = newBaseCohort;
       }
@@ -817,6 +818,9 @@ export class Prevalence extends ATask {
         for (const nat of notActiveTasks) {
           // log.debug('not active Task pair: ', {attribute: nat.attribute, value: valExclMVForTask});
           // create new cohort in db with the attribute and value
+
+          // TODO: fix me
+          // eslint-disable-next-line no-await-in-loop
           newBaseCohort = await multiFilter(oldBaseCohort, nat.attributes, new Array(nat.attributes.length).fill(valExclMVForTask));
           oldBaseCohort = newBaseCohort;
         }
@@ -1017,7 +1021,7 @@ export class Prevalence extends ATask {
 
   // sets the base cohort on which all task operations will be applied
   private setBaseCohort() {
-    this.baseCohort = getRootCohort();
+    this.baseCohort = CohortContext.referenceCohort;
     this.baseCohortSize = this.baseCohort.getRetrievedSize();
   }
 

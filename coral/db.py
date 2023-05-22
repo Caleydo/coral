@@ -12,7 +12,7 @@ _log = getLogger(__name__)  # Logger name is file name
 _log.info("Setting up the db view.")
 
 # main dictionary containing all views registered for this plugin
-views = dict()
+views = {}
 schema = "cohort"
 
 # create a view + idtype for each available table

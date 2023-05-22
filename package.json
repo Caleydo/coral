@@ -2,7 +2,7 @@
   "name": "coral",
   "description": "Coral is a web-based cohort analysis tool to interactively create, refine, and analyze patient cohorts.",
   "homepage": "https://caleydo.org",
-  "version": "4.0.1-SNAPSHOT",
+  "version": "4.1.1-SNAPSHOT",
   "author": {
     "name": "PatrickAdelberger",
     "email": "coral@caleydo.org",
@@ -32,7 +32,7 @@
     "dist": "mkdir lib && cd dist && tar cvzf ../lib/bundle.tar.gz *",
     "docs": "visyn_scripts docs",
     "lint:fix": "visyn_scripts lint --fix",
-    "lint": "visyn_scripts lint || true",
+    "lint": "visyn_scripts lint",
     "prepack": "yarn run build",
     "start": "visyn_scripts start --env workspace_mode=single",
     "storybook:build": "NODE_OPTIONS=--max_old_space_size=4096 build-storybook",
@@ -74,8 +74,7 @@
     "react-dom": "^16.13.0",
     "react-router-dom": "^5.2.0",
     "split-grid": "^1.0.9",
-    "tdp_core": "git+ssh://git@github.com:datavisyn/tdp_core#develop",
-    "tdp_gene": "git+ssh://git@github.com:caleydo/tdp_gene#develop",
+    "tdp_core": "git+ssh://git@github.com/datavisyn/tdp_core#develop",
     "tdp_publicdb": "git+ssh://git@github.com/caleydo/tdp_publicdb#develop",
     "tippy.js": "^6.2.6",
     "tourdino": "git+ssh://git@github.com/caleydo/tourdino#develop",
@@ -89,12 +88,15 @@
   "devDependencies": {
     "@types/d3-selection": "^3.0.2",
     "@types/d3-transition": "^3.0.1",
-    "@types/react": "^16.14.6",
-    "@types/react-dom": "^16.9.5",
-    "@types/react-router-dom": "^5.1.7",
     "mkdirp": "0.5.1",
     "tslint": "~5.20.1",
     "worker-loader": "^2.0.0"
+  },
+  "resolutions": {
+    "@types/react": "~18.2.0",
+    "@types/react-dom": "~18.2.0",
+    "react": "~18.2.0",
+    "react-dom": "~18.2.0"
   },
   "browser": {
     "fs": false,

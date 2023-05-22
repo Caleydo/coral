@@ -1,5 +1,5 @@
 import { cellline, tissue } from 'tdp_publicdb';
-import { Cohort } from './Cohort';
+import { ICohort } from '../app/interfaces';
 
 export interface IEntitySourceConfig {
   idType: string;
@@ -65,7 +65,7 @@ export const idCovid19: IEntitySourceConfig = {
   base: 'covid19',
 };
 
-export function getIdTypeFromCohort(cht: Cohort): IEntitySourceConfig {
+export function getIdTypeFromCohort(cht: ICohort): IEntitySourceConfig {
   const entitiyTable = cht.table;
   if (entitiyTable === 'tdp_tissue') {
     return idTissue;

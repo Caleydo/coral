@@ -6,15 +6,15 @@ import { ERenderMode, renderMissingDOM } from 'lineupjs';
 import tippy from 'tippy.js';
 import vegaEmbed from 'vega-embed';
 import { getCohortLabel } from '../../Cohort';
-import { colors } from '../../colors';
 import { ServerColumnAttribute } from '../../data/Attribute';
 import { getAnimatedLoadingText, getAnimatedText, log } from '../../util';
-import { getIdTypeFromCohort } from '../../utilIdTypes';
 import { DATA_LABEL } from '../visualizations';
 import { ATask } from './ATask';
 import { LineUpDistributionColumn } from './Characterize/LineUpDistributionColumn';
 import { ProbabilityScatterplot } from './Characterize/ProbabilityScatterplot';
-export class Characterize extends ATask {
+import { getIdTypeFromCohort } from '../../config/entities';
+import { colors } from '../../config/colors';
+class Characterize extends ATask {
     constructor() {
         super(...arguments);
         this.label = `Characterize`;
@@ -36,15 +36,10 @@ export class Characterize extends ATask {
         const eventId = ++this.eventID; // get new eventID, we will compare it with the field again to see if it is still up to date
         this.cohorts = cohorts;
         if (this.cohorts.length >= 2) {
-            this.$container = this.body
-                .append('div')
-                .classed('characterize-container', true)
-                .node();
+            this.$container = this.body.append('div').classed('characterize-container', true).node();
             this.$container.insertAdjacentElement('beforeend', getAnimatedLoadingText('data'));
-            const attrCohort = (this.cohorts[0]);
-            attributes = [
-                new ServerColumnAttribute(attrCohort.idColumn.column, attrCohort.view, attrCohort.database, attrCohort.idColumn),
-            ];
+            const attrCohort = this.cohorts[0];
+            attributes = [new ServerColumnAttribute(attrCohort.idColumn.column, attrCohort.view, attrCohort.database, attrCohort.idColumn)];
             this.ids = await this.getData(attributes, this.cohorts);
             if (eventId !== this.eventID) {
                 return;
@@ -62,7 +57,9 @@ export class Characterize extends ATask {
         <button class="btn btn-coral compare" id="mutated">Compare by <i>Mutation Frequency</i></button>
         <span>&emsp;</span>
         <input type="checkbox" id="exclude-attributes" checked> Exclude the cohorts' <span class="hint">defining attributes</span></input>
-        <span>&emsp;</span><span>&emsp;</span>
+        <span>&emsp;</span>
+        <input type="checkbox" id="impute-missing" checked> Impute missing values</input>
+        <span>&emsp;</span>
 
 
         <!--
@@ -137,9 +134,7 @@ export class Characterize extends ATask {
     `); //in line to display "no overlap" note on the same line
         let localChtCopy = this.cohorts.slice();
         const aqData = this.ids.flat();
-        const idsAndTheirCohorts = aq.from(aqData)
-            .groupby('tissuename')
-            .pivot('Cohort', 'Cohort');
+        const idsAndTheirCohorts = aq.from(aqData).groupby('tissuename').pivot('Cohort', 'Cohort');
         const intersections = new Map();
         let maxJaccard = 0;
         let i = 0;
@@ -166,7 +161,7 @@ export class Characterize extends ATask {
                 intersections.set(`${drawCht.id}-${remainingCht.id}`, {
                     intersection: jaccardIndex,
                     exclusiveInA,
-                    exclusiveInB
+                    exclusiveInB,
                 });
                 if (jaccardIndex > maxJaccard) {
                     maxJaccard = jaccardIndex;
@@ -175,12 +170,12 @@ export class Characterize extends ATask {
             i++;
         }
         let noOverlapCounter = 0;
-        if (maxJaccard === 0) { // still zero --> no intersection
+        if (maxJaccard === 0) {
+            // still zero --> no intersection
             container.insertAdjacentHTML('beforeend', `Cohorts do not overlap.`);
         }
         else {
-            const intersectArr = [...intersections]
-                .sort((cmp1, cmp2) => cmp2[1].intersection - cmp1[1].intersection); // sort by decreasing overlap
+            const intersectArr = [...intersections].sort((cmp1, cmp2) => cmp2[1].intersection - cmp1[1].intersection); // sort by decreasing overlap
             for (const [chtKey, { intersection, exclusiveInA, exclusiveInB }] of intersectArr) {
                 if (intersection > 0) {
                     const [chtA, chtB] = chtKey.split('-');
@@ -192,7 +187,7 @@ export class Characterize extends ATask {
               <div class="cht-icon down left" style="background-color: ${remainingCht.colorTaskView}"></div>
               <div class="cht-overlap">
                 <div class="cht-bar" style="width: ${100 * (exclusiveInA + intersection)}%; background: ${drawCht.colorTaskView}"></div>
-                <div class="cht-bar" style="width: ${100 * (exclusiveInB + intersection)}%; margin-left: ${100 * (exclusiveInA)}%;background: ${remainingCht.colorTaskView}"></div>
+                <div class="cht-bar" style="width: ${100 * (exclusiveInB + intersection)}%; margin-left: ${100 * exclusiveInA}%;background: ${remainingCht.colorTaskView}"></div>
               </div>
               <div class="cht-bar-label">&ensp;${Characterize.formatPercent(intersection)}</div>
             </div>
@@ -225,27 +220,28 @@ export class Characterize extends ATask {
             tasks = tasks.reverse();
             tasks.forEach((task) => attributes.push(...task.attributes));
         }
-        this.definingAttributes = attributes.filter((attr, i, arr) => arr.findIndex((attr2) => (attr2.id === attr.id)) === i // if there are multiple attributes with the same id, keep the first
-        );
-        const attributeList = this.definingAttributes
-            .map((attr) => attr.label)
-            .reduce((text, attr) => text + `<li>${attr}</li>`, '<ol style="margin: 0.25em; padding-right: 1em;">') + '</ol>';
+        this.definingAttributes = attributes.filter((attr, i, arr) => arr.findIndex((attr2) => attr2.id === attr.id) === i);
+        const attributeList = this.definingAttributes.map((attr) => attr.label).reduce((text, attr) => text + `<li>${attr}</li>`, '<ol style="margin: 0.25em; padding-right: 1em;">') +
+            '</ol>';
         tippy(hintText, { content: attributeList });
     }
     async compare(endpoint) {
         const excludeChechbox = this.$container.querySelector('input#exclude-attributes');
         const excludeBloodline = excludeChechbox.checked;
-        const excludeAttributes = !excludeBloodline ? [] : this.definingAttributes
-            .filter((attr) => {
-            if (endpoint === 'cmp_meta') {
-                return 'serverColumn' in attr;
-            }
-            else if (endpoint === 'cmp_mutated') {
-                return 'gene' in attr;
-            }
-            return true;
-        })
-            .map((attr) => 'gene' in attr ? attr.gene : attr.id);
+        const excludeAttributes = !excludeBloodline
+            ? []
+            : this.definingAttributes
+                .filter((attr) => {
+                if (endpoint === 'cmp_meta') {
+                    return 'serverColumn' in attr;
+                }
+                else if (endpoint === 'cmp_mutated') {
+                    return 'gene' in attr;
+                }
+                return true;
+            })
+                .map((attr) => ('gene' in attr ? attr.gene : attr.id));
+        const impute = this.$container.querySelector('input#impute-missing').checked;
         const maxDepth = 100; // parseInt((this.$container.querySelector('input#max-depth') as HTMLInputElement).value);
         const minGroupSize = 1; //parseInt((this.$container.querySelector('input#min-group-size') as HTMLInputElement).value);
         const url = new URL(`/kokiri/${endpoint}/`, location.href);
@@ -253,10 +249,12 @@ export class Characterize extends ATask {
         this.ws = new WebSocket(url);
         this.ws.onopen = async () => {
             const data = JSON.stringify({
+                // send as string, because sending JSON apparantly only works this way 🤷‍♀️ (see https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications)
                 exclude: excludeAttributes,
                 n_estimators: Characterize.TREES,
                 max_depth: maxDepth,
                 min_samples_leaf: minGroupSize,
+                impute,
                 ids: this.ids,
             });
             try {
@@ -294,8 +292,7 @@ export class Characterize extends ATask {
                 }
             }
             else if (responseData.embedding) {
-                const vegaContainer = this.$container
-                    .querySelector('.chart-container');
+                const vegaContainer = this.$container.querySelector('.chart-container');
                 vegaContainer.innerHTML = '';
                 const embeddingData = responseData.embedding;
                 embeddingData.forEach((i) => {
@@ -333,49 +330,51 @@ export class Characterize extends ATask {
                     target: target_cht.label,
                     predict: predicted_cht.label,
                     correct: row === column,
-                    share: shareOfPredicted
+                    share: shareOfPredicted,
                 });
             }
         }
         this.$container.querySelector('.cohort-confusion').innerHTML = '';
         let vegaContainer = this.$container.querySelector('.cohort-confusion');
         let result = await vegaEmbed(vegaContainer, {
-            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-            "data": { "values": confPlotData },
+            $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
+            data: { values: confPlotData },
             padding: 20,
             height: { step: 30 },
-            width: "container",
-            "encoding": {
-                "x": {
-                    "field": "share", "type": "quantitative",
-                    "title": "Predictions",
-                    "stack": true,
-                    "axis": { "format": ".1%" }
-                }
+            width: 'container',
+            encoding: {
+                x: {
+                    field: 'share',
+                    type: 'quantitative',
+                    title: 'Predictions',
+                    stack: true,
+                    axis: { format: '.1%' },
+                },
             },
-            "layer": [{
-                    "mark": { "type": "bar", "tooltip": true, },
-                    "encoding": {
-                        "color": { "field": "predict", legend: null, sort: null },
-                        "y": { "field": "target", "title": null, sort: null },
-                        "order": { "field": "share", "type": "quantitative", "sort": "descending" },
-                        "opacity": {
-                            "condition": { "test": { "field": "correct", "equal": true }, "value": 1 },
-                            "value": 0.5
-                        }
-                    }
+            layer: [
+                {
+                    mark: { type: 'bar', tooltip: true },
+                    encoding: {
+                        color: { field: 'predict', legend: null, sort: null },
+                        y: { field: 'target', title: null, sort: null },
+                        order: { field: 'share', type: 'quantitative', sort: 'descending' },
+                        opacity: {
+                            condition: { test: { field: 'correct', equal: true }, value: 1 },
+                            value: 0.5,
+                        },
+                    },
                 },
                 {
-                    "data": { "values": [{ "val": 1 }] },
-                    "mark": { "type": "rule", "strokeDash": [2] },
-                    "encoding": {
-                        "x": { "field": "val" }
-                    }
-                }
+                    data: { values: [{ val: 1 }] },
+                    mark: { type: 'rule', strokeDash: [2] },
+                    encoding: {
+                        x: { field: 'val' },
+                    },
+                },
             ],
             config: {
-                range: { category: this.cohorts.map((cht) => cht.colorTaskView) }
-            }
+                range: { category: this.cohorts.map((cht) => cht.colorTaskView) },
+            },
         }, { actions: false, renderer: 'svg' });
         log.debug('confusion', result.spec);
         this.chart.push(result.view);
@@ -388,19 +387,18 @@ export class Characterize extends ATask {
         }
         this.$container.querySelector('.attribute-ranking').innerHTML = '';
         this.attributeRanking = builder
-            .column(LineUpJS.buildNumberColumn('importance', [0, 1])
-            .label('Importance')
-            .width(150)
-            .colorMapping(colors.barColor)
-            .numberFormat('.1%'))
-            .column(showCategoryColumn ?
-            LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(150) :
-            LineUpJS.buildStringColumn('attribute').label('Attribute').width(200))
+            .column(LineUpJS.buildNumberColumn('importance', [0, 1]).label('Importance').width(150).colorMapping(colors.barColor).numberFormat('.1%'))
+            .column(showCategoryColumn
+            ? LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(150)
+            : LineUpJS.buildStringColumn('attribute').label('Attribute').width(200))
             .column(categoryCol)
-            .column(LineUpJS.buildColumn("myDistributionColumn", 'distribution').label('Distribution')
-            .renderer("myDistributionRenderer", "myDistributionRenderer").width(200).build([]))
-            .registerRenderer("myDistributionRenderer", new MyDistributionRenderer(this.cohorts))
-            .registerColumnType("myDistributionColumn", LineUpDistributionColumn)
+            .column(LineUpJS.buildColumn('myDistributionColumn', 'distribution')
+            .label('Distribution')
+            .renderer('myDistributionRenderer', 'myDistributionRenderer')
+            .width(200)
+            .build([]))
+            .registerRenderer('myDistributionRenderer', new MyDistributionRenderer(this.cohorts))
+            .registerColumnType('myDistributionColumn', LineUpDistributionColumn)
             .deriveColors()
             .ranking(LineUpJS.buildRanking()
             .supportTypes()
@@ -416,7 +414,7 @@ export class Characterize extends ATask {
         children[children.length - 1].setFilter({
             filterMissing: true,
             min: 0.005,
-            max: Infinity
+            max: Infinity,
         });
         this.attributeRanking.on('selectionChanged', (dataIndices) => this.lineUpAttributeSelection(dataIndices));
     }
@@ -430,7 +428,8 @@ export class Characterize extends ATask {
             .column(LineUpJS.buildCategoricalColumn('cht', this.cohorts.map((cht, i) => ({ name: '' + i, label: cht.label, color: cht.colorTaskView })))
             .label('Cohort')
             .width(Math.min(Math.max(this.cohorts.length * 30, 100), 200))
-            .renderer('catheatmap', 'categorical').asSet())
+            .renderer('catheatmap', 'categorical')
+            .asSet())
             .column(LineUpJS.buildNumberColumn('probs', [0, 1])
             .label('Cohort Probability')
             .width(150)
@@ -474,9 +473,7 @@ export class Characterize extends ATask {
       </div>
     `);
         this.progressBar = wrapper.querySelector('.progress .progress-bar');
-        wrapper
-            .querySelector(('a.run'))
-            .addEventListener('click', () => {
+        wrapper.querySelector('a.run').addEventListener('click', () => {
             this.ws?.close();
             wrapper.querySelector('.progress-ctrl').remove();
             this.progressBar.textContent = 'Stopped';
@@ -485,7 +482,7 @@ export class Characterize extends ATask {
     }
     setProgress(iteration, done = false) {
         this.progressBar.textContent = `${iteration}/${Characterize.TREES}`;
-        this.progressBar.style.width = `${100 * iteration / Characterize.TREES}%`;
+        this.progressBar.style.width = `${(100 * iteration) / Characterize.TREES}%`;
         if (iteration === Characterize.TREES) {
             this.setProgressIndefinite();
         }
@@ -507,8 +504,7 @@ export class Characterize extends ATask {
         }, delay);
     }
     async getData(attributes, cohorts) {
-        const dataPromises = cohorts
-            .map((cht, chtIndex) => {
+        const dataPromises = cohorts.map((cht, chtIndex) => {
             const promise = new Promise(async (resolve, reject) => {
                 const chtDataPromises = attributes.map((attr) => attr.getData(cht.dbId));
                 try {
@@ -535,10 +531,11 @@ Characterize.TREES = 500;
 Characterize.formatPercent = format('.1~%');
 Characterize.spinner = `<div class="fa-3x center green"> <i class="fas fa-spinner fa-pulse"></i></div>`;
 Characterize.KOKIRI_COLOR = '#90C08F';
-export class MyDistributionRenderer {
+export { Characterize };
+class MyDistributionRenderer {
     constructor(cohorts) {
         this.cohorts = cohorts;
-        this.title = "Distribution Chart";
+        this.title = 'Distribution Chart';
     }
     canRender(col, mode) {
         return mode === ERenderMode.CELL;
@@ -578,25 +575,30 @@ export class MyDistributionRenderer {
                     const chart = d3.select(n).select('#chart g');
                     if (d.v.type === 'cat') {
                         // X axis
-                        var x = d3.scaleBand()
+                        var x = d3
+                            .scaleBand()
                             .range([0, MyDistributionRenderer.WIDTH])
-                            .domain(data.map(function (d) { return d.cht; }))
+                            .domain(data.map(function (d) {
+                            return d.cht;
+                        }))
                             .padding(0.2);
                         // Add Y axis
-                        var y = d3.scaleLinear()
-                            .domain([0, 1])
-                            .range([MyDistributionRenderer.HEIGHT, 0]);
+                        var y = d3.scaleLinear().domain([0, 1]).range([MyDistributionRenderer.HEIGHT, 0]);
                         // Bars
-                        chart.selectAll("rect")
+                        chart
+                            .selectAll('rect')
                             .data(data)
                             .enter()
-                            .append("rect")
-                            .attr("x", (d) => x(d.cht))
-                            .attr("y", (d) => y(d.value))
-                            .attr("width", x.bandwidth())
-                            .attr("height", function (d) { return MyDistributionRenderer.HEIGHT - y(d.value); })
-                            .attr("fill", (d, i) => this.cohorts[i].colorTaskView)
-                            .exit().remove();
+                            .append('rect')
+                            .attr('x', (d) => x(d.cht))
+                            .attr('y', (d) => y(d.value))
+                            .attr('width', x.bandwidth())
+                            .attr('height', function (d) {
+                            return MyDistributionRenderer.HEIGHT - y(d.value);
+                        })
+                            .attr('fill', (d, i) => this.cohorts[i].colorTaskView)
+                            .exit()
+                            .remove();
                     }
                     else {
                         log.info(`type of ${d.v.attribute} is  ${d.v.type}, which is not supported`);
@@ -611,4 +613,4 @@ export class MyDistributionRenderer {
 }
 MyDistributionRenderer.WIDTH = 200;
 MyDistributionRenderer.HEIGHT = 40;
-//# sourceMappingURL=Characterize.js.map
+export { MyDistributionRenderer };

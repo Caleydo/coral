@@ -1,31 +1,30 @@
-import { Column, EAdvancedSortMethod, ECompareValueType, IAdvancedBoxPlotData, IColorMappingFunction, IDataRow, IKeyValue, IMapAbleDesc, IMapColumnDesc, IMappingFunction, INumberFilter, INumbersDesc, ITypeFactory, MapColumn, ValueColumn } from "lineupjs";
-import { IEventListener } from "lineupjs/build/src/internal";
-import { dirty, dirtyCaches, dirtyHeader, dirtyValues, groupRendererChanged, labelChanged, metaDataChanged, rendererTypeChanged, summaryRendererChanged, visibilityChanged, widthChanged } from "lineupjs/build/src/model/Column";
-import { dataLoaded } from "lineupjs/build/src/model/ValueColumn";
+import { Column, EAdvancedSortMethod, ECompareValueType, IAdvancedBoxPlotData, IColorMappingFunction, IDataRow, IEventListener, IKeyValue, IMapAbleDesc, IMapColumnDesc, IMappingFunction, INumberFilter, INumbersDesc, ITypeFactory, MapColumn, ValueColumn } from 'lineupjs';
+import { dirty, dirtyCaches, dirtyHeader, dirtyValues, groupRendererChanged, labelChanged, metaDataChanged, rendererTypeChanged, summaryRendererChanged, visibilityChanged, widthChanged } from 'lineupjs/model/Column';
+import { dataLoaded } from 'lineupjs/model/ValueColumn';
 /**
  * emitted when the mapping property changes
  * @asMemberOf NumberMapColumn
  * @event
  */
-export declare function mappingChanged_NMC(previous: IMappingFunction, current: IMappingFunction): void;
+export declare function mappingChangedNMC(previous: IMappingFunction, current: IMappingFunction): void;
 /**
  * emitted when the color mapping property changes
  * @asMemberOf NumberMapColumn
  * @event
  */
-export declare function colorMappingChanged_NMC(previous: IColorMappingFunction, current: IColorMappingFunction): void;
+export declare function colorMappingChangedNMC(previous: IColorMappingFunction, current: IColorMappingFunction): void;
 /**
  * emitted when the sort method property changes
  * @asMemberOf NumberMapColumn
  * @event
  */
-export declare function sortMethodChanged_NMC(previous: EAdvancedSortMethod, current: EAdvancedSortMethod): void;
+export declare function sortMethodChangedNMC(previous: EAdvancedSortMethod, current: EAdvancedSortMethod): void;
 /**
  * emitted when the filter property changes
  * @asMemberOf NumberMapColumn
  * @event
  */
-export declare function filterChanged_NMC(previous: INumberFilter | null, current: INumberFilter | null): void;
+export declare function filterChangedNMC(previous: INumberFilter | null, current: INumberFilter | null): void;
 export declare type ILineUpDistributionColumnDesc = INumbersDesc & IMapColumnDesc<number[]>;
 export declare class LineUpDistributionColumn extends MapColumn<number[]> {
     static readonly EVENT_MAPPING_CHANGED = "mappingChanged";
@@ -62,10 +61,10 @@ export declare class LineUpDistributionColumn extends MapColumn<number[]> {
     getNumber(row: IDataRow): number;
     getRawNumber(row: IDataRow): number;
     iterNumber(row: IDataRow): number[];
-    iterRawNumber(row: IDataRow): number[];
+    iterRawNumber(row: IDataRow): number;
     getValue(row: IDataRow): IKeyValue<number[]>[];
     getRawValue(row: IDataRow): IKeyValue<number[]>[];
-    getExportValue(row: IDataRow, format: "text" | "json"): any;
+    getExportValue(row: IDataRow, format: 'text' | 'json'): any;
     getFormatedLabelArray(arr: any): string;
     getLabels(row: IDataRow): {
         key: string;
@@ -76,9 +75,9 @@ export declare class LineUpDistributionColumn extends MapColumn<number[]> {
     dump(toDescRef: (desc: any) => any): any;
     restore(dump: any, factory: ITypeFactory): void;
     protected createEventList(): string[];
-    on(type: typeof LineUpDistributionColumn.EVENT_MAPPING_CHANGED, listener: typeof mappingChanged_NMC | null): this;
-    on(type: typeof LineUpDistributionColumn.EVENT_SORTMETHOD_CHANGED, listener: typeof sortMethodChanged_NMC | null): this;
-    on(type: typeof LineUpDistributionColumn.EVENT_FILTER_CHANGED, listener: typeof filterChanged_NMC | null): this;
+    on(type: typeof LineUpDistributionColumn.EVENT_MAPPING_CHANGED, listener: typeof mappingChangedNMC | null): this;
+    on(type: typeof LineUpDistributionColumn.EVENT_SORTMETHOD_CHANGED, listener: typeof sortMethodChangedNMC | null): this;
+    on(type: typeof LineUpDistributionColumn.EVENT_FILTER_CHANGED, listener: typeof filterChangedNMC | null): this;
     on(type: typeof ValueColumn.EVENT_DATA_LOADED, listener: typeof dataLoaded | null): this;
     on(type: typeof Column.EVENT_WIDTH_CHANGED, listener: typeof widthChanged | null): this;
     on(type: typeof Column.EVENT_LABEL_CHANGED, listener: typeof labelChanged | null): this;

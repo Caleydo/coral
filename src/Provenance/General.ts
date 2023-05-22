@@ -1,8 +1,8 @@
 import { ActionMetaData, ActionUtils, ICmdResult, IObjectRef, ObjectRefUtils } from 'tdp_core';
-import { CohortApp } from '../app';
-import { IElementProvJSON, IElementProvJSONCohort } from '../CohortInterfaces';
+import type { CoralApp } from '../app/CoralApp';
+import { IElementProvJSON, IElementProvJSONCohort } from '../app/interfaces';
 import { log } from '../util';
-import { IEntitySourceConfig } from '../utilIdTypes';
+import { IEntitySourceConfig } from '../config/entities';
 
 /** ****************************
  ---------- GENERAL ----------
@@ -11,11 +11,12 @@ import { IEntitySourceConfig } from '../utilIdTypes';
 // ----------------------------
 // ---- DATASET ---------------
 // ----------------------------
-export function setDatasetAction(provider: IObjectRef<CohortApp>, newDataset: IDatasetDesc, oldDataset: IDatasetDesc) {
+export function setDatasetAction(provider: IObjectRef<CoralApp>, newDataset: IDatasetDesc, oldDataset: IDatasetDesc) {
   log.debug('Create setDataset Action');
   return ActionUtils.action(
     ActionMetaData.actionMeta('Change Dataset', ObjectRefUtils.category.data, ObjectRefUtils.operation.update),
     'chtSetDataset',
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setDatasetImpl,
     [provider],
     {
@@ -25,9 +26,9 @@ export function setDatasetAction(provider: IObjectRef<CohortApp>, newDataset: ID
   );
 }
 
-export async function setDatasetImpl(inputs: IObjectRef<CohortApp>[], parameter: any): Promise<ICmdResult> {
+export async function setDatasetImpl(inputs: IObjectRef<CoralApp>[], parameter: any): Promise<ICmdResult> {
   log.debug('setDataset impl', parameter.oldDataset, parameter.newDataset);
-  const app: CohortApp = await inputs[0].v;
+  const app: CoralApp = await inputs[0].v;
   await app.setDataset(parameter.newDataset);
   return {
     inverse: setDatasetAction(inputs[0], parameter.oldDataset, parameter.newDataset),

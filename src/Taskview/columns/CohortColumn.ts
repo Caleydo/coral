@@ -1,9 +1,9 @@
-import {select} from 'd3v7';
-import {Cohort} from '../../Cohort';
-import {OnboardingManager} from '../../OnboardingManager';
-import {SortType} from '../../util';
-import {ColumnSortEvent} from '../../utilCustomEvents';
-import {ADataColumn} from './AColumn';
+import { select } from 'd3v7';
+import { OnboardingManager } from '../../OnboardingManager';
+import { SortType } from '../../util';
+import { ColumnSortEvent } from '../../base/events';
+import { ADataColumn } from './AColumn';
+import { ICohort } from '../../app/interfaces';
 
 /**
  * Displays cohorts with their given representation as a column
@@ -29,7 +29,7 @@ export abstract class ACohortColumn extends ADataColumn {
     this.addSortButton();
   }
 
-  async setCellContent(cell: HTMLDivElement, cht: Cohort): Promise<void> {
+  async setCellContent(cell: HTMLDivElement, cht: ICohort): Promise<void> {
     const clone = cht.representation.getClone();
     cell.appendChild(clone); // Using appendChild (instead of innerHTML) is important to keep track of 'checked' attributes and others
     cell.style.padding = '2px';
@@ -77,7 +77,7 @@ export class InputCohortColumn extends ACohortColumn {
     this.$column.classList.add('first');
   }
 
-  setCohorts(cohorts: Cohort[]) {
+  setCohorts(cohorts: ICohort[]) {
     if (this.init && cohorts.length > 0) {
       this.init = false;
       OnboardingManager.addTip('input', this.$header);
@@ -91,7 +91,7 @@ export class InputCohortColumn extends ACohortColumn {
 }
 
 export class OutputCohortColumn extends ACohortColumn {
-  cohorts: Cohort[];
+  cohorts: ICohort[];
 
   init = true;
 
@@ -100,7 +100,7 @@ export class OutputCohortColumn extends ACohortColumn {
     this.$column.classList.add('last');
   }
 
-  public setCohorts(cohorts: Cohort[]) {
+  public setCohorts(cohorts: ICohort[]) {
     this.cohorts = cohorts;
     super.setCohorts(cohorts);
 

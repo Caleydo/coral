@@ -1,4 +1,4 @@
-import {format} from 'd3-format';
+import { format } from 'd3-format';
 import {
   Column,
   dialogAddons,
@@ -6,7 +6,11 @@ import {
   ECompareValueType,
   IAdvancedBoxPlotData,
   IColorMappingFunction,
-  IDataRow, IKeyValue, IMapAbleDesc, IMapColumnDesc,
+  IDataRow,
+  IEventListener,
+  IKeyValue,
+  IMapAbleDesc,
+  IMapColumnDesc,
   IMappingFunction,
   INumberFilter,
   INumbersDesc,
@@ -16,11 +20,8 @@ import {
   ScaleMappingFunction,
   SortByDefault,
   toolbar,
-  ValueColumn
-} from "lineupjs";
-import {
-  IEventListener
-} from "lineupjs/build/src/internal";
+  ValueColumn,
+} from 'lineupjs';
 import {
   dirty,
   dirtyCaches,
@@ -32,62 +33,47 @@ import {
   rendererTypeChanged,
   summaryRendererChanged,
   visibilityChanged,
-  widthChanged
-} from "lineupjs/build/src/model/Column";
-import {dataLoaded} from "lineupjs/build/src/model/ValueColumn";
-
+  widthChanged,
+} from 'lineupjs/model/Column';
+import { dataLoaded } from 'lineupjs/model/ValueColumn';
 
 /**
  * emitted when the mapping property changes
  * @asMemberOf NumberMapColumn
  * @event
  */
-export declare function mappingChanged_NMC(
-  previous: IMappingFunction,
-  current: IMappingFunction
-): void;
+export declare function mappingChangedNMC(previous: IMappingFunction, current: IMappingFunction): void;
 /**
  * emitted when the color mapping property changes
  * @asMemberOf NumberMapColumn
  * @event
  */
-export declare function colorMappingChanged_NMC(
-  previous: IColorMappingFunction,
-  current: IColorMappingFunction
-): void;
+export declare function colorMappingChangedNMC(previous: IColorMappingFunction, current: IColorMappingFunction): void;
 
 /**
  * emitted when the sort method property changes
  * @asMemberOf NumberMapColumn
  * @event
  */
-export declare function sortMethodChanged_NMC(
-  previous: EAdvancedSortMethod,
-  current: EAdvancedSortMethod
-): void;
+export declare function sortMethodChangedNMC(previous: EAdvancedSortMethod, current: EAdvancedSortMethod): void;
 
 /**
  * emitted when the filter property changes
  * @asMemberOf NumberMapColumn
  * @event
  */
-export declare function filterChanged_NMC(
-  previous: INumberFilter | null,
-  current: INumberFilter | null
-): void;
+export declare function filterChangedNMC(previous: INumberFilter | null, current: INumberFilter | null): void;
 
 export declare type ILineUpDistributionColumnDesc = INumbersDesc & IMapColumnDesc<number[]>;
 
-@toolbar("rename", "filterNumber", "sort", "sortBy")
-@dialogAddons("sort", "sortNumbers")
-@SortByDefault("descending")
+@toolbar('rename', 'filterNumber', 'sort', 'sortBy')
+@dialogAddons('sort', 'sortNumbers')
+@SortByDefault('descending')
 //@ts-ignore
 export class LineUpDistributionColumn extends MapColumn<number[]> {
   static readonly EVENT_MAPPING_CHANGED = NumberColumn.EVENT_MAPPING_CHANGED;
-  static readonly EVENT_COLOR_MAPPING_CHANGED =
-    NumberColumn.EVENT_COLOR_MAPPING_CHANGED;
-  static readonly EVENT_SORTMETHOD_CHANGED =
-    NumberColumn.EVENT_SORTMETHOD_CHANGED;
+  static readonly EVENT_COLOR_MAPPING_CHANGED = NumberColumn.EVENT_COLOR_MAPPING_CHANGED;
+  static readonly EVENT_SORTMETHOD_CHANGED = NumberColumn.EVENT_SORTMETHOD_CHANGED;
   static readonly EVENT_FILTER_CHANGED = NumberColumn.EVENT_FILTER_CHANGED;
 
   private readonly numberFormat: (n: number) => string = DEFAULT_FORMATTER;
@@ -106,31 +92,21 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
   private min: number = 0;
   private max: number = 1;
 
-  constructor(
-    id: string,
-    desc: Readonly<ILineUpDistributionColumnDesc>,
-    factory: ITypeFactory
-  ) {
+  constructor(id: string, desc: Readonly<ILineUpDistributionColumnDesc>, factory: ITypeFactory) {
     super(id, desc);
     // this.mapping = restoreMapping(desc, factory); // TODO: check, if desc.range and desc.domain can be infered
-    this.mapping = new ScaleMappingFunction(
-      [desc["min"], desc["max"]],
-      "linear",
-      [0, 1]
-    );
+    this.mapping = new ScaleMappingFunction([desc['min'], desc['max']], 'linear', [0, 1]);
     this.original = this.mapping.clone();
     this.sort = desc.sort || EAdvancedSortMethod.median;
-    this.colorMapping = factory.colorMappingFunction(
-      desc.colorMapping || desc.color
-    );
+    this.colorMapping = factory.colorMappingFunction(desc.colorMapping || desc.color);
 
     if (desc.numberFormat) {
       this.numberFormat = format(desc.numberFormat);
     }
 
     //TODO: infer min and max if it is not given
-    this.min = desc["min"];
-    this.max = desc["max"];
+    this.min = desc['min'];
+    this.max = desc['max'];
   }
 
   getMin() {
@@ -171,10 +147,7 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
     return total / numbers.length;
   }
 
-  private get_advanced_value(
-    method: EAdvancedSortMethod,
-    value_list: number[]
-  ): number {
+  private get_advanced_value(method: EAdvancedSortMethod, value_list: number[]): number {
     switch (method) {
       case EAdvancedSortMethod.min:
         return Math.min(...value_list);
@@ -195,7 +168,7 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
 
   toCompareValue(row: IDataRow): number {
     let data = this.getValue(row);
-    let value_list = data[0]["value"];
+    let value_list = data[0]['value'];
     const method = this.getSortMethod();
     return this.get_advanced_value(method, value_list);
   }
@@ -204,9 +177,7 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
     return ECompareValueType.FLOAT;
   }
 
-  private getBoxPlotDataFromValueList(
-    data: number[]
-  ): IAdvancedBoxPlotData | null {
+  private getBoxPlotDataFromValueList(data: number[]): IAdvancedBoxPlotData | null {
     return {
       mean: this.get_advanced_value(EAdvancedSortMethod.mean, data),
       missing: 0,
@@ -221,8 +192,8 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
   }
 
   getBoxPlotData(row: IDataRow): IAdvancedBoxPlotData | null {
-    console.log("getBoxPlotData");
-    const data = this.getValue(row)[0]["value"];
+    console.log('getBoxPlotData');
+    const data = this.getValue(row)[0]['value'];
     if (data == null) {
       return null;
     }
@@ -230,8 +201,8 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
   }
 
   getRawBoxPlotData(row: IDataRow): IAdvancedBoxPlotData | null {
-    console.log("getRawBoxPlotData");
-    const data = this.getRawValue(row)[0]["value"];
+    console.log('getRawBoxPlotData');
+    const data = this.getRawValue(row)[0]['value'];
     if (data == null) {
       return null;
     }
@@ -239,12 +210,12 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
   }
 
   getRange() {
-    console.log("getRange");
+    console.log('getRange');
     return this.mapping.getRange(this.numberFormat);
   }
 
   getColorMapping() {
-    console.log("getColorMapping");
+    console.log('getColorMapping');
     return this.colorMapping.clone();
   }
 
@@ -263,7 +234,7 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
     const r = this.getValue(row);
     // return r ? r.map((d) => d.value) : [NaN];
     // return r ? r[0]["value"] : [NaN];
-    return [this.get_advanced_value(EAdvancedSortMethod.median, r[0]["value"])];
+    return [this.get_advanced_value(EAdvancedSortMethod.median, r[0]['value'])];
   }
 
   iterRawNumber(row: IDataRow) {
@@ -271,8 +242,12 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
     const r = this.getRawValue(row);
     // return r ? r.map((d) => d.value) : [NaN];
     // return r ? r[0]["value"] : [NaN];
+
     //@ts-ignore
-    return [this.get_advanced_value(EAdvancedSortMethod.median, r.map((d) => d["value"]))];
+    return this.get_advanced_value(
+      EAdvancedSortMethod.median,
+      r.map((d) => d.value || d[0]?.value),
+    );
   }
 
   getValue(row: IDataRow): IKeyValue<number[]>[] {
@@ -302,19 +277,17 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
     return r == null ? [] : r;
   }
 
-  getExportValue(row: IDataRow, format: "text" | "json"): any {
-    return format === "json"
-      ? this.getRawValue(row)
-      : super.getExportValue(row, format);
+  getExportValue(row: IDataRow, format: 'text' | 'json'): any {
+    return format === 'json' ? this.getRawValue(row) : super.getExportValue(row, format);
   }
 
   getFormatedLabelArray(arr): string {
-    return "[" + arr.map(item => this.numberFormat(item)).toString() + "]";
+    return '[' + arr.map((item) => this.numberFormat(item)).toString() + ']';
   }
 
   getLabels(row: IDataRow) {
     const v = this.getRawValue(row);
-    return v.map(({key, value}) => ({key, value: this.getFormatedLabelArray(value)}));
+    return v.map(({ key, value }) => ({ key, value: this.getFormatedLabelArray(value) }));
   }
 
   getSortMethod() {
@@ -325,11 +298,7 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
     if (this.sort === sort) {
       return;
     }
-    this.fire(
-      [LineUpDistributionColumn.EVENT_SORTMETHOD_CHANGED],
-      this.sort,
-      (this.sort = sort)
-    );
+    this.fire([LineUpDistributionColumn.EVENT_SORTMETHOD_CHANGED], this.sort, (this.sort = sort));
     // sort by me if not already sorted by me
     if (!this.isSortedByMe().asc) {
       this.sortByMe();
@@ -339,9 +308,7 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
   dump(toDescRef: (desc: any) => any): any {
     const r = super.dump(toDescRef);
     r.sortMethod = this.getSortMethod();
-    r.filter = !isDummyNumberFilter(this.currentFilter)
-      ? this.currentFilter
-      : null;
+    r.filter = !isDummyNumberFilter(this.currentFilter) ? this.currentFilter : null;
     r.map = this.mapping.toJSON();
     return r;
   }
@@ -369,63 +336,21 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
       ]);
   }
 
-  on(
-    type: typeof LineUpDistributionColumn.EVENT_MAPPING_CHANGED,
-    listener: typeof mappingChanged_NMC | null
-  ): this;
-  on(
-    type: typeof LineUpDistributionColumn.EVENT_SORTMETHOD_CHANGED,
-    listener: typeof sortMethodChanged_NMC | null
-  ): this;
-  on(
-    type: typeof LineUpDistributionColumn.EVENT_FILTER_CHANGED,
-    listener: typeof filterChanged_NMC | null
-  ): this;
-  on(
-    type: typeof ValueColumn.EVENT_DATA_LOADED,
-    listener: typeof dataLoaded | null
-  ): this;
-  on(
-    type: typeof Column.EVENT_WIDTH_CHANGED,
-    listener: typeof widthChanged | null
-  ): this;
-  on(
-    type: typeof Column.EVENT_LABEL_CHANGED,
-    listener: typeof labelChanged | null
-  ): this;
-  on(
-    type: typeof Column.EVENT_METADATA_CHANGED,
-    listener: typeof metaDataChanged | null
-  ): this;
+  on(type: typeof LineUpDistributionColumn.EVENT_MAPPING_CHANGED, listener: typeof mappingChangedNMC | null): this;
+  on(type: typeof LineUpDistributionColumn.EVENT_SORTMETHOD_CHANGED, listener: typeof sortMethodChangedNMC | null): this;
+  on(type: typeof LineUpDistributionColumn.EVENT_FILTER_CHANGED, listener: typeof filterChangedNMC | null): this;
+  on(type: typeof ValueColumn.EVENT_DATA_LOADED, listener: typeof dataLoaded | null): this;
+  on(type: typeof Column.EVENT_WIDTH_CHANGED, listener: typeof widthChanged | null): this;
+  on(type: typeof Column.EVENT_LABEL_CHANGED, listener: typeof labelChanged | null): this;
+  on(type: typeof Column.EVENT_METADATA_CHANGED, listener: typeof metaDataChanged | null): this;
   on(type: typeof Column.EVENT_DIRTY, listener: typeof dirty | null): this;
-  on(
-    type: typeof Column.EVENT_DIRTY_HEADER,
-    listener: typeof dirtyHeader | null
-  ): this;
-  on(
-    type: typeof Column.EVENT_DIRTY_VALUES,
-    listener: typeof dirtyValues | null
-  ): this;
-  on(
-    type: typeof Column.EVENT_DIRTY_CACHES,
-    listener: typeof dirtyCaches | null
-  ): this;
-  on(
-    type: typeof Column.EVENT_RENDERER_TYPE_CHANGED,
-    listener: typeof rendererTypeChanged | null
-  ): this;
-  on(
-    type: typeof Column.EVENT_GROUP_RENDERER_TYPE_CHANGED,
-    listener: typeof groupRendererChanged | null
-  ): this;
-  on(
-    type: typeof Column.EVENT_SUMMARY_RENDERER_TYPE_CHANGED,
-    listener: typeof summaryRendererChanged | null
-  ): this;
-  on(
-    type: typeof Column.EVENT_VISIBILITY_CHANGED,
-    listener: typeof visibilityChanged | null
-  ): this;
+  on(type: typeof Column.EVENT_DIRTY_HEADER, listener: typeof dirtyHeader | null): this;
+  on(type: typeof Column.EVENT_DIRTY_VALUES, listener: typeof dirtyValues | null): this;
+  on(type: typeof Column.EVENT_DIRTY_CACHES, listener: typeof dirtyCaches | null): this;
+  on(type: typeof Column.EVENT_RENDERER_TYPE_CHANGED, listener: typeof rendererTypeChanged | null): this;
+  on(type: typeof Column.EVENT_GROUP_RENDERER_TYPE_CHANGED, listener: typeof groupRendererChanged | null): this;
+  on(type: typeof Column.EVENT_SUMMARY_RENDERER_TYPE_CHANGED, listener: typeof summaryRendererChanged | null): this;
+  on(type: typeof Column.EVENT_VISIBILITY_CHANGED, listener: typeof visibilityChanged | null): this;
   on(type: string | string[], listener: IEventListener | null): this; // required for correct typings in *.d.ts
   on(type: string | string[], listener: IEventListener | null): this {
     return super.on(type as any, listener);
@@ -443,15 +368,7 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
     if (this.mapping.eq(mapping)) {
       return;
     }
-    this.fire(
-      [
-        LineUpDistributionColumn.EVENT_MAPPING_CHANGED,
-        Column.EVENT_DIRTY_VALUES,
-        Column.EVENT_DIRTY,
-      ],
-      this.mapping.clone(),
-      (this.mapping = mapping)
-    );
+    this.fire([LineUpDistributionColumn.EVENT_MAPPING_CHANGED, Column.EVENT_DIRTY_VALUES, Column.EVENT_DIRTY], this.mapping.clone(), (this.mapping = mapping));
   }
 
   getColor(row: IDataRow) {
@@ -482,10 +399,7 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
     if (Number.isNaN(value)) {
       return !filter.filterMissing;
     }
-    return !(
-      (isFinite(filter.min) && value < filter.min) ||
-      (isFinite(filter.max) && value > filter.max)
-    );
+    return !((isFinite(filter.min) && value < filter.min) || (isFinite(filter.max) && value > filter.max));
   }
 
   /**
@@ -500,7 +414,7 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
     const value = this.get_advanced_value(
       EAdvancedSortMethod.median,
       //@ts-ignore
-      this.getRawValue(row).map((v) => v.value)
+      this.getRawValue(row).map((v) => v.value),
     );
 
     return this.isNumberIncluded(this.getFilter(), value);
@@ -511,27 +425,15 @@ export class LineUpDistributionColumn extends MapColumn<number[]> {
   }
 }
 
-
-
-
-
-export const DEFAULT_FORMATTER = format(".3n");
+export const DEFAULT_FORMATTER = format('.3n');
 
 export function noNumberFilter() {
   // return {min: Number.NEGATIVE_INFINITY, max: Number.POSITIVE_INFINITY, filterMissing: false }
-  return {min: Number.NaN, max: Number.NaN, filterMissing: false};
+  return { min: Number.NaN, max: Number.NaN, filterMissing: false };
 }
 
-export function isEqualNumberFilter(
-  a: INumberFilter,
-  b: INumberFilter,
-  delta = 0.001
-) {
-  return (
-    similar(a.min, b.min, delta) &&
-    similar(a.max, b.max, delta) &&
-    a.filterMissing === b.filterMissing
-  );
+export function isEqualNumberFilter(a: INumberFilter, b: INumberFilter, delta = 0.001) {
+  return similar(a.min, b.min, delta) && similar(a.max, b.max, delta) && a.filterMissing === b.filterMissing;
 }
 export function similar(a: number, b: number, delta = 0.5) {
   if (a === b) {
@@ -544,23 +446,14 @@ export function isUnknown(v?: number | null) {
 }
 
 export function isDummyNumberFilter(filter: INumberFilter) {
-  return (
-    !filter.filterMissing && !isFinite(filter.min) && !isFinite(filter.max)
-  );
+  return !filter.filterMissing && !isFinite(filter.min) && !isFinite(filter.max);
 }
 
-export function restoreMapping(
-  desc: IMapAbleDesc,
-  factory: ITypeFactory
-): IMappingFunction {
+export function restoreMapping(desc: IMapAbleDesc, factory: ITypeFactory): IMappingFunction {
   if (desc.map) {
     return factory.mappingFunction(desc.map);
   }
-  return new ScaleMappingFunction(
-    desc.domain || [0, 1],
-    "linear",
-    desc.range || [0, 1]
-  );
+  return new ScaleMappingFunction(desc.domain || [0, 1], 'linear', desc.range || [0, 1]);
 }
 
 export function restoreNumberFilter(v: INumberFilter): INumberFilter {

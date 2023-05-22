@@ -4,10 +4,8 @@
 # Licensed under the new BSD license, available at http://caleydo.org/license
 ###############################################################################
 from os import path
-from typing import Type
 
-from pydantic import BaseModel
-from tdp_core.plugin.model import AVisynPlugin, RegHelper
+from visyn_core.plugin.model import AVisynPlugin, RegHelper
 
 from .settings import CoralSettings
 
@@ -34,5 +32,5 @@ class VisynPlugin(AVisynPlugin):
         )
 
     @property
-    def setting_class(self) -> Type[BaseModel]:
+    def setting_class(self) -> type[CoralSettings]:
         return CoralSettings

@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import { ActionMetaData, ActionUtils, ICmdResult, IObjectRef, ObjectRefUtils } from 'tdp_core';
-import { CohortApp } from '../app';
-import { IElementProvJSON } from '../CohortInterfaces';
-import { CohortOverview } from '../Overview/CohortOverview';
+import type { CoralApp } from '../app/CoralApp';
+import { IElementProvJSON } from '../app/interfaces';
+import type { CohortOverview } from '../Overview/CohortOverview';
 import { log } from '../util';
 
 /** *********************************************
@@ -13,7 +14,7 @@ import { log } from '../util';
 // ----------------------------
 export function addOverviewCohortAction(
   provider: IObjectRef<CohortOverview>,
-  providerApp: IObjectRef<CohortApp>,
+  providerApp: IObjectRef<CoralApp>,
   newDataset: IElementProvJSON[],
   oldDataset: IElementProvJSON[],
 ) {
@@ -33,7 +34,7 @@ export function addOverviewCohortAction(
 export async function addOverviewCohortImpl(inputs: IObjectRef<any>[], parameter: any): Promise<ICmdResult> {
   log.debug('addOverviewCohortImpl', { inputs, parameter });
   // get app CohortApp
-  const app: CohortApp = await inputs[1].v;
+  const app: CoralApp = await inputs[1].v;
   // get the overview of CohortApp
   const ovApp = app.getAppOverview();
   if (ovApp) {
@@ -48,7 +49,7 @@ export async function addOverviewCohortImpl(inputs: IObjectRef<any>[], parameter
   };
 }
 
-function setChtCounter(parameter: any, app: CohortApp) {
+function setChtCounter(parameter: any, app: CoralApp) {
   const numbers = parameter.newDataset
     .filter((e) => e.type === 'Cohort')
     .map((e) =>
@@ -70,7 +71,7 @@ function setChtCounter(parameter: any, app: CohortApp) {
 // ----------------------------
 export function removeOverviewCohortAction(
   provider: IObjectRef<CohortOverview>,
-  providerApp: IObjectRef<CohortApp>,
+  providerApp: IObjectRef<CoralApp>,
   newDataset: IElementProvJSON[],
   oldDataset: IElementProvJSON[],
 ) {
@@ -90,7 +91,7 @@ export function removeOverviewCohortAction(
 export async function removeOverviewCohortImpl(inputs: IObjectRef<any>[], parameter: any): Promise<ICmdResult> {
   log.debug('removeOverviewCohortImpl', { inputs, parameter });
   // get app CohortApp
-  const app: CohortApp = await inputs[1].v;
+  const app: CoralApp = await inputs[1].v;
   // get the overview of CohortApp
   const ovApp = app.getAppOverview();
   if (ovApp) {

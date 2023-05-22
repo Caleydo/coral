@@ -1,7 +1,7 @@
 var LineUpDistributionColumn_1;
 import { __decorate } from "tslib";
 import { format } from 'd3-format';
-import { Column, dialogAddons, EAdvancedSortMethod, ECompareValueType, MapColumn, NumberColumn, ScaleMappingFunction, SortByDefault, toolbar } from "lineupjs";
+import { Column, dialogAddons, EAdvancedSortMethod, ECompareValueType, MapColumn, NumberColumn, ScaleMappingFunction, SortByDefault, toolbar, } from 'lineupjs';
 let LineUpDistributionColumn = LineUpDistributionColumn_1 = 
 //@ts-ignore
 class LineUpDistributionColumn extends MapColumn {
@@ -17,7 +17,7 @@ class LineUpDistributionColumn extends MapColumn {
         this.min = 0;
         this.max = 1;
         // this.mapping = restoreMapping(desc, factory); // TODO: check, if desc.range and desc.domain can be infered
-        this.mapping = new ScaleMappingFunction([desc["min"], desc["max"]], "linear", [0, 1]);
+        this.mapping = new ScaleMappingFunction([desc['min'], desc['max']], 'linear', [0, 1]);
         this.original = this.mapping.clone();
         this.sort = desc.sort || EAdvancedSortMethod.median;
         this.colorMapping = factory.colorMappingFunction(desc.colorMapping || desc.color);
@@ -25,8 +25,8 @@ class LineUpDistributionColumn extends MapColumn {
             this.numberFormat = format(desc.numberFormat);
         }
         //TODO: infer min and max if it is not given
-        this.min = desc["min"];
-        this.max = desc["max"];
+        this.min = desc['min'];
+        this.max = desc['max'];
     }
     getMin() {
         return this.min;
@@ -78,7 +78,7 @@ class LineUpDistributionColumn extends MapColumn {
     }
     toCompareValue(row) {
         let data = this.getValue(row);
-        let value_list = data[0]["value"];
+        let value_list = data[0]['value'];
         const method = this.getSortMethod();
         return this.get_advanced_value(method, value_list);
     }
@@ -99,27 +99,27 @@ class LineUpDistributionColumn extends MapColumn {
         };
     }
     getBoxPlotData(row) {
-        console.log("getBoxPlotData");
-        const data = this.getValue(row)[0]["value"];
+        console.log('getBoxPlotData');
+        const data = this.getValue(row)[0]['value'];
         if (data == null) {
             return null;
         }
         return this.getBoxPlotDataFromValueList(data);
     }
     getRawBoxPlotData(row) {
-        console.log("getRawBoxPlotData");
-        const data = this.getRawValue(row)[0]["value"];
+        console.log('getRawBoxPlotData');
+        const data = this.getRawValue(row)[0]['value'];
         if (data == null) {
             return null;
         }
         return this.getBoxPlotDataFromValueList(data);
     }
     getRange() {
-        console.log("getRange");
+        console.log('getRange');
         return this.mapping.getRange(this.numberFormat);
     }
     getColorMapping() {
-        console.log("getColorMapping");
+        console.log('getColorMapping');
         return this.colorMapping.clone();
     }
     getNumber(row) {
@@ -135,7 +135,7 @@ class LineUpDistributionColumn extends MapColumn {
         const r = this.getValue(row);
         // return r ? r.map((d) => d.value) : [NaN];
         // return r ? r[0]["value"] : [NaN];
-        return [this.get_advanced_value(EAdvancedSortMethod.median, r[0]["value"])];
+        return [this.get_advanced_value(EAdvancedSortMethod.median, r[0]['value'])];
     }
     iterRawNumber(row) {
         // console.log("iterRawNumber")
@@ -143,7 +143,7 @@ class LineUpDistributionColumn extends MapColumn {
         // return r ? r.map((d) => d.value) : [NaN];
         // return r ? r[0]["value"] : [NaN];
         //@ts-ignore
-        return [this.get_advanced_value(EAdvancedSortMethod.median, r.map((d) => d["value"]))];
+        return this.get_advanced_value(EAdvancedSortMethod.median, r.map((d) => d.value || d[0]?.value));
     }
     getValue(row) {
         const values = this.getRawValue(row);
@@ -169,12 +169,10 @@ class LineUpDistributionColumn extends MapColumn {
         return r == null ? [] : r;
     }
     getExportValue(row, format) {
-        return format === "json"
-            ? this.getRawValue(row)
-            : super.getExportValue(row, format);
+        return format === 'json' ? this.getRawValue(row) : super.getExportValue(row, format);
     }
     getFormatedLabelArray(arr) {
-        return "[" + arr.map(item => this.numberFormat(item)).toString() + "]";
+        return '[' + arr.map((item) => this.numberFormat(item)).toString() + ']';
     }
     getLabels(row) {
         const v = this.getRawValue(row);
@@ -196,9 +194,7 @@ class LineUpDistributionColumn extends MapColumn {
     dump(toDescRef) {
         const r = super.dump(toDescRef);
         r.sortMethod = this.getSortMethod();
-        r.filter = !isDummyNumberFilter(this.currentFilter)
-            ? this.currentFilter
-            : null;
+        r.filter = !isDummyNumberFilter(this.currentFilter) ? this.currentFilter : null;
         r.map = this.mapping.toJSON();
         return r;
     }
@@ -236,11 +232,7 @@ class LineUpDistributionColumn extends MapColumn {
         if (this.mapping.eq(mapping)) {
             return;
         }
-        this.fire([
-            LineUpDistributionColumn_1.EVENT_MAPPING_CHANGED,
-            Column.EVENT_DIRTY_VALUES,
-            Column.EVENT_DIRTY,
-        ], this.mapping.clone(), (this.mapping = mapping));
+        this.fire([LineUpDistributionColumn_1.EVENT_MAPPING_CHANGED, Column.EVENT_DIRTY_VALUES, Column.EVENT_DIRTY], this.mapping.clone(), (this.mapping = mapping));
     }
     getColor(row) {
         return NumberColumn.prototype.getColor.call(this, row);
@@ -265,8 +257,7 @@ class LineUpDistributionColumn extends MapColumn {
         if (Number.isNaN(value)) {
             return !filter.filterMissing;
         }
-        return !((isFinite(filter.min) && value < filter.min) ||
-            (isFinite(filter.max) && value > filter.max));
+        return !((isFinite(filter.min) && value < filter.min) || (isFinite(filter.max) && value > filter.max));
     }
     /**
      * filter the current row if any filter is set
@@ -291,21 +282,19 @@ LineUpDistributionColumn.EVENT_COLOR_MAPPING_CHANGED = NumberColumn.EVENT_COLOR_
 LineUpDistributionColumn.EVENT_SORTMETHOD_CHANGED = NumberColumn.EVENT_SORTMETHOD_CHANGED;
 LineUpDistributionColumn.EVENT_FILTER_CHANGED = NumberColumn.EVENT_FILTER_CHANGED;
 LineUpDistributionColumn = LineUpDistributionColumn_1 = __decorate([
-    toolbar("rename", "filterNumber", "sort", "sortBy"),
-    dialogAddons("sort", "sortNumbers"),
-    SortByDefault("descending")
+    toolbar('rename', 'filterNumber', 'sort', 'sortBy'),
+    dialogAddons('sort', 'sortNumbers'),
+    SortByDefault('descending')
     //@ts-ignore
 ], LineUpDistributionColumn);
 export { LineUpDistributionColumn };
-export const DEFAULT_FORMATTER = format(".3n");
+export const DEFAULT_FORMATTER = format('.3n');
 export function noNumberFilter() {
     // return {min: Number.NEGATIVE_INFINITY, max: Number.POSITIVE_INFINITY, filterMissing: false }
     return { min: Number.NaN, max: Number.NaN, filterMissing: false };
 }
 export function isEqualNumberFilter(a, b, delta = 0.001) {
-    return (similar(a.min, b.min, delta) &&
-        similar(a.max, b.max, delta) &&
-        a.filterMissing === b.filterMissing);
+    return similar(a.min, b.min, delta) && similar(a.max, b.max, delta) && a.filterMissing === b.filterMissing;
 }
 export function similar(a, b, delta = 0.5) {
     if (a === b) {
@@ -317,13 +306,13 @@ export function isUnknown(v) {
     return v === null || v === undefined || isNaN(v);
 }
 export function isDummyNumberFilter(filter) {
-    return (!filter.filterMissing && !isFinite(filter.min) && !isFinite(filter.max));
+    return !filter.filterMissing && !isFinite(filter.min) && !isFinite(filter.max);
 }
 export function restoreMapping(desc, factory) {
     if (desc.map) {
         return factory.mappingFunction(desc.map);
     }
-    return new ScaleMappingFunction(desc.domain || [0, 1], "linear", desc.range || [0, 1]);
+    return new ScaleMappingFunction(desc.domain || [0, 1], 'linear', desc.range || [0, 1]);
 }
 export function restoreNumberFilter(v) {
     return {
@@ -332,4 +321,3 @@ export function restoreNumberFilter(v) {
         filterMissing: v.filterMissing,
     };
 }
-//# sourceMappingURL=LineUpDistributionColumn.js.map

@@ -1,20 +1,9 @@
 import vegaEmbed from 'vega-embed';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
-import { Cohort } from '../../Cohort';
-import { colors } from '../../colors';
+import { ICohort } from '../../app/interfaces';
+import { colors } from '../../config/colors';
 import { getAnimatedLoadingBars } from '../../util';
 import { ADataColumn } from './AColumn';
-
-export default class PrevalenceColumn extends ADataColumn {
-  constructor(private reference: Cohort, $container: HTMLDivElement) {
-    super(`% [${reference.label}]`, $container);
-    this.$column.classList.add('prevalence');
-  }
-
-  async setCellContent(cell: HTMLDivElement, cht: Cohort): Promise<void> {
-    cell.appendChild(new PrevalenceBar(cht, this.reference).getNode());
-  }
-}
 
 class PrevalenceBar {
   readonly $node: HTMLDivElement;
@@ -23,7 +12,7 @@ class PrevalenceBar {
 
   readonly $hist: HTMLDivElement;
 
-  constructor(private cht: Cohort, private reference: Cohort) {
+  constructor(private cht: ICohort, private reference: ICohort) {
     this.$node = document.createElement('div');
     this.$node.classList.add('hist');
 
@@ -35,6 +24,7 @@ class PrevalenceBar {
 
     this.$node.appendChild(this.$hist);
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
     setTimeout(() => that.updateNode.bind(that)(), 0); // run async
   }
@@ -113,5 +103,16 @@ class PrevalenceBar {
         },
       ],
     };
+  }
+}
+
+export default class PrevalenceColumn extends ADataColumn {
+  constructor(private reference: ICohort, $container: HTMLDivElement) {
+    super(`% [${reference.label}]`, $container);
+    this.$column.classList.add('prevalence');
+  }
+
+  async setCellContent(cell: HTMLDivElement, cht: ICohort): Promise<void> {
+    cell.appendChild(new PrevalenceBar(cht, this.reference).getNode());
   }
 }

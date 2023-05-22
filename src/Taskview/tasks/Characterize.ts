@@ -1,27 +1,27 @@
 import * as aq from 'arquero';
-import {format} from 'd3-format';
+import { format } from 'd3-format';
 import * as d3 from 'd3v7';
 import * as LineUpJS from 'lineupjs';
-import {ERenderMode, ICellRenderer, ICellRendererFactory, IDataRow, renderMissingDOM} from 'lineupjs';
+import { ERenderMode, ICellRenderer, ICellRendererFactory, IDataRow, renderMissingDOM } from 'lineupjs';
 import tippy from 'tippy.js';
-import {View as VegaView} from 'vega';
+import { View as VegaView } from 'vega';
 import vegaEmbed from 'vega-embed';
-import {Cohort, getCohortLabel} from '../../Cohort';
-import {ICohort} from '../../CohortInterfaces';
-import {colors} from '../../colors';
-import {GeneScoreAttribute, IAttribute, ServerColumnAttribute} from '../../data/Attribute';
-import {Task} from '../../Tasks';
-import {getAnimatedLoadingText, getAnimatedText, log} from '../../util';
-import {getIdTypeFromCohort} from '../../utilIdTypes';
-import {DATA_LABEL} from '../visualizations';
-import {ATask} from './ATask';
-import {LineUpDistributionColumn} from './Characterize/LineUpDistributionColumn';
-import {ProbabilityScatterplot} from './Characterize/ProbabilityScatterplot';
+import { Cohort, getCohortLabel } from '../../Cohort';
+import { GeneScoreAttribute, ServerColumnAttribute } from '../../data/Attribute';
+import { Task } from '../../Tasks';
+import { getAnimatedLoadingText, getAnimatedText, log } from '../../util';
+import { DATA_LABEL } from '../visualizations';
+import { ATask } from './ATask';
+import { LineUpDistributionColumn } from './Characterize/LineUpDistributionColumn';
+import { ProbabilityScatterplot } from './Characterize/ProbabilityScatterplot';
+import { getIdTypeFromCohort } from '../../config/entities';
+import {IAttribute, ICohort} from '../..';
+import {colors} from '../../config/colors';
 
 export class Characterize extends ATask {
   static readonly TREES = 500;
   static readonly formatPercent = format('.1~%');
-  static readonly spinner = `<div class="fa-3x center green"> <i class="fas fa-spinner fa-pulse"></i></div>`
+  static readonly spinner = `<div class="fa-3x center green"> <i class="fas fa-spinner fa-pulse"></i></div>`;
   static readonly KOKIRI_COLOR = '#90C08F';
 
   public label = `Characterize`;
@@ -34,7 +34,7 @@ export class Characterize extends ATask {
   private ws: WebSocket;
 
   private progressBar: any;
-  
+
   private attributeRanking: LineUpJS.Taggle;
   private attributeRankingData: LineUpJS.LocalDataProvider;
   private itemRanking: LineUpJS.Taggle;
@@ -45,7 +45,6 @@ export class Characterize extends ATask {
   private chart: VegaView[];
   private scatterplot: ProbabilityScatterplot;
 
-
   supports(attributes: IAttribute[], cohorts: ICohort[]) {
     return cohorts.length >= 2;
   }
@@ -54,12 +53,7 @@ export class Characterize extends ATask {
     return false;
   }
 
-  async show(
-    columnHeader: HTMLDivElement,
-    container: HTMLDivElement,
-    attributes: IAttribute[],
-    cohorts: ICohort[]
-  ) {
+  async show(columnHeader: HTMLDivElement, container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]) {
     const idType = getIdTypeFromCohort(cohorts[0] as Cohort);
     this._entityName = idType.entityName;
     super.show(columnHeader, container, attributes, cohorts);
@@ -68,20 +62,12 @@ export class Characterize extends ATask {
     this.cohorts = cohorts as Cohort[];
 
     if (this.cohorts.length >= 2) {
-      this.$container = this.body
-        .append('div')
-        .classed('characterize-container', true)
-        .node();
+      this.$container = this.body.append('div').classed('characterize-container', true).node();
 
-      this.$container.insertAdjacentElement(
-        'beforeend',
-        getAnimatedLoadingText('data')
-      );
+      this.$container.insertAdjacentElement('beforeend', getAnimatedLoadingText('data'));
 
-      const attrCohort = (this.cohorts[0]);
-      attributes = [
-        new ServerColumnAttribute(attrCohort.idColumn.column, attrCohort.view, attrCohort.database, attrCohort.idColumn),
-      ];
+      const attrCohort = this.cohorts[0];
+      attributes = [new ServerColumnAttribute(attrCohort.idColumn.column, attrCohort.view, attrCohort.database, attrCohort.idColumn)];
       this.ids = await this.getData(attributes, this.cohorts);
 
       if (eventId !== this.eventID) {
@@ -154,40 +140,43 @@ export class Characterize extends ATask {
       </div>
     `;
 
-    this.$container.querySelectorAll('button.compare').forEach((btn) => btn.addEventListener('click', () => {
-      this.attributeRanking?.destroy();
-      this.$container.querySelector('.attribute-ranking').innerHTML = Characterize.spinner;
-      this.itemRanking?.destroy();
-      this.$container.querySelector('.item-ranking').innerHTML = Characterize.spinner;
-      
-      this.chart?.forEach((view) => view.finalize());
-      this.chart = [];
-      this.scatterplot = null;
-      this.$container.querySelector('.accuracy-container').innerHTML = Characterize.spinner;
-      this.$container.querySelector('.cohort-confusion').innerHTML = ``;
-      this.$container.querySelector('.chart-container').innerHTML = Characterize.spinner;
-      this.$container.querySelectorAll('.hidden-for-result').forEach((btn) => btn.toggleAttribute('hidden', false));
-      this.$container.querySelectorAll('.result-based').forEach((btn) => btn.toggleAttribute('hidden', true));
-      this.$container.querySelectorAll('.resizeable').forEach((elem) => elem.classList.remove('filled'));
-      this.addProgressBar();
-      this.compare(`cmp_${btn.id}`);
-    }));
+    this.$container.querySelectorAll('button.compare').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        this.attributeRanking?.destroy();
+        this.$container.querySelector('.attribute-ranking').innerHTML = Characterize.spinner;
+        this.itemRanking?.destroy();
+        this.$container.querySelector('.item-ranking').innerHTML = Characterize.spinner;
+
+        this.chart?.forEach((view) => view.finalize());
+        this.chart = [];
+        this.scatterplot = null;
+        this.$container.querySelector('.accuracy-container').innerHTML = Characterize.spinner;
+        this.$container.querySelector('.cohort-confusion').innerHTML = ``;
+        this.$container.querySelector('.chart-container').innerHTML = Characterize.spinner;
+        this.$container.querySelectorAll('.hidden-for-result').forEach((btn) => btn.toggleAttribute('hidden', false));
+        this.$container.querySelectorAll('.result-based').forEach((btn) => btn.toggleAttribute('hidden', true));
+        this.$container.querySelectorAll('.resizeable').forEach((elem) => elem.classList.remove('filled'));
+        this.addProgressBar();
+        this.compare(`cmp_${btn.id}`);
+      }),
+    );
 
     this.showOverlap(this.$container.querySelector('div.custom-upset-container'));
     this.setDefiningAttributeTooltip(this.$container.querySelector('.hint'));
   }
 
   private showOverlap(container: HTMLDivElement) {
-    container.insertAdjacentHTML('beforeend', `
+    container.insertAdjacentHTML(
+      'beforeend',
+      `
       <h1 style="display: inline">Overlap of Cohorts</h1>
-    `);  //in line to display "no overlap" note on the same line
+    `,
+    ); //in line to display "no overlap" note on the same line
     let localChtCopy = this.cohorts.slice();
 
     const aqData = this.ids.flat();
-    const idsAndTheirCohorts = aq.from(aqData)
-      .groupby('tissuename')
-      .pivot('Cohort', 'Cohort');
-    const intersections = new Map<string, {intersection: number, exclusiveInA: number, exclusiveInB: number}>();
+    const idsAndTheirCohorts = aq.from(aqData).groupby('tissuename').pivot('Cohort', 'Cohort');
+    const intersections = new Map<string, { intersection: number; exclusiveInA: number; exclusiveInB: number }>();
     let maxJaccard = 0;
 
     let i = 0;
@@ -195,29 +184,35 @@ export class Characterize extends ATask {
       const drawCht = localChtCopy.shift();
       for (const [j, remainingCht] of localChtCopy.entries()) {
         const uniqueCohortIds = idsAndTheirCohorts.filter(aq.escape((d) => d[drawCht.label] !== undefined || d[remainingCht.label] !== undefined));
-        const uniqueIds = (uniqueCohortIds.count().object() as {count: number}).count;
-        const intersectingItems = (uniqueCohortIds // cmp: https://observablehq.com/d/59236004518c5729
-          .filter(aq.escape((d) => d[drawCht.label] !== undefined && d[remainingCht.label] !== undefined))
-          .count() // still a aq table
-          .object() as {count: number}).count;
+        const uniqueIds = (uniqueCohortIds.count().object() as { count: number }).count;
+        const intersectingItems = (
+          uniqueCohortIds // cmp: https://observablehq.com/d/59236004518c5729
+            .filter(aq.escape((d) => d[drawCht.label] !== undefined && d[remainingCht.label] !== undefined))
+            .count() // still a aq table
+            .object() as { count: number }
+        ).count;
         const jaccardIndex = intersectingItems / uniqueIds;
 
-        const onlyAItems = (uniqueCohortIds // cmp: https://observablehq.com/d/59236004518c5729
-          .filter(aq.escape((d) => d[drawCht.label] !== undefined && d[remainingCht.label] === undefined))
-          .count() // still a aq table
-          .object() as {count: number}).count;
+        const onlyAItems = (
+          uniqueCohortIds // cmp: https://observablehq.com/d/59236004518c5729
+            .filter(aq.escape((d) => d[drawCht.label] !== undefined && d[remainingCht.label] === undefined))
+            .count() // still a aq table
+            .object() as { count: number }
+        ).count;
         const exclusiveInA = onlyAItems / uniqueIds;
 
-        const onlyBItems = (uniqueCohortIds // cmp: https://observablehq.com/d/59236004518c5729
-          .filter(aq.escape((d) => d[drawCht.label] === undefined && d[remainingCht.label] !== undefined))
-          .count() // still a aq table
-          .object() as {count: number}).count;
+        const onlyBItems = (
+          uniqueCohortIds // cmp: https://observablehq.com/d/59236004518c5729
+            .filter(aq.escape((d) => d[drawCht.label] === undefined && d[remainingCht.label] !== undefined))
+            .count() // still a aq table
+            .object() as { count: number }
+        ).count;
         const exclusiveInB = onlyBItems / uniqueIds;
 
         intersections.set(`${drawCht.id}-${remainingCht.id}`, {
           intersection: jaccardIndex,
           exclusiveInA,
-          exclusiveInB
+          exclusiveInB,
         });
         if (jaccardIndex > maxJaccard) {
           maxJaccard = jaccardIndex;
@@ -227,41 +222,49 @@ export class Characterize extends ATask {
     }
 
     let noOverlapCounter = 0;
-    if (maxJaccard === 0) { // still zero --> no intersection
+    if (maxJaccard === 0) {
+      // still zero --> no intersection
       container.insertAdjacentHTML('beforeend', `Cohorts do not overlap.`);
     } else {
-      const intersectArr = [...intersections]
-        .sort((cmp1, cmp2) => cmp2[1].intersection - cmp1[1].intersection); // sort by decreasing overlap
-      for (const [chtKey, {intersection, exclusiveInA, exclusiveInB}] of intersectArr) {
+      const intersectArr = [...intersections].sort((cmp1, cmp2) => cmp2[1].intersection - cmp1[1].intersection); // sort by decreasing overlap
+      for (const [chtKey, { intersection, exclusiveInA, exclusiveInB }] of intersectArr) {
         if (intersection > 0) {
           const [chtA, chtB] = chtKey.split('-');
           const drawCht = this.cohorts.find((cht) => cht.id === chtA);
           const remainingCht = this.cohorts.find((cht) => cht.id === chtB);
-          container.insertAdjacentHTML('beforeend', `
+          container.insertAdjacentHTML(
+            'beforeend',
+            `
             <div class="center" style="margin: 1em; justify-content: start;">
               <div class="cht-icon up" style="background-color: ${drawCht.colorTaskView}"></div>
               <div class="cht-icon down left" style="background-color: ${remainingCht.colorTaskView}"></div>
               <div class="cht-overlap">
                 <div class="cht-bar" style="width: ${100 * (exclusiveInA + intersection)}%; background: ${drawCht.colorTaskView}"></div>
-                <div class="cht-bar" style="width: ${100 * (exclusiveInB + intersection)}%; margin-left: ${100 * (exclusiveInA)}%;background: ${remainingCht.colorTaskView}"></div>
+                <div class="cht-bar" style="width: ${100 * (exclusiveInB + intersection)}%; margin-left: ${100 * exclusiveInA}%;background: ${
+              remainingCht.colorTaskView
+            }"></div>
               </div>
               <div class="cht-bar-label">&ensp;${Characterize.formatPercent(intersection)}</div>
             </div>
-          `);
+          `,
+          );
         } else {
           noOverlapCounter++;
         }
       }
 
       if (noOverlapCounter > 0) {
-        container.insertAdjacentHTML('beforeend', `
+        container.insertAdjacentHTML(
+          'beforeend',
+          `
         <p class="note" style="margin: 1rem">
           <i class="fa fa-info-circle" style="color: ${colors.barColor}"></i>
           <span>
             ${noOverlapCounter} other cohort combinations have no overlap.
           </span>
         </p>
-      `);
+      `,
+        );
       }
     }
   }
@@ -276,34 +279,34 @@ export class Characterize extends ATask {
       // reverse order of tasks -> now the first element is the first task after root cohort
       tasks = tasks.reverse();
 
-      tasks.forEach(
-        (task) => attributes.push(...task.attributes)
-      );
+      tasks.forEach((task) => attributes.push(...task.attributes));
     }
 
     this.definingAttributes = attributes.filter(
-      (attr, i, arr) => arr.findIndex((attr2) => (attr2.id === attr.id)) === i // if there are multiple attributes with the same id, keep the first
+      (attr, i, arr) => arr.findIndex((attr2) => attr2.id === attr.id) === i, // if there are multiple attributes with the same id, keep the first
     );
-    const attributeList = this.definingAttributes
-      .map((attr) => attr.label)
-      .reduce((text, attr) => text + `<li>${attr}</li>`, '<ol style="margin: 0.25em; padding-right: 1em;">') + '</ol>';
+    const attributeList =
+      this.definingAttributes.map((attr) => attr.label).reduce((text, attr) => text + `<li>${attr}</li>`, '<ol style="margin: 0.25em; padding-right: 1em;">') +
+      '</ol>';
 
-    tippy(hintText, {content: attributeList});
+    tippy(hintText, { content: attributeList });
   }
 
   private async compare(endpoint) {
     const excludeChechbox = this.$container.querySelector('input#exclude-attributes') as HTMLInputElement;
     const excludeBloodline = excludeChechbox.checked;
-    const excludeAttributes = !excludeBloodline ? [] : this.definingAttributes
-      .filter((attr) => {
-        if (endpoint === 'cmp_meta') {
-          return 'serverColumn' in attr;
-        } else if (endpoint === 'cmp_mutated') {
-          return 'gene' in attr;
-        }
-        return true;
-      })
-      .map((attr) => 'gene' in attr ? (attr as GeneScoreAttribute).gene : attr.id);
+    const excludeAttributes = !excludeBloodline
+      ? []
+      : this.definingAttributes
+          .filter((attr) => {
+            if (endpoint === 'cmp_meta') {
+              return 'serverColumn' in attr;
+            } else if (endpoint === 'cmp_mutated') {
+              return 'gene' in attr;
+            }
+            return true;
+          })
+          .map((attr) => ('gene' in attr ? (attr as GeneScoreAttribute).gene : attr.id));
 
     const impute = (this.$container.querySelector('input#impute-missing') as HTMLInputElement).checked;
     const maxDepth = 100; // parseInt((this.$container.querySelector('input#max-depth') as HTMLInputElement).value);
@@ -311,9 +314,10 @@ export class Characterize extends ATask {
 
     const url = new URL(`/kokiri/${endpoint}/`, location.href);
     url.protocol = url.protocol.replace('http', 'ws');
-    this.ws = new WebSocket(url)
+    this.ws = new WebSocket(url);
     this.ws.onopen = async () => {
-      const data = JSON.stringify({ // send as string, because sending JSON apparantly only works this way 🤷‍♀️ (see https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications)
+      const data = JSON.stringify({
+        // send as string, because sending JSON apparantly only works this way 🤷‍♀️ (see https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications)
         exclude: excludeAttributes,
         n_estimators: Characterize.TREES,
         max_depth: maxDepth,
@@ -328,12 +332,11 @@ export class Characterize extends ATask {
       }
     };
 
-
     let first = true;
     this.ws.onmessage = async (message) => {
       const responseData = JSON.parse(message.data);
 
-      if(responseData.trees) {
+      if (responseData.trees) {
         try {
           this.setProgress(responseData.trees);
           if (first) {
@@ -350,35 +353,33 @@ export class Characterize extends ATask {
           this.$container.querySelector('.accuracy-container').innerHTML = `
             <h2>Accuracy:  ${Characterize.formatPercent(responseData.accuracy)}</h2>
           `;
-          log.info(`OOB Score ${Characterize.formatPercent(responseData.oobError)} for ${responseData.trees} trees`)
+          log.info(`OOB Score ${Characterize.formatPercent(responseData.oobError)} for ${responseData.trees} trees`);
           this.updateConfusionMatrix(responseData);
-
         } catch (e) {
           log.error('could not read JSON data', e);
         }
       } else if (responseData.embedding) {
-        const vegaContainer = this.$container
-                                    .querySelector('.chart-container') as HTMLDivElement;
+        const vegaContainer = this.$container.querySelector('.chart-container') as HTMLDivElement;
         vegaContainer.innerHTML = '';
 
         const embeddingData = responseData.embedding as any[];
         embeddingData.forEach((i) => {
-          i.selected=false
+          i.selected = false;
           i.cht = this.cohorts[i.cht].label;
           i.predicted = this.cohorts[i.predicted].label;
         });
         this.scatterplot = new ProbabilityScatterplot(embeddingData, this.cohorts, this.itemRanking);
-        const result = await vegaEmbed(vegaContainer, this.scatterplot.getSpec(), {actions: false, renderer: 'canvas'});
+        const result = await vegaEmbed(vegaContainer, this.scatterplot.getSpec(), { actions: false, renderer: 'canvas' });
         this.scatterplot.setView(result.view);
         this.chart.push(result.view);
         log.debug('embedding', result.spec);
       }
-    } 
+    };
 
     this.ws.onclose = () => {
       log.debug('the socket is done');
       this.setProgressDone();
-    }
+    };
   }
 
   async updateConfusionMatrix(responseData: any) {
@@ -392,96 +393,100 @@ export class Characterize extends ATask {
     // i.e., sum of first row equals items in first cohort
     //       sum of first column equals items classified as first cohort
     const confPlotData = [];
-    for (const [row,target_cht] of this.cohorts.entries()) {
+    for (const [row, target_cht] of this.cohorts.entries()) {
       for (const [column, predicted_cht] of this.cohorts.entries()) {
         const shareOfPredicted = responseData.confusionMatrix[row][column];
         confPlotData.push({
           target: target_cht.label,
           predict: predicted_cht.label,
-          correct: row===column,
-          share: shareOfPredicted
+          correct: row === column,
+          share: shareOfPredicted,
         });
       }
     }
     this.$container.querySelector('.cohort-confusion').innerHTML = '';
     let vegaContainer = this.$container.querySelector('.cohort-confusion') as HTMLDivElement;
-    let result = await vegaEmbed(vegaContainer, {
-      "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-      "data": {"values": confPlotData},
-      padding: 20,
-      height: {step: 30},
-      width: "container",
-      "encoding": {
-          "x": {
-            "field": "share", "type": "quantitative",
-            "title": "Predictions",
-            "stack": true, 
-          "axis": {"format": ".1%"}
-        }
-      },
-      "layer": [{
-      "mark": {"type": "bar", "tooltip": true, },
-        "encoding": {
-          "color": {"field": "predict", legend: null, sort: null},
-          "y": {"field": "target", "title": null, sort: null},
-          "order": {"field": "share", "type": "quantitative", "sort": "descending"},
-          "opacity": {
-            "condition": {"test": {"field": "correct", "equal":true}, "value": 1},
-            "value": 0.5
-          }
-        }
-      },
+    let result = await vegaEmbed(
+      vegaContainer,
       {
-      "data": {"values": [{"val": 1}]},
-      "mark": {"type": "rule", "strokeDash": [2]},
-      "encoding": {
-          "x": { "field": "val"}
-        }
-      }
-    ],
-    config: {
-      range: {category: this.cohorts.map((cht) => cht.colorTaskView)}
-    }
-    }, {actions: false, renderer: 'svg'});
+        $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
+        data: { values: confPlotData },
+        padding: 20,
+        height: { step: 30 },
+        width: 'container',
+        encoding: {
+          x: {
+            field: 'share',
+            type: 'quantitative',
+            title: 'Predictions',
+            stack: true,
+            axis: { format: '.1%' },
+          },
+        },
+        layer: [
+          {
+            mark: { type: 'bar', tooltip: true },
+            encoding: {
+              color: { field: 'predict', legend: null, sort: null },
+              y: { field: 'target', title: null, sort: null },
+              order: { field: 'share', type: 'quantitative', sort: 'descending' },
+              opacity: {
+                condition: { test: { field: 'correct', equal: true }, value: 1 },
+                value: 0.5,
+              },
+            },
+          },
+          {
+            data: { values: [{ val: 1 }] },
+            mark: { type: 'rule', strokeDash: [2] },
+            encoding: {
+              x: { field: 'val' },
+            },
+          },
+        ],
+        config: {
+          range: { category: this.cohorts.map((cht) => cht.colorTaskView) },
+        },
+      },
+      { actions: false, renderer: 'svg' },
+    );
     log.debug('confusion', result.spec);
     this.chart.push(result.view);
   }
 
-  async createAttributeRanking(data, showCategoryColumn=true) {
+  async createAttributeRanking(data, showCategoryColumn = true) {
     const builder = LineUpJS.builder(data);
-    const categoryCol = LineUpJS.buildStringColumn('category').label('Category').width(200)
+    const categoryCol = LineUpJS.buildStringColumn('category').label('Category').width(200);
     if (!showCategoryColumn) {
       categoryCol.hidden();
     }
 
     this.$container.querySelector('.attribute-ranking').innerHTML = '';
     this.attributeRanking = builder
+      .column(LineUpJS.buildNumberColumn('importance', [0, 1]).label('Importance').width(150).colorMapping(colors.barColor).numberFormat('.1%'))
       .column(
-        LineUpJS.buildNumberColumn('importance', [0, 1])
-          .label('Importance')
-          .width(150)
-          .colorMapping(colors.barColor)
-          .numberFormat('.1%')
-        )
-      .column(
-        showCategoryColumn ? 
-        LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(150) :
-        LineUpJS.buildStringColumn('attribute').label('Attribute').width(200)
-        )
+        showCategoryColumn
+          ? LineUpJS.buildCategoricalColumn('attribute').label('Attribute').width(150)
+          : LineUpJS.buildStringColumn('attribute').label('Attribute').width(200),
+      )
       .column(categoryCol)
       .column(
-          LineUpJS.buildColumn("myDistributionColumn", 'distribution').label('Distribution')
-            .renderer("myDistributionRenderer", "myDistributionRenderer").width(200).build([])
-        )
-        .registerRenderer("myDistributionRenderer", new MyDistributionRenderer(this.cohorts))
-        .registerColumnType("myDistributionColumn", LineUpDistributionColumn)
+        LineUpJS.buildColumn('myDistributionColumn', 'distribution')
+          .label('Distribution')
+          .renderer('myDistributionRenderer', 'myDistributionRenderer')
+          .width(200)
+          .build([]),
+      )
+      .registerRenderer('myDistributionRenderer', new MyDistributionRenderer(this.cohorts))
+      .registerColumnType('myDistributionColumn', LineUpDistributionColumn)
       .deriveColors()
-      .ranking(LineUpJS.buildRanking()
-        .supportTypes()
-        .allColumns()
-        .sortBy('Importance', 'desc')
-        // .groupBy('Attribute')
-        .groupSortBy('Importance', 'desc')
+      .ranking(
+        LineUpJS.buildRanking()
+          .supportTypes()
+          .allColumns()
+          .sortBy('Importance', 'desc')
+          // .groupBy('Attribute')
+          .groupSortBy('Importance', 'desc'),
       )
       .sidePanel(false)
       .rowHeight(40)
@@ -493,11 +498,10 @@ export class Characterize extends ATask {
     (children[children.length - 1] as LineUpJS.NumberColumn).setFilter({
       filterMissing: true,
       min: 0.005,
-      max: Infinity
+      max: Infinity,
     });
 
-    
-    this.attributeRanking.on('selectionChanged', (dataIndices) => this.lineUpAttributeSelection(dataIndices))
+    this.attributeRanking.on('selectionChanged', (dataIndices) => this.lineUpAttributeSelection(dataIndices));
   }
 
   lineUpAttributeSelection(dataIndices: number[]): void {
@@ -505,42 +509,42 @@ export class Characterize extends ATask {
   }
 
   async createItemRanking(data) {
-
     this.$container.querySelector('.item-ranking').innerHTML = '';
     this.itemRanking = LineUpJS.builder(data)
       .column(LineUpJS.buildStringColumn(this._entityName).label('Item Id').width(200))
       .column(
-        LineUpJS .buildCategoricalColumn(
+        LineUpJS.buildCategoricalColumn(
           'cht',
-          this.cohorts.map((cht, i) => ({name: ''+i, label: cht.label, color: (cht as Cohort).colorTaskView}))
+          this.cohorts.map((cht, i) => ({ name: '' + i, label: cht.label, color: (cht as Cohort).colorTaskView })),
         )
-        .label('Cohort')
-        .width(Math.min(Math.max(this.cohorts.length * 30, 100), 200))
-        .renderer('catheatmap', 'categorical').asSet())
-      .column( 
-        LineUpJS.buildNumberColumn('probs', [0, 1])
-        .label('Cohort Probability')
-        .width(150)
-        .colorMapping(colors.barColor)
-        .numberFormat('.1%')
-        .asArray(this.cohorts.map((cht, i) => cht.label))
+          .label('Cohort')
+          .width(Math.min(Math.max(this.cohorts.length * 30, 100), 200))
+          .renderer('catheatmap', 'categorical')
+          .asSet(),
       )
-      .column( LineUpJS.buildNumberColumn('prob_max', [0, 1]).label('Max Probability').width(120).colorMapping(colors.barColor).numberFormat('.1%'))
+      .column(
+        LineUpJS.buildNumberColumn('probs', [0, 1])
+          .label('Cohort Probability')
+          .width(150)
+          .colorMapping(colors.barColor)
+          .numberFormat('.1%')
+          .asArray(this.cohorts.map((cht, i) => cht.label)),
+      )
+      .column(LineUpJS.buildNumberColumn('prob_max', [0, 1]).label('Max Probability').width(120).colorMapping(colors.barColor).numberFormat('.1%'))
       .deriveColors()
-      .ranking(LineUpJS.buildRanking().supportTypes().allColumns().sortBy('prob_max', 'asc') )
+      .ranking(LineUpJS.buildRanking().supportTypes().allColumns().sortBy('prob_max', 'asc'))
       .sidePanel(false)
       .buildTaggle(this.$container.querySelector('.item-ranking'));
 
     this.itemRankingData = this.itemRanking.data as LineUpJS.LocalDataProvider;
-    this.itemRanking.on('selectionChanged', (dataIndices) => this.lineUpItemSelection(dataIndices))
+    this.itemRanking.on('selectionChanged', (dataIndices) => this.lineUpItemSelection(dataIndices));
   }
-  
+
   lineUpItemSelection(dataIndices: number[]) {
-    
-    if(this.scatterplot) {
+    if (this.scatterplot) {
       const selectedItems = dataIndices.map((i) => this.itemRankingData.data[i][this._entityName]);
-      
-      const plotData = this.scatterplot.getData()
+
+      const plotData = this.scatterplot.getData();
       for (const [i, item] of plotData.entries()) {
         if (selectedItems.includes(item[this._entityName])) {
           item.selected = true;
@@ -548,7 +552,7 @@ export class Characterize extends ATask {
           item.selected = false;
         }
       }
-  
+
       this.scatterplot?.setData(plotData);
     }
   }
@@ -556,7 +560,9 @@ export class Characterize extends ATask {
   addProgressBar() {
     const wrapper = this.$container.querySelector('.progress-wrapper');
     wrapper.innerHTML = '';
-    wrapper.insertAdjacentHTML('beforeend', `
+    wrapper.insertAdjacentHTML(
+      'beforeend',
+      `
       <div class="progress-ctrl">
         <a class="run" role="button"><i class="fas fa-fw fa-stop-circle"></i></a>
       </div>
@@ -565,21 +571,20 @@ export class Characterize extends ATask {
           0/${Characterize.TREES}
         </div>
       </div>
-    `);
+    `,
+    );
     this.progressBar = wrapper.querySelector('.progress .progress-bar');
-    wrapper
-      .querySelector(('a.run'))
-      .addEventListener('click', () => {
-        this.ws?.close();
-        wrapper.querySelector('.progress-ctrl').remove();
-        this.progressBar.textContent = 'Stopped';
-        this.fadeOutProgressBar();
-      });
+    wrapper.querySelector('a.run').addEventListener('click', () => {
+      this.ws?.close();
+      wrapper.querySelector('.progress-ctrl').remove();
+      this.progressBar.textContent = 'Stopped';
+      this.fadeOutProgressBar();
+    });
   }
 
   setProgress(iteration: number, done = false) {
     this.progressBar.textContent = `${iteration}/${Characterize.TREES}`;
-    this.progressBar.style.width = `${100 * iteration / Characterize.TREES}%`;
+    this.progressBar.style.width = `${(100 * iteration) / Characterize.TREES}%`;
 
     if (iteration === Characterize.TREES) {
       this.setProgressIndefinite();
@@ -606,34 +611,33 @@ export class Characterize extends ATask {
   }
 
   async getData(attributes: IAttribute[], cohorts: Cohort[]) {
-    const dataPromises = cohorts
-      .map((cht, chtIndex) => {
-        const promise = new Promise(async (resolve, reject) => {
-          const chtDataPromises = attributes.map((attr) => attr.getData(cht.dbId));
-          try {
-            const chtData = await Promise.all(chtDataPromises); // array with one entry per attribute, which contains an array with one value for every item in the cohort
-            let joinedData = aq.from(chtData[0]);
-            for (let i = 1; i < chtData.length; i++) {
-              joinedData = joinedData.join_full(aq.from(chtData[i]));
-            }
-            const labelTable = aq.table({[DATA_LABEL]: [getCohortLabel(cht)]});
-            joinedData = joinedData.join_left(labelTable, (data, label) => true);
-            resolve(joinedData.objects());
-          } catch (e) {
-            reject(e);
+    const dataPromises = cohorts.map((cht, chtIndex) => {
+      const promise = new Promise(async (resolve, reject) => {
+        const chtDataPromises = attributes.map((attr) => attr.getData(cht.dbId));
+        try {
+          const chtData = await Promise.all(chtDataPromises); // array with one entry per attribute, which contains an array with one value for every item in the cohort
+          let joinedData = aq.from(chtData[0]);
+          for (let i = 1; i < chtData.length; i++) {
+            joinedData = joinedData.join_full(aq.from(chtData[i]));
           }
-        });
-        return promise;
+          const labelTable = aq.table({ [DATA_LABEL]: [getCohortLabel(cht)] });
+          joinedData = joinedData.join_left(labelTable, (data, label) => true);
+          resolve(joinedData.objects());
+        } catch (e) {
+          reject(e);
+        }
       });
+      return promise;
+    });
     const data = await Promise.all(dataPromises);
     return data;
   }
 }
 
 export class MyDistributionRenderer implements ICellRendererFactory {
-  readonly title: string = "Distribution Chart";
-  static readonly WIDTH=200;
-  static readonly HEIGHT=40;
+  readonly title: string = 'Distribution Chart';
+  static readonly WIDTH = 200;
+  static readonly HEIGHT = 40;
 
   constructor(private cohorts: Cohort[]) {}
 
@@ -670,35 +674,42 @@ export class MyDistributionRenderer implements ICellRendererFactory {
           return;
         }
 
-        const data = d.v?.distribution as Array<{cht: string, value: number}>;
+        const data = d.v?.distribution as Array<{ cht: string; value: number }>;
         if (data && d.v.random === false) {
           d3.select(n).selectAll('#loading').remove();
           d3.select(n).select('.xaxis path').attr('stroke', colors.barColor);
 
-          const chart = d3.select(n).select('#chart g')
+          const chart = d3.select(n).select('#chart g');
           if (d.v.type === 'cat') {
             // X axis
-            var x = d3.scaleBand()
-            .range([ 0, MyDistributionRenderer.WIDTH ])
-            .domain(data.map(function(d) { return d.cht; }))
-            .padding(0.2);
-  
+            var x = d3
+              .scaleBand()
+              .range([0, MyDistributionRenderer.WIDTH])
+              .domain(
+                data.map(function (d) {
+                  return d.cht;
+                }),
+              )
+              .padding(0.2);
+
             // Add Y axis
-            var y = d3.scaleLinear()
-            .domain([0, 1])
-            .range([ MyDistributionRenderer.HEIGHT, 0]);
-  
+            var y = d3.scaleLinear().domain([0, 1]).range([MyDistributionRenderer.HEIGHT, 0]);
+
             // Bars
-            chart.selectAll("rect")
-            .data(data)
-            .enter()
-            .append("rect")
-            .attr("x", (d) => x(d.cht))
-            .attr("y", (d) => y(d.value))
-              .attr("width", x.bandwidth())
-              .attr("height", function(d) { return MyDistributionRenderer.HEIGHT - y(d.value); })
-              .attr("fill", (d, i) => this.cohorts[i].colorTaskView)
-            .exit().remove();
+            chart
+              .selectAll('rect')
+              .data(data)
+              .enter()
+              .append('rect')
+              .attr('x', (d) => x(d.cht))
+              .attr('y', (d) => y(d.value))
+              .attr('width', x.bandwidth())
+              .attr('height', function (d) {
+                return MyDistributionRenderer.HEIGHT - y(d.value);
+              })
+              .attr('fill', (d, i) => this.cohorts[i].colorTaskView)
+              .exit()
+              .remove();
           } else {
             log.info(`type of ${d.v.attribute} is  ${d.v.type}, which is not supported`);
           }

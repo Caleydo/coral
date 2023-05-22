@@ -1,10 +1,9 @@
 /// <reference types="node" />
 import { ERenderMode, ICellRenderer, ICellRendererFactory } from 'lineupjs';
 import { Cohort } from '../../Cohort';
-import { ICohort } from '../../CohortInterfaces';
-import { IAttribute } from '../../data/Attribute';
 import { ATask } from './ATask';
 import { LineUpDistributionColumn } from './Characterize/LineUpDistributionColumn';
+import { IAttribute, ICohort } from '../..';
 export declare class Characterize extends ATask {
     static readonly TREES = 500;
     static readonly formatPercent: (n: number | {
