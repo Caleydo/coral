@@ -19,7 +19,7 @@ def upgrade():
     for cmd in [
         """
 CREATE SCHEMA IF NOT EXISTS cohort;
-CREATE SEQUENCE cohort.cohort_id_seq
+CREATE SEQUENCE IF NOT EXISTS cohort.cohort_id_seq
     INCREMENT 1
     START 1
     MINVALUE 1
@@ -27,7 +27,7 @@ CREATE SEQUENCE cohort.cohort_id_seq
     CACHE 1;
 """,
         """
-CREATE TABLE cohort.cohort
+CREATE TABLE IF NOT EXISTS cohort.cohort
 (
     id integer NOT NULL DEFAULT nextval('cohort.cohort_id_seq'::regclass),
     name character varying COLLATE pg_catalog."default" NOT NULL,
