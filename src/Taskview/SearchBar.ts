@@ -934,7 +934,7 @@ export class SearchBar {
           .html((v: IDataSubtypeConfig) => v.name)
           .on('click', (event, v: IDataSubtypeConfig) => {
             // merge subtype with the with d as the d.name is only available in the d variable
-            const dataSubType = { ...d, v };
+            const dataSubType = { ...d, ...v };
             const badgeName = this._composeGeneDataTypeName(data.optionText, dataSubType.name);
             const badgeData = deepCopy(data);
             badgeData.optionData = { subType: dataSubType, type: (dataSubType as any).dataTypeId };
@@ -1083,6 +1083,7 @@ export class SearchBar {
   public getSelectedOptions(): IOption[] {
     const badges = select(this._container).selectAll('.selected-option-badge');
     const badgesData = badges.data();
+    console.log('badgesData: ', badgesData);
     return badgesData as IOption[];
   }
 
