@@ -803,6 +803,37 @@ def hist():
         abort(400, error)
 
 
+@app.route("/recommendSplit", methods=["GET", "POST"])
+# TODO add login_required
+def recommendSplit():
+  error_msg = """Paramerter missing or wrong!
+    For the {route} query the following parameters are needed:
+    - name: name of the cohort
+    - isInitial: 0 if it has a parent cohort, 1 if it is the initial table
+    - previous: id of the previous cohort, -1 for the initial cohort
+    - database: database of the entitiy tale
+    - schema: schema of the entity table
+    - table: table of the entitiy""".format(
+    route="create"
+  )
+
+  return request.values
+
+  try:
+    query = QueryElements()
+
+    cohort = query.get_cohort_from_db(
+      request.values, error_msg
+    )  # get parent cohort
+    return "asdf"
+    new_cohort = query.create_cohort_num_filtered(
+      request.values, cohort, error_msg
+    )  # get filtered cohort from args and cohort
+    return query.add_cohort_to_db(new_cohort)  # save new cohort into DB
+  except RuntimeError as error:
+    abort(400, error)
+
+
 def create():
     """
     entry point of this plugin
