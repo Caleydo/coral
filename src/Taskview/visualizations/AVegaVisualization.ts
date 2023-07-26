@@ -610,11 +610,12 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       <ul class="nav nav-tabs nav-justified" role="tablist">
         <li role="presentation" class="nav-item"><a class="nav-link active" href="#filter" aria-controls="filter" role="tab" data-bs-toggle="tab"><i class="fas fa-filter" aria-hidden="true"></i> Filter</a></li>
         <li role="presentation" class="nav-item"><a class="nav-link" href="#split" aria-controls="split" role="tab" data-bs-toggle="tab"><i class="fas fa-share-alt" aria-hidden="true"></i> Split</a></li>
+        <!-- <li role="presentation" class="nav-item"><a class="nav-link" href="#autosplit" aria-controls="autosplit" role="tab" data-bs-toggle="tab"><i class="fas fa-share-alt" aria-hidden="true"></i> Autosplit</a></li> -->
       </ul>
       <!-- Tab panes -->
       <div class="tab-content">
         <div role="tabpanel" class="tab-pane active" id="filter">
-        <p>Click and drag in the visualization or set the range below:</p>
+        <p>Click and drag in the visualization or set the range below AVegaViz:</p>
           <div class="flex-wrapper" data-attr="${this.attribute.dataKey}">
             <label>Filter from</label>
             <input type="number" class="interval minimum" step="any" min="${min}" max="${max}" data-axis="x"/>
@@ -628,6 +629,7 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
         </div>
         <div role="tabpanel" class="tab-pane" id="split">
           <div class="flex-wrapper" data-attr="${this.attribute.dataKey}">
+          <button type="button" class="btn calculateBtn btn-coral-prime" title="Calculate meaningful splits.">Recommend Split2</button>
             <label>Split into</label>
             <input type="number" class="bins" step="any" min="1" max="99" value="2"/>
             <label >bins of</label>
@@ -670,6 +672,13 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
             log.error('Unknown task: ', activeTask);
         }
       });
+
+    select(this.controls)
+      .select('button.calculateBtn')
+      .on('click', () => {
+        console.log("calculate");
+      });
+
 
     const that = this; // helper varible to access this instance in the d3 event handler function
     select(this.controls)
