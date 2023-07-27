@@ -1083,7 +1083,6 @@ export class SearchBar {
   public getSelectedOptions(): IOption[] {
     const badges = select(this._container).selectAll('.selected-option-badge');
     const badgesData = badges.data();
-    console.log('badgesData: ', badgesData);
     return badgesData as IOption[];
   }
 
