@@ -12,6 +12,10 @@ from visyn_core import manager
 from .settings import get_settings
 from .sql_tables import Cohort
 
+# for debugging
+# from settings import get_settings
+# from sql_tables import Cohort
+
 _log = logging.getLogger(__name__)
 logging.getLogger("sqlalchemy").setLevel(logging.INFO)
 

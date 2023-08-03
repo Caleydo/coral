@@ -1,10 +1,16 @@
 import logging
 
+import hdbscan
+import pandas as pd
 from flask import Flask, abort, jsonify, request
 from visyn_core.security import login_required
 
 from .settings import get_settings
 from .sql_query_mapper import QueryElements
+
+# for debugging. Shut down api-1-container
+# from settings import get_settings
+# from sql_query_mapper import QueryElements
 
 _log = logging.getLogger(__name__)
 
@@ -796,7 +802,6 @@ def hist():
             # - panel: name of the panel
             sql_text = query.get_hist_panel_sql(request.values, cohort, error_msg)
             hist = query.execute_sql_query(sql_text, database, True, config.supp_statement_timeout)  # execute sql statement
-
         return hist
 
     except RuntimeError as error:
@@ -806,30 +811,78 @@ def hist():
 @app.route("/recommendSplit", methods=["GET", "POST"])
 # TODO add login_required
 def recommendSplit():
+  # error msg is wrong, it is based on the cohortData route
+  # cohortData?cohortId=2&attribute=gender
   error_msg = """Paramerter missing or wrong!
-    For the {route} query the following parameters are needed:
-    - name: name of the cohort
-    - isInitial: 0 if it has a parent cohort, 1 if it is the initial table
-    - previous: id of the previous cohort, -1 for the initial cohort
-    - database: database of the entitiy tale
-    - schema: schema of the entity table
-    - table: table of the entitiy""".format(
-    route="create"
+  For the {route} query the following parameter is needed:
+  - cohortId: id of the cohort
+  There is also one optional parameter:
+  - attribute: one column of the entity table""".format(
+    route="cohortData"
   )
 
-  return request.values
+  # print("print test)") # is printed in the logs in docker
+  # _log.debug("log debug test") # is printed in the logs with the DEBUG info
+  # return "return test" # does not show in the log
+  _log.debug("request.values")
+  _log.debug(request.values)
 
+  # todo: look at createUseNumFilter, size, hist routes. Try them here.
+  # todo: get the tissue data that is currently used in the frontend, then apply a clustering algorithm, return the split (the bins that the user could also set themselves)
+
+
+  # try:
+  #   query = QueryElements()
+  #   cohort = query.get_cohort_from_db(request.values, error_msg)  # get parent cohort
+  #   new_cohort = query.create_cohort_num_filtered(request.values, cohort,
+  #                                                 error_msg)  # get filtered cohort from args and cohort
+  #   return query.add_cohort_to_db(new_cohort)  # save new cohort into DB
+  # except RuntimeError as error:
+  #   abort(400, error)
+
+  # based on cohortData
   try:
     query = QueryElements()
+    # _log.debug("query")
+    # _log.debug(query)
 
-    cohort = query.get_cohort_from_db(
-      request.values, error_msg
-    )  # get parent cohort
-    return "asdf"
-    new_cohort = query.create_cohort_num_filtered(
-      request.values, cohort, error_msg
-    )  # get filtered cohort from args and cohort
-    return query.add_cohort_to_db(new_cohort)  # save new cohort into DB
+    cohort = query.get_cohort_from_db(request.values, error_msg)  # get parent cohort
+    # _log.debug("cohort %s", cohort)
+
+    sql_text = query.get_cohort_data_sql(request.values, cohort)  # get sql statement to retrieve data
+    # _log.debug("sql_text")
+    # _log.debug(sql_text)
+
+    query_results = query.execute_sql_query(sql_text, cohort.entity_database)
+    # _log.debug("query_results %s ", query_results)
+    # _log.debug("query_results.get_json() %s ", query_results.get_json()[0:3]) # returns the first row of the query results, e.g. {'age': 67.0, 'tissuename': 'GENIE-UHN-AGI523559-BM1'}
+    # so I have the tissuenames of that cohort (TODO: there surely is a better way to get the tissuenames, without having to do this query, convert the response back to a dict etc etc)
+    # I also have the attribute that is used for the cohort (e.g. age), so I can get the values of that attribute for each tissue and then cluster them
+    # get the values of the attribute for each tissue
+    # _log.debug("request.values['attribute'] %s ", request.values['attribute']) # returns the keys of the first row of the query results, e.g. dict_keys(['age', 'tissuename'])
+    # get all the values of query_results.get_json() for the attribute
+    # remove all none values
+    tissues = [item for item in query_results.get_json() if item[request.values['attribute']] is not None]
+    _log.debug("tissues %s", tissues)
+
+    # fit the clusterer based on the attribute values
+    _log.debug("type(tissues) %s", type(tissues))
+    # convert the list tissues to a pandas dataframe
+    tissues_df = pd.DataFrame(tissues)
+    # get only the first column of tissues_df
+    tissues_attribute_df = tissues_df.iloc[:, 0].values.reshape(-1, 1)
+    _log.debug("tissues_attribute_df %s", tissues_attribute_df.shape)
+    clusterer = hdbscan.HDBSCAN(min_cluster_size=round(tissues_attribute_df.shape[0]/10), gen_min_span_tree=True) # one tenth of the number of tissues, to get a reasonable amount of clusters
+    clusterer.fit(tissues_attribute_df)
+    # get the labels of the clusters
+    labels = clusterer.labels_
+    _log.debug("labels %s", labels)
+    # get the number of clusters
+    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+    _log.debug("n_clusters_ %s", n_clusters_)
+
+
+    return query_results  # execute sql statement
   except RuntimeError as error:
     abort(400, error)
 

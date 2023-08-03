@@ -629,7 +629,7 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
         </div>
         <div role="tabpanel" class="tab-pane" id="split">
           <div class="flex-wrapper" data-attr="${this.attribute.dataKey}">
-          <button type="button" class="btn calculateBtn btn-coral-prime" title="Calculate meaningful splits.">Recommend Split2</button>
+          <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits.">Recommend Split</button>
             <label>Split into</label>
             <input type="number" class="bins" step="any" min="1" max="99" value="2"/>
             <label >bins of</label>
@@ -674,7 +674,7 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       });
 
     select(this.controls)
-      .select('button.calculateBtn')
+      .select('button.recommendSplitBtn')
       .on('click', () => {
         console.log("calculate");
       });
