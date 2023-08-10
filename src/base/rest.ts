@@ -149,6 +149,17 @@ export function createDBCohortWithNumFilter(params: ICohortDBWithNumFilterParams
   return getCohortDataImpl(CohortRoutes.createUseNumFilter, newParams, assignIds);
 }
 
+export function recommendSplit(params: ICohortDBDataParams, assignIds = false): Promise<IRow[]> {
+  const url = `/cohortdb/db/${'recommendSplit'}`;
+  const encoded = Ajax.encodeParams(params);
+  if (encoded && url.length + encoded.length > Ajax.MAX_URL_LENGTH) {
+    // use post instead
+    return AppContext.getInstance().sendAPI(url, params, 'POST');
+  }
+  return AppContext.getInstance().getAPIJSON(url, params);
+}
+
+
 export function createDBCohortWithGeneNumFilter(params: ICohortDBWithGeneNumFilterParams, assignIds = false): Promise<IRow[]> {
   const newParams: IParams = {
     cohortId: params.cohortId,

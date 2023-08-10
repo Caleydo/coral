@@ -13,7 +13,11 @@ import { Option, VisConfig } from './config/VisConfig';
 import { DATA_LABEL } from './constants';
 import { IVisualization } from './IVisualization';
 import { IAttribute, IdValuePair } from '../../data/IAttribute';
-import { IEqualsList, INumRange, NumRangeOperators } from '../../base/interfaces';
+import {ICohortDBWithNumFilterParams, IEqualsList, INumRange, NumRangeOperators} from '../../base/interfaces';
+
+import {
+  recommendSplit
+} from './../../base/rest';
 
 export const MISSING_VALUES_LABEL = 'Missing Values';
 export const FACETED_CHARTS_WIDTH = 520;
@@ -446,6 +450,67 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     return filter;
   }
 
+
+  /** Calls the recommendSplit webservice and sets the bins accoding to the returned results */
+  async recommendSplit() {
+    console.log("recommendSplit");
+    const params: ICohortDBWithNumFilterParams = {
+      name: "",
+      ranges: undefined,
+      cohortId: 56205,
+      attribute: this.attribute.dataKey
+    };
+    const data = await recommendSplit(params);
+    console.log("recommendSplit", data);
+
+    this.splitValues = [];
+    for (let i = 0; i < data.length; i++) {
+      // get the int val of the data[i]
+      const binBorder = Number(data[i]);
+      this.splitValues.push({ x: binBorder });
+    }
+    this.vegaView.data(AVegaVisualization.SPLITVALUE_DATA_STORE, cloneDeep(this.splitValues)); // set a defensive copy
+
+
+    // this.vegaView.removeDataListener(AVegaVisualization.SPLITVALUE_DATA_STORE, this.vegaSplitListener); // remove listener temporarily
+    //
+    // const binCount = parseFloat(event.value);
+    // const splitValCount = binCount - 1;
+    // const [min, max] = this.vegaView.scale('x').domain();
+    // const extent = max - min;
+    // const binWidth = extent / binCount;
+    //
+    // const binType = this.controls.querySelector('#split select.binType') as HTMLSelectElement;
+    //
+    // if (binType.selectedIndex === 0) {
+    //   // equal width
+    //   this.splitValues = [];
+    //   for (let i = 1; i <= splitValCount; i++) {
+    //     const binBorder = min + binWidth * i;
+    //     this.splitValues.push({ x: binBorder });
+    //   }
+    // } else if (binType.selectedIndex === 1) {
+    //   // custom width
+    //   if (this.splitValues.length > splitValCount) {
+    //     this.splitValues = this.splitValues.sort((a, b) => a.x - b.x); // sort em
+    //     this.splitValues.length = splitValCount; // drop largest split values
+    //   } else {
+    //     while (this.splitValues.length < splitValCount) {
+    //       this.splitValues.push({ x: max }); // add maximum until there are enough rulers
+    //     }
+    //   }
+    // } else {
+    //   this.splitValues = new Array(5).fill({ x: 0 }).map((x) => ({ x }));
+    // }
+    //
+    // this.vegaView.data(AVegaVisualization.SPLITVALUE_DATA_STORE, cloneDeep(this.splitValues)); // set a defensive copy
+    // this.vegaView.runAsync().then(
+    //   (
+    //     vegaView, // defer adding signallistener until the new data is set internally
+    //   ) => vegaView.addDataListener(AVegaVisualization.SPLITVALUE_DATA_STORE, this.vegaSplitListener), // add listener again
+    // );
+  }
+
   /**
    * Creates a IFilterDesc for every Cohort.
    * To do so we have to merge the categories or numranges we get for a cohort (multiple object) into one IFilterDesc, which makes this method a lot longer than split()
@@ -676,7 +741,8 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     select(this.controls)
       .select('button.recommendSplitBtn')
       .on('click', () => {
-        console.log("calculate");
+        console.log("recommendSplitBtn clicked");
+        this.recommendSplit();
       });
 
 

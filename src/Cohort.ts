@@ -32,7 +32,7 @@ import {
   dataDBCohortWithEqualsFilter,
   dataDBCohortWithNumFilter,
   getCohortData,
-  getCohortSize,
+  getCohortSize, recommendSplit,
   sizeDBCohortDepletionScoreFilter,
   sizeDBCohortGeneWithEqualsFilter,
   sizeDBCohortGeneWithNumFilter,

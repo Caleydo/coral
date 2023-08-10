@@ -3,6 +3,7 @@ import logging
 import hdbscan
 import pandas as pd
 from flask import Flask, abort, jsonify, request
+from sklearn.cluster import KMeans
 from visyn_core.security import login_required
 
 from .settings import get_settings
@@ -863,26 +864,81 @@ def recommendSplit():
     # get all the values of query_results.get_json() for the attribute
     # remove all none values
     tissues = [item for item in query_results.get_json() if item[request.values['attribute']] is not None]
-    _log.debug("tissues %s", tissues)
+    # _log.debug("tissues %s", tissues)
+
 
     # fit the clusterer based on the attribute values
     _log.debug("type(tissues) %s", type(tissues))
     # convert the list tissues to a pandas dataframe
     tissues_df = pd.DataFrame(tissues)
-    # get only the first column of tissues_df
+    # get only the first column of tissues_df (e.g. attribute age)
     tissues_attribute_df = tissues_df.iloc[:, 0].values.reshape(-1, 1)
-    _log.debug("tissues_attribute_df %s", tissues_attribute_df.shape)
-    clusterer = hdbscan.HDBSCAN(min_cluster_size=round(tissues_attribute_df.shape[0]/10), gen_min_span_tree=True) # one tenth of the number of tissues, to get a reasonable amount of clusters
-    clusterer.fit(tissues_attribute_df)
+    _log.debug("tissues_attribute_df shape %s", tissues_attribute_df.shape)
+
+    # # hdbscan
+    # clusterer = hdbscan.HDBSCAN(min_cluster_size=round(tissues_attribute_df.shape[0]/10), gen_min_span_tree=True) # one tenth of the number of tissues, to get a reasonable amount of clusters
+    # clusterer.fit(tissues_attribute_df)
+    # # get the labels of the clusters
+    # labels = clusterer.labels_
+    # _log.debug("labels %s", labels)
+    # # get the number of clusters by getting the distinct values of labels
+    # n_clusters_ = len(set(labels))
+    # _log.debug("n_clusters_ %s", n_clusters_)
+    #
+    # # log debug the attribute value and the cluster label
+    # # for i in range(0, len(tissues_attribute_df)):
+    # #   _log.debug("tissues_attribute_df[i] %s", tissues_attribute_df[i])
+    # #   _log.debug("labels[i] %s", labels[i])
+    #
+    # # get the decision boundaries of the clusters
+    # # get all incices of the tissue_attribute_df that have a certain label
+    # # hdbscan end
+
+    # kmeans
+    clusterer_age_kmeans = KMeans(n_clusters=3, n_init='auto')
+    clusterer_age_kmeans.fit(tissues_attribute_df)
     # get the labels of the clusters
-    labels = clusterer.labels_
+    labels = clusterer_age_kmeans.labels_
     _log.debug("labels %s", labels)
-    # get the number of clusters
-    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+    # get the number of clusters by getting the distinct values of labels
+    n_clusters_ = len(set(labels))
     _log.debug("n_clusters_ %s", n_clusters_)
+    # kmeans end
+    _log.debug("tissues_attribute_df %s", tissues_attribute_df.shape)
+    _log.debug("tissues_attribute_df %s", clusterer_age_kmeans.labels_.shape)
+    # add the cluster labels to the tissues
+    _log.debug("tissues_df %s", tissues_df)
+    tissues_df['cluster_label'] = labels
+    _log.debug("tissues_df %s", tissues_df)
+    # it is a 1d array --> we can find the decision boundaries by looking at the maximum of the smaller cluster and the minimum of the larger cluster
+    min_cluster_0 = min(tissues_df[tissues_df['cluster_label'] == 0]['age'])
+    max_cluster_0 = max(tissues_df[tissues_df['cluster_label'] == 0]['age'])
+    min_cluster_1 = min(tissues_df[tissues_df['cluster_label'] == 1]['age'])
+    max_cluster_1 = max(tissues_df[tissues_df['cluster_label'] == 1]['age'])
+    min_cluster_2 = min(tissues_df[tissues_df['cluster_label'] == 2]['age'])
+    max_cluster_2 = max(tissues_df[tissues_df['cluster_label'] == 2]['age'])
+    # order them in a list according to their min value since they are not ordered
+    min_cluster_list = [min_cluster_0, min_cluster_1, min_cluster_2]
+    min_cluster_list.sort()
+    # same for max values
+    max_cluster_list = [max_cluster_0, max_cluster_1, max_cluster_2]
+    max_cluster_list.sort()
+    # create dict and store the boundaries
+    # boundaries = {}
+    # boundaries['boundary0'] = (max_cluster_list[0] + min_cluster_list[1]) / 2
+    # boundaries['boundary1'] = (max_cluster_list[1] + min_cluster_list[2]) / 2
+    # _log.debug("boundary0 %s", boundaries['boundary0'] )
+    # _log.debug("boundary1 %s", boundaries['boundary1'])
 
+    # store the boundaries in a list
+    boundaries = []
+    boundaries.append((max_cluster_list[0] + min_cluster_list[1]) / 2)
+    boundaries.append((max_cluster_list[1] + min_cluster_list[2]) / 2)
+    _log.debug("boundaries %s", boundaries)
+    # kmeans end
 
-    return query_results  # execute sql statement
+    # return query_results  # execute sql statement
+    return jsonify(boundaries)
   except RuntimeError as error:
     abort(400, error)
 
