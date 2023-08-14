@@ -1,14 +1,15 @@
-import {select} from 'd3v7';
+import { select } from 'd3v7';
 import * as $ from 'jquery';
 import tippy from 'tippy.js';
-import { Cohort } from '../Cohort';
-import { IAttribute, toAttribute } from '../data/Attribute';
+import type { ICohort } from '../app/interfaces';
+import { IAttribute } from '../data/IAttribute';
+import { toAttribute } from '../Tasks';
 import searchHtml from '../templates/SearchColumn.html'; // webpack imports html to variable
 import { log } from '../util';
 import { SearchBar } from './SearchBar';
 import { ATask, TaskCloseEvent, TASK_CLOSE_EVENT_TYPE } from './tasks/ATask';
 import { TASKLIST } from './tasks/TaskList';
-import Taskview from './Taskview';
+import type Taskview from './Taskview';
 
 export default class SearchColumn {
   private $searchColumn: HTMLDivElement;
@@ -19,13 +20,13 @@ export default class SearchColumn {
 
   private searchBar: SearchBar;
 
-  private refCohort: Cohort;
+  private refCohort: ICohort;
 
   private $ColumnHeader: HTMLDivElement;
 
   activeTask: ATask;
 
-  constructor($container: HTMLDivElement, private referenceCht: Cohort, private taskview: Taskview) {
+  constructor($container: HTMLDivElement, private referenceCht: ICohort, private taskview: Taskview) {
     $container.insertAdjacentHTML('beforeend', searchHtml); // faster than innerHTML (https://developer.mozilla.org/de/docs/Web/API/Element/insertAdjacentHTML)
     this.$searchColumn = $container.firstChild as HTMLDivElement;
     this.$tasks = select(this.$searchColumn).select('.task-selector').node() as HTMLDivElement;
@@ -68,7 +69,7 @@ export default class SearchColumn {
     this.$searchColumn.remove();
   }
 
-  private async _setupSearchBar(referenceCht: Cohort) {
+  private async _setupSearchBar(referenceCht: ICohort) {
     this.searchBar = new SearchBar(select(this.$searchColumn).select('.search-bar').node() as HTMLDivElement, referenceCht.database, referenceCht.view);
     this.setSearchBarVisibility(false); // hide searchBar -> set display: none
     this.searchBar.getSearchBarHTMLDivElement().addEventListener('optionchange', async (e) => {
@@ -137,6 +138,7 @@ export default class SearchColumn {
   private enableAddButtons(enable: boolean): void {
     if (enable) {
       // add eventListeners
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
       const that = this;
       select(this.$searchColumn)
         .selectAll('div.action.add')

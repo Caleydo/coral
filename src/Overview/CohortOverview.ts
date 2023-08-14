@@ -1,15 +1,25 @@
 import { IObjectRef, ObjectRefUtils, ProvenanceGraph, UniqueIdManager, IDatabaseViewDesc } from 'tdp_core';
 import tippy from 'tippy.js';
-import { CohortApp } from '../app';
+import type { CoralApp } from '../app/CoralApp';
 import { Cohort, createCohortFromDB } from '../Cohort';
-import { ElementProvType, IElement, IElementProvJSON, IOverviewLayout, IRectCohortRep, IRectTaskRep, ITask, ITaskParams, TaskType } from '../CohortInterfaces';
+import {
+  EElementProvType,
+  ICohort,
+  IElement,
+  IElementProvJSON,
+  IOverviewLayout,
+  IRectCohortRep,
+  IRectTaskRep,
+  ITask,
+  ITaskParams,
+  TaskType,
+} from '../app/interfaces';
 import { RectCohortRep } from '../CohortRepresentations';
-import { IAttribute } from '../data/Attribute';
-import { addOverviewCohortAction, removeOverviewCohortAction } from '../Provenance/CohortEV';
-import { getDBCohortData } from '../rest';
+import { getDBCohortData } from '../base/rest';
 import { RectTaskRep } from '../TaskRepresentations';
 import { createTaskFromProvJSON, Task, TaskFilter, TaskSplit } from '../Tasks';
-import { deepCopy, log, ScrollLinker } from '../util';
+import { deepCopy, log } from '../util';
+import { ScrollLinker } from '../utils/ScrollLinker';
 import {
   CohortRemoveEvent,
   CohortSelectionEvent,
@@ -19,12 +29,14 @@ import {
   PreviewChangeEvent,
   TaskRemoveEvent,
   TASK_REMOVE_EVENT_TYPE,
-} from '../utilCustomEvents';
-import { niceName } from '../utilLabels';
+} from '../base/events';
+import { niceName } from '../utils/labels';
 import { RectangleLayout } from './OverviewLayout';
+import { IAttribute } from '../data/IAttribute';
+import { addOverviewCohortAction, removeOverviewCohortAction } from '../Provenance/CohortEV';
 
 export class CohortOverview {
-  private root: Cohort;
+  private root: ICohort;
 
   private rootDBid: number;
 
@@ -62,18 +74,18 @@ export class CohortOverview {
 
   public readonly ref: IObjectRef<CohortOverview>;
 
-  public readonly appRef: IObjectRef<CohortApp>;
+  public readonly appRef: IObjectRef<CoralApp>;
 
   private refName = 'CohortApp-Overview';
 
-  private _reference: Cohort;
+  private _reference: ICohort;
 
   constructor(
     private parent: HTMLDivElement,
     graph: ProvenanceGraph,
-    ref: IObjectRef<CohortApp>,
+    ref: IObjectRef<CoralApp>,
     layout: IOverviewLayout,
-    root: Cohort,
+    root: ICohort,
     viewDescr: IDatabaseViewDesc,
   ) {
     this.root = root;
@@ -235,7 +247,7 @@ export class CohortOverview {
   public executeTask(taskParam: ITaskParams, attributes: IAttribute[], addToTaskHistory = true): Task {
     log.debug('executeTask: ', taskParam);
     let validType = false;
-    const parentCohort: Cohort = taskParam.inputCohorts[0] as Cohort;
+    const parentCohort: ICohort = taskParam.inputCohorts[0];
     let task: ITask;
     if (taskParam.type === TaskType.Filter) {
       validType = true;
@@ -416,7 +428,7 @@ export class CohortOverview {
       }
 
       // create missing Cohorts
-      const jsonCohorts = jsonElementsToCreate.filter((elem) => elem.type === ElementProvType.Cohort);
+      const jsonCohorts = jsonElementsToCreate.filter((elem) => elem.type === EElementProvType.Cohort);
       const cohortIDs: number[] = jsonCohorts.map((elem) => Number(elem.id));
       // get cohort DB data
       const chtSizes = [];
@@ -447,7 +459,7 @@ export class CohortOverview {
       // console.log('root element found (AFTER): ', foundRoot);
 
       // create missing Tasks
-      const jsonTasks = jsonElementsToCreate.filter((elem) => elem.type !== ElementProvType.Cohort);
+      const jsonTasks = jsonElementsToCreate.filter((elem) => elem.type !== EElementProvType.Cohort);
       for (const jsonT of jsonTasks) {
         const newTask = createTaskFromProvJSON(jsonT);
         provElements.push(newTask);

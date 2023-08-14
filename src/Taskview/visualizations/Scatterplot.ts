@@ -1,23 +1,25 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable global-require */
 import * as Comlink from 'comlink';
-import {select} from 'd3v7';
-import {Spec as VegaSpec} from 'vega';
-import {TopLevelSpec as VegaLiteSpec} from 'vega-lite';
-import {Cohort} from '../../Cohort';
-import {AttributeType, IAttribute, IdValuePair, ServerColumnAttribute} from '../../data/Attribute';
-import {NumRangeOperators} from '../../rest';
-import {IFilterDesc, inRange} from '../../util';
-import {FilterEvent} from '../../utilCustomEvents';
-import {DATA_LABEL} from './constants';
-import {AxisType, MultiAttributeVisualization} from './MultiAttributeVisualization';
-import {TopLevel, LayerSpec} from 'vega-lite/build/src/spec';
-import {Field} from 'vega-lite/build/src/channeldef';
+import { select } from 'd3v7';
+import { Spec as VegaSpec } from 'vega';
+import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
+import { TopLevel, LayerSpec } from 'vega-lite/build/src/spec';
+import { Field } from 'vega-lite/build/src/channeldef';
+import { ICohort } from '../../app/interfaces';
+import { AttributeType, IAttribute, IdValuePair, ServerColumnAttribute } from '../../data';
+import { NumRangeOperators } from '../../base';
+import { IFilterDesc, inRange } from '../../util';
+import { FilterEvent } from '../../base/events';
+import { DATA_LABEL } from './constants';
+import { AxisType, MultiAttributeVisualization } from './MultiAttributeVisualization';
 
 export class Scatterplot extends MultiAttributeVisualization {
   static readonly NAME: string = 'Scatterplot';
 
   protected checkAttributeType = false;
 
-  constructor(vegaLiteOptions: Object = {}) {
+  constructor(vegaLiteOptions: object = {}) {
     super(vegaLiteOptions);
   }
 
@@ -1042,7 +1044,7 @@ export class TsneScatterplot extends Scatterplot {
 
   originalAttributes: IAttribute[];
 
-  constructor(vegaLiteOptions: Object = {}) {
+  constructor(vegaLiteOptions: object = {}) {
     super(vegaLiteOptions);
     this.checkAttributeType = false;
   }
@@ -1058,7 +1060,7 @@ export class TsneScatterplot extends Scatterplot {
     return scatterSpec;
   }
 
-  async show(container: HTMLDivElement, attributes: IAttribute[], cohorts: Cohort[]) {
+  async show(container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]) {
     super.show(container, attributes, cohorts);
   }
 
@@ -1066,8 +1068,8 @@ export class TsneScatterplot extends Scatterplot {
     this.addProgressBar();
 
     const oneHotWorker = new (<any>require('worker-loader?name=OneHotEncoder.js!./dimreduce/OneHotEncoder.worker'))();
-    const oneHotClass = Comlink.wrap(oneHotWorker) as any;
-    const oneHot = await new oneHotClass();
+    const OneHotClass = Comlink.wrap(oneHotWorker) as any;
+    const oneHot = await new OneHotClass();
     // Note: numerical attributes will be normalized
     const oneHotData = await oneHot.encode(data, this.attributes);
     oneHot[Comlink.releaseProxy]();
@@ -1080,6 +1082,7 @@ export class TsneScatterplot extends Scatterplot {
 
     const tsneWorker = new (<any>require('worker-loader?name=tsne.worker.js!./dimreduce/tsne.worker'))();
     this.tsneClass = Comlink.wrap(tsneWorker) as any;
+    // eslint-disable-next-line new-cap
     this.tsne = await new this.tsneClass(opt);
     this.tsne.initDataRaw(oneHotData);
 

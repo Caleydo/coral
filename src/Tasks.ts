@@ -1,7 +1,53 @@
-import { IAllFilters, IParams } from 'tdp_core';
-import { ElementProvType, IElement, IElementProvJSON, IElementProvJSONTask, ITask, ITaskRep, TaskType } from './CohortInterfaces';
-import { IAttribute, toAttribute } from './data/Attribute';
-import { deepCopy, log } from './util';
+import type { IServerColumn } from 'visyn_core/base';
+import { log } from './util';
+import { EElementProvType, IElement, IElementProvJSON, IElementProvJSONTask, ITask, ITaskRep, TaskType } from './app/interfaces';
+import { GeneScoreAttribute, PanelScoreAttribute, ServerColumnAttribute, SpecialAttribute } from './data/Attribute';
+import type { IAttribute, IOption, IScoreOption, IServerColumnOption } from './data/IAttribute';
+import type { ISpecialAttribute } from './data/ISpecialAttribute';
+
+export interface ISpecialOption extends IServerColumnOption {
+  optionData: {
+    serverColumn: IServerColumn;
+    sAttrId: string;
+    attrOption: string;
+    spAttribute: ISpecialAttribute;
+  };
+}
+
+export function toAttribute(option: IOption, currentDB, currentView): IAttribute {
+  if (option.optionType === 'dbc') {
+    if (option.optionData && (option as ISpecialOption).optionData.spAttribute) {
+      // Create Special Attribtues
+      // if (option.optionData.spA === 'treatment') {
+      log.debug('create special Attribute: ', option.optionId);
+      log.debug('special Attribute object: ', option.optionData.spAttribute);
+      return new SpecialAttribute(
+        option.optionId,
+        currentView,
+        currentDB,
+        (option as ISpecialOption).optionData.spAttribute,
+        (option as ISpecialOption).optionData.attrOption,
+      );
+    }
+    // Create Attribute
+    return new ServerColumnAttribute(option.optionId, currentView, currentDB, (option as IServerColumnOption).optionData.serverColumn);
+  }
+  // Create ScoreAttribute
+  if (option.optionType === 'gene') {
+    return new GeneScoreAttribute(
+      option.optionId,
+      option.optionText,
+      currentView,
+      currentDB,
+      (option as IScoreOption).optionData.type,
+      (option as IScoreOption).optionData.subType,
+    );
+  }
+  if (option.optionType === 'panel') {
+    return new PanelScoreAttribute(option.optionId, currentView, currentDB, 'categorical');
+  }
+  return null;
+}
 
 export abstract class Task implements ITask {
   id: string;
@@ -42,7 +88,7 @@ export class TaskFilter extends Task {
   public toProvenanceJSON(): IElementProvJSONTask {
     return {
       id: this.id,
-      type: ElementProvType.TaskFilter,
+      type: EElementProvType.TaskFilter,
       label: this.label,
       parent: this.parents.map((elem) => elem.id),
       children: this.children.map((elem) => elem.id),
@@ -62,7 +108,7 @@ export class TaskSplit extends Task {
   public toProvenanceJSON(): IElementProvJSONTask {
     return {
       id: this.id,
-      type: ElementProvType.TaskSplit,
+      type: EElementProvType.TaskSplit,
       label: this.label,
       parent: this.parents.map((elem) => elem.id),
       children: this.children.map((elem) => elem.id),
@@ -79,99 +125,8 @@ export function createTaskFromProvJSON(config: IElementProvJSON): Task {
     return toAttribute(elem.option, elem.currentDB, elem.currentView);
   });
 
-  if (config.type === ElementProvType.TaskFilter) {
+  if (config.type === EElementProvType.TaskFilter) {
     return new TaskFilter(config.id, config.label, attributes);
   }
   return new TaskSplit(config.id, config.label, attributes);
-}
-
-function mergerAllFilterPart(filterType: FilterType, existingFilter: IParams, newFilter: IParams): IParams {
-  let mergedFilter = deepCopy(existingFilter);
-  // const currType : FilterType = FilterType.normal;
-  let filterContradiction = false;
-  // go through all attribuets of the new filter
-  for (const attr in newFilter) {
-    // check if attribute exists in the new filter
-    if (Object.prototype.hasOwnProperty.call(newFilter, attr)) {
-      // check if attribute exists in the existing filter
-      if (Object.prototype.hasOwnProperty.call(existingFilter, attr)) {
-        const newVal = newFilter[attr]; // current value for attribute
-        const existVal = existingFilter[attr]; // current value for attribute
-
-        if (filterType === FilterType.normal) {
-          // convert newVal to an array of values
-          const newValArray = Array.isArray(newVal) ? (newVal as string[] | number[] | boolean[]) : new Array(newVal as string | number | boolean);
-          // convert existVal to an array of values
-          const existValArray = Array.isArray(existVal) ? (existVal as string[] | number[] | boolean[]) : new Array(existVal as string | number | boolean);
-          // if all new values are part of the existing values, then the filter is OK
-          for (const nv of newValArray) {
-            if (!existValArray.includes(nv)) {
-              filterContradiction = true;
-            }
-          }
-          // no filter contradiction -> new filter values can be used
-          if (!filterContradiction) {
-            // outside of for-loop
-            mergedFilter[attr] = newFilter[attr];
-          }
-        } else if (filterType === FilterType.lt || filterType === FilterType.lte) {
-          // smaller is OK
-          if (newVal <= existVal) {
-            mergedFilter[attr] = newFilter[attr];
-          } else {
-            filterContradiction = true;
-          }
-        } else if (filterType === FilterType.gt || filterType === FilterType.gte) {
-          // bigger is OK
-          if (newVal >= existVal) {
-            mergedFilter[attr] = newFilter[attr];
-          } else {
-            filterContradiction = true;
-          }
-        }
-      } else {
-        // the new filter attribute is not existing -> add to the resulting filter
-        mergedFilter[attr] = newFilter[attr];
-      }
-    }
-  }
-
-  if (filterContradiction) {
-    mergedFilter = null;
-  }
-  log.debug('Filter Contradiction: ', filterContradiction);
-  return mergedFilter;
-}
-
-export function mergeTwoAllFilters(existingFilter: IAllFilters, newFilter: IAllFilters): IAllFilters {
-  let mergerAllFilter: IAllFilters = null;
-  if (existingFilter !== null) {
-    const normal: IParams = mergerAllFilterPart(FilterType.normal, existingFilter.normal, newFilter.normal);
-    const lt: IParams = mergerAllFilterPart(FilterType.lt, existingFilter.lt, newFilter.lt);
-    const lte: IParams = mergerAllFilterPart(FilterType.lte, existingFilter.lte, newFilter.lte);
-    const gt: IParams = mergerAllFilterPart(FilterType.gt, existingFilter.gt, newFilter.gt);
-    const gte: IParams = mergerAllFilterPart(FilterType.gte, existingFilter.gte, newFilter.gte);
-
-    // if the filters are all !== null, that means there is no filter contradiction -> set all filters of mergerAllFilter
-    // otherwise the mergerAllFilter stays null
-    if (normal !== null && lte !== null && lte !== null && gt !== null && gte !== null) {
-      mergerAllFilter = {
-        normal,
-        lt,
-        lte,
-        gt,
-        gte,
-      };
-    }
-  }
-
-  return mergerAllFilter;
-}
-
-enum FilterType {
-  normal,
-  lt,
-  lte,
-  gt,
-  gte,
 }

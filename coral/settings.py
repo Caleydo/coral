@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from tdp_core import manager
+from visyn_core import manager
 
 
 class CoralSettings(BaseModel):

@@ -1,6 +1,6 @@
-import {format as d3Format} from 'd3v7';
-import {Cohort} from '../../Cohort';
-import {ADataColumn} from './AColumn';
+import { format as d3Format } from 'd3v7';
+import { ICohort } from '../../app/interfaces';
+import { ADataColumn } from './AColumn';
 
 export default class NumberColumn extends ADataColumn {
   constructor($container: HTMLDivElement) {
@@ -8,12 +8,12 @@ export default class NumberColumn extends ADataColumn {
     this.$column.classList.add('first', 'number');
   }
 
-  async setCellStyle(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void> {
+  async setCellStyle(cell: HTMLDivElement, cht: ICohort, index: number): Promise<void> {
     super.setCellStyle(cell, cht, index);
     this.setCellContent(cell, cht, index);
   }
 
-  async setCellContent(cell: HTMLDivElement, cht: Cohort, index: number): Promise<void> {
+  async setCellContent(cell: HTMLDivElement, cht: ICohort, index: number): Promise<void> {
     while (cell.firstChild) {
       cell.removeChild(cell.firstChild);
     }
