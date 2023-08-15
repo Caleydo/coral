@@ -6,12 +6,18 @@ from flask import Flask, abort, jsonify, request
 from sklearn.cluster import KMeans
 from visyn_core.security import login_required
 
-from .settings import get_settings
-from .sql_query_mapper import QueryElements
 
+DEBUG = False
+
+if DEBUG:
 # for debugging. Shut down api-1-container
-# from settings import get_settings
-# from sql_query_mapper import QueryElements
+  from settings import get_settings
+  from sql_query_mapper import QueryElements
+else:
+  from .settings import get_settings
+  from .sql_query_mapper import QueryElements
+
+
 
 _log = logging.getLogger(__name__)
 
@@ -844,15 +850,9 @@ def recommendSplit():
   # based on cohortData
   try:
     query = QueryElements()
-    # _log.debug("query")
-    # _log.debug(query)
-
     cohort = query.get_cohort_from_db(request.values, error_msg)  # get parent cohort
-    # _log.debug("cohort %s", cohort)
-
     sql_text = query.get_cohort_data_sql(request.values, cohort)  # get sql statement to retrieve data
-    # _log.debug("sql_text")
-    # _log.debug(sql_text)
+
 
     query_results = query.execute_sql_query(sql_text, cohort.entity_database)
     # _log.debug("query_results %s ", query_results)
@@ -864,16 +864,17 @@ def recommendSplit():
     # get all the values of query_results.get_json() for the attribute
     # remove all none values
     tissues = [item for item in query_results.get_json() if item[request.values['attribute']] is not None]
-    # _log.debug("tissues %s", tissues)
-
+    _log.debug("tissues %s", tissues)
 
     # fit the clusterer based on the attribute values
     _log.debug("type(tissues) %s", type(tissues))
     # convert the list tissues to a pandas dataframe
     tissues_df = pd.DataFrame(tissues)
+    # this tissues_df consists of e.g. columns "age" and "tissuename", or "bmi" and "tissuename"
     # get only the first column of tissues_df (e.g. attribute age)
+    # _log.debug("tissues_df %s", tissues_df)
     tissues_attribute_df = tissues_df.iloc[:, 0].values.reshape(-1, 1)
-    _log.debug("tissues_attribute_df shape %s", tissues_attribute_df.shape)
+    # _log.debug("tissues_attribute_df shape %s", tissues_attribute_df.shape)
 
     # # hdbscan
     # clusterer = hdbscan.HDBSCAN(min_cluster_size=round(tissues_attribute_df.shape[0]/10), gen_min_span_tree=True) # one tenth of the number of tissues, to get a reasonable amount of clusters
@@ -906,17 +907,18 @@ def recommendSplit():
     # kmeans end
     _log.debug("tissues_attribute_df %s", tissues_attribute_df.shape)
     _log.debug("tissues_attribute_df %s", clusterer_age_kmeans.labels_.shape)
+
     # add the cluster labels to the tissues
     _log.debug("tissues_df %s", tissues_df)
     tissues_df['cluster_label'] = labels
     _log.debug("tissues_df %s", tissues_df)
     # it is a 1d array --> we can find the decision boundaries by looking at the maximum of the smaller cluster and the minimum of the larger cluster
-    min_cluster_0 = min(tissues_df[tissues_df['cluster_label'] == 0]['age'])
-    max_cluster_0 = max(tissues_df[tissues_df['cluster_label'] == 0]['age'])
-    min_cluster_1 = min(tissues_df[tissues_df['cluster_label'] == 1]['age'])
-    max_cluster_1 = max(tissues_df[tissues_df['cluster_label'] == 1]['age'])
-    min_cluster_2 = min(tissues_df[tissues_df['cluster_label'] == 2]['age'])
-    max_cluster_2 = max(tissues_df[tissues_df['cluster_label'] == 2]['age'])
+    min_cluster_0 = min(tissues_df[tissues_df['cluster_label'] == 0][request.values['attribute']])
+    max_cluster_0 = max(tissues_df[tissues_df['cluster_label'] == 0][request.values['attribute']])
+    min_cluster_1 = min(tissues_df[tissues_df['cluster_label'] == 1][request.values['attribute']])
+    max_cluster_1 = max(tissues_df[tissues_df['cluster_label'] == 1][request.values['attribute']])
+    min_cluster_2 = min(tissues_df[tissues_df['cluster_label'] == 2][request.values['attribute']])
+    max_cluster_2 = max(tissues_df[tissues_df['cluster_label'] == 2][request.values['attribute']])
     # order them in a list according to their min value since they are not ordered
     min_cluster_list = [min_cluster_0, min_cluster_1, min_cluster_2]
     min_cluster_list.sort()

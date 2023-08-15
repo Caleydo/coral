@@ -13,7 +13,13 @@ import { Option, VisConfig } from './config/VisConfig';
 import { DATA_LABEL } from './constants';
 import { IVisualization } from './IVisualization';
 import { IAttribute, IdValuePair } from '../../data/IAttribute';
-import {ICohortDBWithNumFilterParams, IEqualsList, INumRange, NumRangeOperators} from '../../base/interfaces';
+import {
+  ICohortDBDataParams,
+  ICohortDBWithNumFilterParams,
+  IEqualsList,
+  INumRange,
+  NumRangeOperators
+} from '../../base/interfaces';
 
 import {
   recommendSplit
@@ -454,22 +460,39 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
   /** Calls the recommendSplit webservice and sets the bins accoding to the returned results */
   async recommendSplit() {
     console.log("recommendSplit");
-    const params: ICohortDBWithNumFilterParams = {
-      name: "",
-      ranges: undefined,
-      cohortId: 56205,
-      attribute: this.attribute.dataKey
-    };
-    const data = await recommendSplit(params);
-    console.log("recommendSplit", data);
 
-    this.splitValues = [];
-    for (let i = 0; i < data.length; i++) {
-      // get the int val of the data[i]
-      const binBorder = Number(data[i]);
-      this.splitValues.push({ x: binBorder });
+    const bins = this.getSelectedData();
+
+    let filterDesc: IFilterDesc[] = [];
+    if (bins.length === 1) {
+      // 1 cohort, 1 category
+      let filter: INumRange[] | IEqualsList = [];
+
+      filterDesc.push({
+        cohort: bins[0].cohort,
+        filter: [
+          {
+            attr: this.attribute,
+            range: filter,
+          },
+        ],
+      });
+
+      const params: ICohortDBDataParams = {
+        cohortId: filterDesc[0].cohort.dbId,
+        attribute: this.attribute.dataKey
+      };
+      const data = await recommendSplit(params);
+      console.log("recommendSplit", data);
+
+      this.splitValues = [];
+      for (let i = 0; i < data.length; i++) {
+        // get the int val of the data[i]
+        const binBorder = Number(data[i]);
+        this.splitValues.push({x: binBorder});
+      }
+      this.vegaView.data(AVegaVisualization.SPLITVALUE_DATA_STORE, cloneDeep(this.splitValues)); // set a defensive copy
     }
-    this.vegaView.data(AVegaVisualization.SPLITVALUE_DATA_STORE, cloneDeep(this.splitValues)); // set a defensive copy
 
 
     // this.vegaView.removeDataListener(AVegaVisualization.SPLITVALUE_DATA_STORE, this.vegaSplitListener); // remove listener temporarily

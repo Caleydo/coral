@@ -9,12 +9,17 @@ from sqlalchemy.exc import NoInspectionAvailable
 from sqlalchemy.orm import sessionmaker
 from visyn_core import manager
 
-from .settings import get_settings
-from .sql_tables import Cohort
 
-# for debugging
-# from settings import get_settings
-# from sql_tables import Cohort
+DEBUG = False
+
+if DEBUG:
+# for debugging. Shut down api-1-container
+  from settings import get_settings
+  from sql_tables import Cohort
+else:
+  from .settings import get_settings
+  from .sql_tables import Cohort
+
 
 _log = logging.getLogger(__name__)
 logging.getLogger("sqlalchemy").setLevel(logging.INFO)
