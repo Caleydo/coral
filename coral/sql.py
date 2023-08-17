@@ -1,10 +1,13 @@
 import logging
 
 import hdbscan
+import numpy as np
 import pandas as pd
 from flask import Flask, abort, jsonify, request
 from sklearn.cluster import KMeans
 from visyn_core.security import login_required
+from sklearn.metrics import silhouette_score
+
 
 
 DEBUG = False
@@ -864,17 +867,17 @@ def recommendSplit():
     # get all the values of query_results.get_json() for the attribute
     # remove all none values
     tissues = [item for item in query_results.get_json() if item[request.values['attribute']] is not None]
-    _log.debug("tissues %s", tissues)
+    # _log.debug("tissues %s", tissues)
 
     # fit the clusterer based on the attribute values
-    _log.debug("type(tissues) %s", type(tissues))
+    # _log.debug("type(tissues) %s", type(tissues))
     # convert the list tissues to a pandas dataframe
     tissues_df = pd.DataFrame(tissues)
     # this tissues_df consists of e.g. columns "age" and "tissuename", or "bmi" and "tissuename"
     # get only the first column of tissues_df (e.g. attribute age)
     # _log.debug("tissues_df %s", tissues_df)
     tissues_attribute_df = tissues_df.iloc[:, 0].values.reshape(-1, 1)
-    # _log.debug("tissues_attribute_df shape %s", tissues_attribute_df.shape)
+    _log.debug("tissues_attribute_df shape %s", tissues_attribute_df.shape)
 
     # # hdbscan
     # clusterer = hdbscan.HDBSCAN(min_cluster_size=round(tissues_attribute_df.shape[0]/10), gen_min_span_tree=True) # one tenth of the number of tissues, to get a reasonable amount of clusters
@@ -896,50 +899,98 @@ def recommendSplit():
     # # hdbscan end
 
     # kmeans
-    clusterer_age_kmeans = KMeans(n_clusters=3, n_init='auto')
-    clusterer_age_kmeans.fit(tissues_attribute_df)
+
+    # get the optimal number of clusters
+    n_clusters_range = range(2, 30) # arbitrarily chosen (talk to the user about this)
+
+    # # Calculate silhouette scores for different k values
+    # # silhouette scores are NOT feasible for large datasets, so this is not a good approach
+    # silhouette_scores = []
+    # for k in n_clusters_range:
+    #   _log.debug("goes into the loop with k=%s", k)
+    #   clusterer_attribute_kmeans = KMeans(n_clusters=k, n_init='auto')
+    #   clusterer_attribute_kmeans.fit(tissues_attribute_df)
+    #   labels = clusterer_attribute_kmeans.labels_
+    #   silhouette_scores.append(silhouette_score(tissues_attribute_df, labels))
+    # # # Find the index of the maximum silhouette score
+    # _log.debug("silhouette_scores %s", silhouette_scores)
+    # # optimal_k_index = silhouette_scores.index(max(silhouette_scores))
+    # # optimal_k = n_clusters_range[optimal_k_index]
+
+    # Calculate within-cluster sum of squares (inertia) for different k values
+    inertia_values = []
+    for k in n_clusters_range:
+      kmeans = KMeans(n_clusters=k, n_init='auto')
+      kmeans.fit(tissues_attribute_df)
+      inertia_values.append(kmeans.inertia_)
+
+    # Calculate the rate of change of inertia
+    # Inertia measures how well a dataset was clustered by K-Means. It is calculated by measuring the distance between each data point and its centroid, squaring this distance, and summing these squares across one cluster.
+    # https://www.codecademy.com/learn/machine-learning/modules/dspath-clustering/cheatsheet
+    rate_of_change = np.diff(inertia_values)  # rate of change from 1 to 2, 2 to 3, etc
+
+    # Find the "elbow point" where the rate of change starts to slow down
+    # Calculate the "elbow point" where the rate of change slows down
+    # if no elbow_point is found, the last index of inertia_values is chosen
+    elbow_point = len(inertia_values) - 1
+
+    _log.debug("rate_of_change %s", rate_of_change)
+    _log.debug("inertia_values %s", inertia_values)
+
+    for i in range(len(rate_of_change) - 1):
+      diff1 = rate_of_change[i]
+      diff2 = rate_of_change[i + 1]
+      change_ratio = diff2 / diff1
+      _log.debug("change_ratio %s", change_ratio)
+      if change_ratio < 0.33:  # this is an "arbitrary" threshold. The smaller the threshold, the more clusters are chosen
+        elbow_point = i  # the rate_of_change show e.g. the change from 3 clusters to 4 cluster in index 2 of rate_of_change.
+        # so the elbow point is the index of the rate_of_change where the change from e.g. 3 to 4 is not big anymore: index 2. 3 clusters is a good amount of clusters.
+        break
+
+    optimal_k = n_clusters_range[elbow_point]  # e.g. at the elbow point: 2 the number of clusters is 3
+
+    # TODO: somehow, for this data, this approach does not work. The change_ratio does not start high and go down, but is e.g. 0.40, 0.49, 0.61, 0.63, 0.59, 0.79, 0.49, 1.37, etc
+
+    _log.debug("Optimal number of clusters: %s", optimal_k)
+    # do the clustering with the optimal number of clusters
+    clusterer_attribute_kmeans = KMeans(n_clusters=optimal_k, n_init='auto')
+    clusterer_attribute_kmeans.fit(tissues_attribute_df)
+
     # get the labels of the clusters
-    labels = clusterer_age_kmeans.labels_
+    labels = clusterer_attribute_kmeans.labels_
     _log.debug("labels %s", labels)
     # get the number of clusters by getting the distinct values of labels
     n_clusters_ = len(set(labels))
     _log.debug("n_clusters_ %s", n_clusters_)
     # kmeans end
     _log.debug("tissues_attribute_df %s", tissues_attribute_df.shape)
-    _log.debug("tissues_attribute_df %s", clusterer_age_kmeans.labels_.shape)
+    _log.debug("tissues_attribute_df %s", clusterer_attribute_kmeans.labels_.shape)
 
     # add the cluster labels to the tissues
     _log.debug("tissues_df %s", tissues_df)
     tissues_df['cluster_label'] = labels
     _log.debug("tissues_df %s", tissues_df)
-    # it is a 1d array --> we can find the decision boundaries by looking at the maximum of the smaller cluster and the minimum of the larger cluster
-    min_cluster_0 = min(tissues_df[tissues_df['cluster_label'] == 0][request.values['attribute']])
-    max_cluster_0 = max(tissues_df[tissues_df['cluster_label'] == 0][request.values['attribute']])
-    min_cluster_1 = min(tissues_df[tissues_df['cluster_label'] == 1][request.values['attribute']])
-    max_cluster_1 = max(tissues_df[tissues_df['cluster_label'] == 1][request.values['attribute']])
-    min_cluster_2 = min(tissues_df[tissues_df['cluster_label'] == 2][request.values['attribute']])
-    max_cluster_2 = max(tissues_df[tissues_df['cluster_label'] == 2][request.values['attribute']])
-    # order them in a list according to their min value since they are not ordered
-    min_cluster_list = [min_cluster_0, min_cluster_1, min_cluster_2]
+
+    # get the decision boundaries of the clusters
+    min_cluster_list = []
+    max_cluster_list = []
+    for i in range(0, n_clusters_):
+      # it is a 1d array --> we can find the decision boundaries by looking at the maximum of the smaller cluster and the minimum of the larger cluster
+      min_cluster_list.append(min(tissues_df[tissues_df['cluster_label'] == i][request.values['attribute']]))
+      max_cluster_list.append(max(tissues_df[tissues_df['cluster_label'] == i][request.values['attribute']]))
     min_cluster_list.sort()
-    # same for max values
-    max_cluster_list = [max_cluster_0, max_cluster_1, max_cluster_2]
     max_cluster_list.sort()
-    # create dict and store the boundaries
-    # boundaries = {}
-    # boundaries['boundary0'] = (max_cluster_list[0] + min_cluster_list[1]) / 2
-    # boundaries['boundary1'] = (max_cluster_list[1] + min_cluster_list[2]) / 2
-    # _log.debug("boundary0 %s", boundaries['boundary0'] )
-    # _log.debug("boundary1 %s", boundaries['boundary1'])
+    _log.debug("min_cluster_list %s", min_cluster_list)
+    _log.debug("max_cluster_list %s", max_cluster_list)
 
     # store the boundaries in a list
     boundaries = []
-    boundaries.append((max_cluster_list[0] + min_cluster_list[1]) / 2)
-    boundaries.append((max_cluster_list[1] + min_cluster_list[2]) / 2)
+    # make this generic for any amount of clusters
+    for i in range(0, n_clusters_-1):
+      boundaries.append((max_cluster_list[i] + min_cluster_list[i+1]) / 2)
     _log.debug("boundaries %s", boundaries)
     # kmeans end
 
-    # return query_results  # execute sql statement
     return jsonify(boundaries)
   except RuntimeError as error:
     abort(400, error)
