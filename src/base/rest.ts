@@ -159,6 +159,17 @@ export function recommendSplit(params: ICohortDBDataParams, assignIds = false): 
   return AppContext.getInstance().getAPIJSON(url, params);
 }
 
+export function createAutomatically(params: ICohortDBDataParams, assignIds = false): Promise<IRow[]> {
+  const newParams: IParams = {
+    cohortId: params.cohortId,
+    name: "TODO: create name",
+    attribute: params.attribute,
+    ranges: "TODO: remove ranges since they are not needed",
+  };
+  return getCohortDataImpl(CohortRoutes.createAutomatically, newParams, assignIds);
+}
+
+
 
 export function createDBCohortWithGeneNumFilter(params: ICohortDBWithGeneNumFilterParams, assignIds = false): Promise<IRow[]> {
   const newParams: IParams = {

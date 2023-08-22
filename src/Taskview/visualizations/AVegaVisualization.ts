@@ -7,8 +7,8 @@ import vegaEmbed from 'vega-embed';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { getCohortLabel } from '../../Cohort';
 import { ICohort } from '../../app/interfaces';
-import { IFilterDesc, log } from '../../util';
-import { FilterEvent, SplitEvent } from '../../base/events';
+import { IFilterDesc, log} from '../../util';
+import { FilterEvent, SplitEvent, AutoSplitEvent } from '../../base/events';
 import { Option, VisConfig } from './config/VisConfig';
 import { DATA_LABEL } from './constants';
 import { IVisualization } from './IVisualization';
@@ -22,7 +22,8 @@ import {
 } from '../../base/interfaces';
 
 import {
-  recommendSplit
+  recommendSplit,
+  createAutomatically
 } from './../../base/rest';
 
 export const MISSING_VALUES_LABEL = 'Missing Values';
@@ -534,6 +535,8 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     // );
   }
 
+
+
   /**
    * Creates a IFilterDesc for every Cohort.
    * To do so we have to merge the categories or numranges we get for a cohort (multiple object) into one IFilterDesc, which makes this method a lot longer than split()
@@ -685,6 +688,28 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     }
   }
 
+  /** Calls the createAutomatically webservice and creates cohorts  according to the returned results */
+  async createAutomatically() {
+    console.log("createAutomatically");
+    // TODO: remove filters, range etc, which is not needed
+
+
+    let filters: IFilterDesc[];
+    filters = [];
+    for (const cohort of this.cohorts) {
+      filters.push({
+        filter: [
+          {
+            attr: this.attribute,
+            range: [this.getGeneralNumericalFilter(0 , 50 , NumRangeOperators.gte, NumRangeOperators.lte)], // todo: solve this in a smoother way. These are dummy values for now
+          },
+        ],
+        cohort,
+      });
+    }
+    this.container.dispatchEvent(new AutoSplitEvent(filters));
+  }
+
   protected splitValues: Array<{ x: number }> = [];
 
   addIntervalControls() {
@@ -717,7 +742,8 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
         </div>
         <div role="tabpanel" class="tab-pane" id="split">
           <div class="flex-wrapper" data-attr="${this.attribute.dataKey}">
-          <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits.">Recommend Split</button>
+          <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits.">Recommend split</button>
+          <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
             <label>Split into</label>
             <input type="number" class="bins" step="any" min="1" max="99" value="2"/>
             <label >bins of</label>
@@ -766,6 +792,13 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       .on('click', () => {
         console.log("recommendSplitBtn clicked");
         this.recommendSplit();
+      });
+
+    select(this.controls)
+      .select('button.createAutomaticallyBtn')
+      .on('click', () => {
+        console.log("createAutomaticallyBtn clicked");
+        this.createAutomatically();
       });
 
 

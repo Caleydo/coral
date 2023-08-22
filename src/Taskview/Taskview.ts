@@ -14,6 +14,8 @@ import {
   PreviewChangeEvent,
   SplitEvent,
   SPLIT_EVENT_TYPE,
+  AutoSplitEvent,
+  AUTO_SPLIT_EVENT_TYPE,
 } from '../base/events';
 import { RectCohortRep } from '../CohortRepresentations';
 import { CoralColorSchema } from '../config/colors';
@@ -318,6 +320,7 @@ export default class Taskview {
   public destroy() {
     this.$node.removeEventListener(FILTER_EVENT_TYPE, this.filterListener);
     this.$node.removeEventListener(SPLIT_EVENT_TYPE, this.splitListener);
+    this.$node.removeEventListener(AUTO_SPLIT_EVENT_TYPE, this.splitListener);
     this.$node.removeEventListener(CONFIRM_OUTPUT_EVENT_TYPE, this.confirmListener);
 
     this.scrollLink.destroy();
@@ -353,6 +356,8 @@ export default class Taskview {
 
   private splitListener: EventListenerOrEventListenerObject = (ev) => this.handleFilterEvent(ev as SplitEvent);
 
+  private autoSplitListener: EventListenerOrEventListenerObject = (ev) => this.handleAutoFilterEvent(ev as AutoSplitEvent);
+
   private confirmListener: EventListenerOrEventListenerObject = (ev) => this.confirmTask(); // event data (cohorts) currently ignored
 
   private columnSortListener: EventListenerOrEventListenerObject = (ev) => this.handleColumnSortEvent(ev as ColumnSortEvent);
@@ -377,6 +382,7 @@ export default class Taskview {
     // Listen to cohort creation events fired by histograms in the input part
     this.$node.addEventListener(FILTER_EVENT_TYPE, this.filterListener);
     this.$node.addEventListener(SPLIT_EVENT_TYPE, this.splitListener);
+    this.$node.addEventListener(AUTO_SPLIT_EVENT_TYPE, this.autoSplitListener);
 
     // confirmation event that adds the cohrots to cohort graph
     this.$node.addEventListener(CONFIRM_OUTPUT_EVENT_TYPE, this.confirmListener);
@@ -568,6 +574,114 @@ export default class Taskview {
   }
 
   private currentEvent = 0;
+
+
+  async handleAutoFilterEvent(ev: AutoSplitEvent) {
+    console.log('handleAutoFilterEvent')
+
+    const currentEv = ++this.currentEvent;
+    let outputCohorts: IOutputCohort[] = []; // Stores the output cohorts in correct order, will replace the array currently used
+    const taskWithSelectedOutput: ITaskParams[] = [];
+    this.taskParams = [];
+    this.taskAttributes = ev.detail.desc[0].filter.map((filter) => filter.attr);
+
+    for (const inCht of this.input.cohorts) {
+      const chtBins = ev.detail.desc.filter((bin) => inCht.id === bin.cohort.id);
+      const outChts: IOutputCohort[] = new Array(Math.max(chtBins.length, 1)).fill(null).map(() => getLoaderCohort(inCht) as unknown as IOutputCohort);
+
+      outChts[outChts.length - 1].isLastOutputCohort = true;
+      outChts[0].isFirstOutputCohort = true;
+
+      inCht.outputCohorts = outChts;
+      outputCohorts.push(...outChts);
+    }
+
+    // Update the input cohorts
+    this.updateInput();
+    // Add the new cohorts to the output side
+    this.setOutputCohorts(outputCohorts);
+
+    // await DebugTools.sleep(1500);
+    outputCohorts = [];
+
+    // For each input cohort, create a new output cohort
+    for (const cht of this.input.cohorts) {
+      log.debug('filter/split event: ', ev);
+      cht.outputCohorts = [];
+      const chtBins = ev.detail.desc.filter((bin) => cht.id === bin.cohort.id);
+      if (chtBins.length > 0) {
+        const chtPromises = [];
+        for (const bin of chtBins) {
+          chtPromises.push(multiAttributeFilter(cht, bin.filter));
+        }
+        // TODO: fix me
+        // eslint-disable-next-line no-await-in-loop
+        const newChts = await Promise.all(chtPromises);
+        if (currentEv !== this.currentEvent) {
+          return;
+        }
+
+        const chtSizes = [];
+        newChts.sort((a, b) => this.sortLabelAlpha(a, b)); // sort output cohorts: A -> Z
+        for (const newOutCht of newChts) {
+          // Set representation of new cohort
+          const layout = new RectangleLayout();
+          newOutCht.representation = new RectCohortRep(newOutCht, layout.rowHeight, layout.cohortWidth);
+          const sizePromises = [newOutCht.size, this.reference.size];
+          chtSizes.push(...sizePromises);
+          Promise.all(sizePromises).then(([newSize, refSize]) => {
+            newOutCht.representation.setSize(newSize, refSize);
+            if (newSize > 0) {
+              newOutCht.selected = true;
+            }
+          });
+
+          newOutCht.setCohortParents([cht]);
+          cht.outputCohorts.push(newOutCht); // Add new output cohort to existing cohorts
+        }
+        // TODO: fix me
+        // eslint-disable-next-line no-await-in-loop
+        await Promise.all(chtSizes); // wait for the cohort sizes to properly display the representation
+      } else {
+        cht.outputCohorts.push(getEmptyCohort(cht) as IOutputCohort);
+      }
+
+      // the async/time instensive stuff is done now, check if we should continue:
+      if (currentEv !== this.currentEvent) {
+        return;
+      }
+
+      cht.outputCohorts[cht.outputCohorts.length - 1].isLastOutputCohort = true;
+      cht.outputCohorts[0].isFirstOutputCohort = true;
+      outputCohorts.push(...cht.outputCohorts); // add all output cohorts of current input cohorts (ensures correct order in output side)
+
+      if (chtBins.length > 0) {
+        // create current task params
+        const currTaskParam: ITaskParams = {
+          inputCohorts: [cht],
+          outputCohorts: cht.outputCohorts,
+          type: ev instanceof FilterEvent ? TaskType.Filter : TaskType.Split,
+          label: ev.detail.desc[0].filter.map((filter) => filter.attr.label).join(', '),
+        };
+        // save all curertn possibel task params
+        this.taskParams.push(currTaskParam);
+        // check if a task generates selected output cohorts
+        if (cht.outputCohorts.filter((elem) => elem.selected === true).length >= 1) {
+          // initially onyl selected output cohorts will be shown in overview
+          taskWithSelectedOutput.push(currTaskParam);
+        }
+      }
+      // Update the input cohorts
+      this.updateInput();
+
+      // show the preview for the current task
+      this.$node.dispatchEvent(new PreviewChangeEvent(taskWithSelectedOutput, this.taskAttributes));
+
+      // Add the new cohorts to the output side
+      this.setOutputCohorts(outputCohorts);
+      ev.detail.desc[0].filter.forEach((filter) => this.addAttributeColumn(filter.attr));
+    }
+  }
 
   async handleFilterEvent(ev: FilterEvent | SplitEvent) {
     const currentEv = ++this.currentEvent;

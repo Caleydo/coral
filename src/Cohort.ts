@@ -244,6 +244,43 @@ export async function createCohortWithNumFilter(
   return cht;
 }
 
+
+export async function createCohortAutoSplit(
+  parentCohort: ICohort,
+  labelOne: string,
+  labelTwo: string,
+  attribute: string,
+  ranges: Array<INumRange>,
+): Promise<ICohort> {
+  const params: ICohortDBWithNumFilterParams = {
+    cohortId: parentCohort.dbId,
+    name: combineLabelsForDB(labelOne, labelTwo),
+    attribute,
+    ranges,
+  };
+  log.debug('try new cohort num filter: ', params);
+  const dbId = await cohortCreationDBHandler(createDBCohortWithNumFilter, params);
+
+  const newFilter = getLegacyRangeFilter(parentCohort.filters, attribute, ranges[0]);
+
+  // ATTENTION : database != databaseName
+  const cht = new Cohort(
+    { id: `${dbId}`, dbId, labelOne, labelTwo },
+    [ranges],
+    {
+      database: parentCohort.database,
+      schema: parentCohort.schema,
+      table: parentCohort.table,
+      view: parentCohort.view,
+      idType: parentCohort.idType,
+      idColumn: parentCohort.idColumn,
+    },
+    newFilter,
+  );
+  log.debug('new cohort with num filter: ', cht);
+  return cht;
+}
+
 export async function createCohortWithGeneNumFilter(
   parentCohort: ICohort,
   labelOne: string,

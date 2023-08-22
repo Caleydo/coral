@@ -64,6 +64,13 @@ export class SplitEvent extends CustomEvent<{ desc: IFilterDesc[] }> {
   }
 }
 
+export const AUTO_SPLIT_EVENT_TYPE = 'cht:autosplit';
+export class AutoSplitEvent extends CustomEvent<{ desc: IFilterDesc[] }> {
+  constructor(desc: IFilterDesc[]) {
+    super(AUTO_SPLIT_EVENT_TYPE, { detail: { desc }, bubbles: true });
+  }
+}
+
 export const CONFIRM_OUTPUT_EVENT_TYPE = 'cht:output:confirm';
 export class ConfirmOutputEvent extends CustomEvent<{ cohorts: ICohort[] }> {
   constructor(cohorts: ICohort[]) {

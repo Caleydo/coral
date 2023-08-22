@@ -822,13 +822,14 @@ def hist():
 # TODO add login_required
 def recommendSplit():
   # error msg is wrong, it is based on the cohortData route
-  # cohortData?cohortId=2&attribute=gender
+  # createUseNumFilter?cohortId=1&name=TeSt&attribute=age&ranges=gt_2%lte_5;gte_10
   error_msg = """Paramerter missing or wrong!
   For the {route} query the following parameter is needed:
-  - cohortId: id of the cohort
-  There is also one optional parameter:
-  - attribute: one column of the entity table""".format(
-    route="cohortData"
+  - cohortId: id of the cohort parent cohort
+  - name: name of the new cohort
+  - attribute: column used to filter
+  - ranges: filter ranges for the attribute, e.g >2 and <=5, or >=10 -> gt_2%lte_5;gte_10""".format(
+    route="createWithNumFilter"
   )
 
   # print("print test)") # is printed in the logs in docker
@@ -840,6 +841,14 @@ def recommendSplit():
   # todo: look at createUseNumFilter, size, hist routes. Try them here.
   # todo: get the tissue data that is currently used in the frontend, then apply a clustering algorithm, return the split (the bins that the user could also set themselves)
 
+  # try:
+  #   query = QueryElements()
+  #   cohort = query.get_cohort_from_db(request.values, error_msg)  # get parent cohort
+  #   new_cohort = query.create_cohort_num_filtered(request.values, cohort,
+  #                                                 error_msg)  # get filtered cohort from args and cohort
+  #   return query.add_cohort_to_db(new_cohort)  # save new cohort into DB
+  # except RuntimeError as error:
+  #   abort(400, error)
 
   # try:
   #   query = QueryElements()
@@ -901,7 +910,7 @@ def recommendSplit():
     # kmeans
 
     # get the optimal number of clusters
-    n_clusters_range = range(2, 30) # arbitrarily chosen (talk to the user about this)
+    n_clusters_range = range(2, 60) # arbitrarily chosen (talk to the user about this)
 
     # # Calculate silhouette scores for different k values
     # # silhouette scores are NOT feasible for large datasets, so this is not a good approach
@@ -942,7 +951,7 @@ def recommendSplit():
       diff2 = rate_of_change[i + 1]
       change_ratio = diff2 / diff1
       _log.debug("change_ratio %s", change_ratio)
-      if change_ratio < 0.33:  # this is an "arbitrary" threshold. The smaller the threshold, the more clusters are chosen
+      if change_ratio < 0.1:  # this is an "arbitrary" threshold. The smaller the threshold, the more clusters are chosen
         elbow_point = i  # the rate_of_change show e.g. the change from 3 clusters to 4 cluster in index 2 of rate_of_change.
         # so the elbow point is the index of the rate_of_change where the change from e.g. 3 to 4 is not big anymore: index 2. 3 clusters is a good amount of clusters.
         break
@@ -992,6 +1001,34 @@ def recommendSplit():
     # kmeans end
 
     return jsonify(boundaries)
+  except RuntimeError as error:
+    abort(400, error)
+
+
+
+@app.route("/createAutomatically", methods=["GET", "POST"])
+# TODO add login_required
+def createAutomatically():
+  # error msg is wrong, it is based on the cohortData route
+  # cohortData?cohortId=2&attribute=gender
+  error_msg = """Paramerter missing or wrong!
+  For the {route} query the following parameter is needed:
+  - cohortId: id of the cohort
+  There is also one optional parameter:
+  - attribute: one column of the entity table""".format(
+    route="cohortData"
+  )
+
+  _log.debug("request.values %s", request.values)
+
+  # TODO: base on createUseNumFilter and create cohorts based on hdbscan grouping
+  try:
+    query = QueryElements()
+    cohort = query.get_cohort_from_db(request.values, error_msg)  # get parent cohort
+    new_cohort = query.create_cohort_automatically(request.values, cohort,
+                                                  error_msg)  # get filtered cohort from args and cohort
+    return query.add_cohort_to_db(new_cohort)  # save new cohort into DB
+    # return jsonify("not implemented yet")
   except RuntimeError as error:
     abort(400, error)
 

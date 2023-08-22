@@ -652,6 +652,31 @@ class QueryElements:
         )
         return new_cohort
 
+    def create_cohort_automatically(self, args, cohort, error_msg):
+        name = args.get("name")
+
+        if name is None:
+            raise RuntimeError(error_msg)
+
+
+        attribute = args.get("attribute")
+        if attribute is None:
+            raise RuntimeError(error_msg)
+
+        sql_text = "SELECT p.* FROM ({entities}) p".format(entities=cohort.statement)
+        _log.debug("sql_text: %s", sql_text)
+
+        new_cohort = Cohort(
+            name=name,
+            previous_cohort=cohort.id,
+            is_initial=0,
+            entity_database=cohort.entity_database,
+            entity_schema=cohort.entity_schema,
+            entity_table=cohort.entity_table,
+            statement=sql_text,
+        )
+        return new_cohort
+
     def create_cohort_gene_num_filtered(self, args, cohort, error_msg):
         name = args.get("name")
         if name is None:

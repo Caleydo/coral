@@ -179,6 +179,7 @@ export enum CohortRoutes {
   sizeUsePanelAnnotationFilter = 'sizeUsePanelAnnotationFilter',
   hist = 'hist',
   createUseTreatmentFilter = 'createUseTreatmentFilter',
+  createAutomatically = 'createAutomatically',
 }
 
 export interface IDataBaseToDisplay {

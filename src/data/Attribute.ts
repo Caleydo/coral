@@ -3,7 +3,7 @@ import { IServerColumn } from 'visyn_core/base';
 import { IDataSubtypeConfig, IDataTypeConfig, resolveDataTypes } from 'tdp_publicdb';
 import { ICohort } from '../app/interfaces';
 import {
-  HistRouteType,
+  HistRouteType, ICohortDBDataParams,
   ICohortDBDepletionScoreParams,
   ICohortDBGeneScoreParams,
   ICohortDBPanelAnnotationParams,
@@ -11,6 +11,7 @@ import {
   INumRange,
 } from '../base/interfaces';
 import {
+  createAutomatically,
   getCohortData,
   getCohortDepletionScore,
   getCohortGeneScore,
@@ -23,6 +24,7 @@ import {
   ICohortDBHistScoreParms,
 } from '../base/rest';
 import {
+  createCohortAutoSplit,
   createCohortWithDepletionScoreFilter,
   createCohortWithEqualsFilter,
   createCohortWithGeneEqualsFilter,
@@ -105,7 +107,14 @@ export class ServerColumnAttribute extends Attribute {
     this.categories = serverColumn.categories as string[];
   }
 
-  async filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<ICohort> {
+  async filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string, autofilter?: boolean): Promise<ICohort> {
+
+    if (autofilter) {
+      if (Array.isArray(filter)) {
+        return createCohortAutoSplit(cht, niceName(this.id), "label", this.id, filter);
+      }
+    }
+
     if (Array.isArray(filter)) {
       // TODO label
       // const label = rangeLabel ? rangeLabel : filter.map((a) => labelFromFilter(a, this)).join(' / ');
