@@ -612,7 +612,7 @@ export default class Taskview {
       if (chtBins.length > 0) {
         const chtPromises = [];
         for (const bin of chtBins) {
-          chtPromises.push(multiAttributeFilter(cht, bin.filter));
+          chtPromises.push(multiAttributeFilter(cht, bin.filter, true));
         }
         // TODO: fix me
         // eslint-disable-next-line no-await-in-loop

@@ -17,7 +17,7 @@ import {
   IProvAttrAndValuesCohort,
 } from './app/interfaces';
 import {
-  createDBCohort,
+  createDBCohort, createDBCohortAutomatically,
   createDBCohortWithDepletionScoreFilter,
   createDBCohortWithEqualsFilter,
   createDBCohortWithGeneEqualsFilter,
@@ -259,7 +259,7 @@ export async function createCohortAutoSplit(
     ranges,
   };
   log.debug('try new cohort num filter: ', params);
-  const dbId = await cohortCreationDBHandler(createDBCohortWithNumFilter, params);
+  const dbId = await cohortCreationDBHandler(createDBCohortAutomatically, params);
 
   const newFilter = getLegacyRangeFilter(parentCohort.filters, attribute, ranges[0]);
 

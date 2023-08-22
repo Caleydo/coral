@@ -111,6 +111,7 @@ export class ServerColumnAttribute extends Attribute {
 
     if (autofilter) {
       if (Array.isArray(filter)) {
+        const label = rangeLabel || "label";
         return createCohortAutoSplit(cht, niceName(this.id), "label", this.id, filter);
       }
     }
@@ -473,7 +474,7 @@ export class PanelScoreAttribute extends AScoreAttribute {
   }
 }
 
-export async function multiAttributeFilter(baseCohort: ICohort, filters: IAttributeFilter[]): Promise<ICohort> {
+export async function multiAttributeFilter(baseCohort: ICohort, filters: IAttributeFilter[], autofilter?: boolean): Promise<ICohort> {
   let newCohort = baseCohort;
 
   const labelOne = [];
@@ -483,7 +484,7 @@ export async function multiAttributeFilter(baseCohort: ICohort, filters: IAttrib
   for (const attrFilter of filters) {
     // TODO: fix me
     // eslint-disable-next-line no-await-in-loop
-    newCohort = await attrFilter.attr.filter(newCohort, attrFilter.range);
+    newCohort = await attrFilter.attr.filter(newCohort, attrFilter.range, null, autofilter);
     labelOne.push(newCohort.labelOne);
     labelTwo.push(newCohort.labelTwo);
     values.push(...newCohort.values);

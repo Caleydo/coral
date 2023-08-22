@@ -149,6 +149,16 @@ export function createDBCohortWithNumFilter(params: ICohortDBWithNumFilterParams
   return getCohortDataImpl(CohortRoutes.createUseNumFilter, newParams, assignIds);
 }
 
+export function createDBCohortAutomatically(params: ICohortDBWithNumFilterParams, assignIds = false): Promise<IRow[]> {
+  const newParams: IParams = {
+    cohortId: params.cohortId,
+    name: params.name,
+    attribute: params.attribute,
+    ranges: convertNumRanges(params.ranges),
+  };
+  return getCohortDataImpl(CohortRoutes.createAutomatically, newParams, assignIds);
+}
+
 export function recommendSplit(params: ICohortDBDataParams, assignIds = false): Promise<IRow[]> {
   const url = `/cohortdb/db/${'recommendSplit'}`;
   const encoded = Ajax.encodeParams(params);
