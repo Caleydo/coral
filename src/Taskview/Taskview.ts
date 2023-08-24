@@ -29,6 +29,8 @@ import { EMPTY_COHORT_ID, getEmptyCohort, getLoaderCohort, LOADER_COHORT_ID } fr
 import { multiAttributeFilter } from '../data/Attribute';
 import AttributeColumn from './columns/AttributeColumn';
 import { RectangleLayout } from '../Overview/OverviewLayout';
+import {CohortRoutes, ICohortDBDataParams} from "../base";
+import {IParams} from "tdp_core";
 
 abstract class TaskviewTable {
   $node: HTMLDivElement;

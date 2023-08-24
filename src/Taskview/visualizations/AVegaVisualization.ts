@@ -694,6 +694,50 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     // TODO: remove filters, range etc, which is not needed
 
 
+    // get the information on HOW MANY new cohorts to create here already
+    // call the webservice that creates the cohorts, then I have the number of cohorts and can create the filters
+    // then call the webservices again to get the data for the cohorts, just like for getting cohorts with filters
+    // important difference: the filters are not needed any more, dummy filters will be used for easier implementation for now, later we can use e.g. the cohort id to get the correct data
+
+    // const bins = this.getSelectedData();
+    //
+    // let filterDesc: IFilterDesc[] = [];
+    // if (bins.length === 1) {
+    //   // 1 cohort, 1 category
+    //   let filter: INumRange[] | IEqualsList = [];
+    //
+    //   filterDesc.push({
+    //     cohort: bins[0].cohort,
+    //     filter: [
+    //       {
+    //         attr: this.attribute,
+    //         range: filter,
+    //       },
+    //     ],
+    //   });
+    //
+    //   const params: ICohortDBDataParams = {
+    //     cohortId: filterDesc[0].cohort.dbId,
+    //     attribute: this.attribute.dataKey
+    //   };
+    //   const data = await recommendSplit(params);
+    //   console.log("recommendSplit", data);
+
+    const bins = this.getSelectedData();
+    if (bins.length === 1) { // TODO: what about more than one?
+      let cohort = bins[0].cohort;
+      const params: ICohortDBDataParams = {
+        cohortId: cohort.dbId,
+        attribute: this.attribute.dataKey
+      };
+      const data = await createAutomatically(params, false)
+      console.log("createAutomatically data", data);
+    }
+
+
+
+    // TODO: loop over returned data
+
     let filters: IFilterDesc[];
     filters = [];
     for (const cohort of this.cohorts) {

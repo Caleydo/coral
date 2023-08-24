@@ -1023,12 +1023,81 @@ def createAutomatically():
 
   # TODO: base on createUseNumFilter and create cohorts based on hdbscan grouping
   try:
+    ##########
+    # query = QueryElements()
+    # cohort = query.get_cohort_from_db(request.values, error_msg)  # get parent cohort
+    # new_cohort = query.create_cohort_automatically(request.values, cohort,
+    #                                               error_msg)  # get filtered cohort from args and cohort
+    # return query.add_cohort_to_db(new_cohort)  # save new cohort into DB
+    # return jsonify("not implemented yet")
+    ############
+
     query = QueryElements()
     cohort = query.get_cohort_from_db(request.values, error_msg)  # get parent cohort
-    new_cohort = query.create_cohort_automatically(request.values, cohort,
+    sql_text = query.get_cohort_data_sql(request.values, cohort)  # get sql statement to retrieve data
+    query_results = query.execute_sql_query(sql_text, cohort.entity_database)
+    # _log.debug("query_results %s ", query_results.get_json())
+
+    tissues = [item for item in query_results.get_json() if item[request.values['attribute']] is not None]
+    _log.debug("tissues[0] %s", tissues[0])
+    tissues_df = pd.DataFrame(tissues)
+    tissues_attribute_df = tissues_df.iloc[:, 0].values.reshape(-1, 1) # get only the first column of tissues_df (e.g. attribute age)
+    _log.debug("tissues_attribute_df[0] %s", tissues_attribute_df[0])
+    _log.debug("tissues_attribute_df shape %s", tissues_attribute_df.shape)
+
+    # hdbscan
+    clusterer = hdbscan.HDBSCAN(min_cluster_size=round(tissues_attribute_df.shape[0]/10), gen_min_span_tree=True) # one tenth of the number of tissues, to get a reasonable amount of clusters
+    clusterer.fit(tissues_attribute_df)
+    # get the labels of the clusters
+    labels = clusterer.labels_
+    _log.debug("labels %s", labels)
+    # get the number of clusters by getting the distinct values of labels
+    n_clusters_ = len(set(labels))
+    _log.debug("n_clusters_ %s", n_clusters_)
+
+    # create a cohort for each cluster
+    # add the cluster labels to the tissues
+    tissues_df['cluster_label'] = labels
+    _log.debug("tissues_df %s", tissues_df)
+
+    # get all the tissuenames for each cluster
+    _log.debug("tissues[0] with label %s", tissues[0])
+    _log.debug("tissues_df[tissues_df['cluster_label'] == 0] %s", tissues_df[tissues_df['cluster_label'] == 0])
+    # loop over every cluster
+    # get the distinct values of the cluster_label
+    _log.debug("set(labels) %s", set(labels))
+    clusters_tissuenames = {}
+    for i in set(labels):
+      clusters_tissuenames[i] = (tissues_df[tissues_df['cluster_label'] == i]['tissuename'].tolist())
+
+    # _log.debug("clusters_tissuenames %s", clusters_tissuenames)
+    # _log.debug("clusters_tissuenames[-1] %s", clusters_tissuenames[-1])
+    # _log.debug("clusters_tissuenames[0] %s", clusters_tissuenames[0])
+    # _log.debug("clusters_tissuenames[1] %s", clusters_tissuenames[1])
+    # _log.debug("clusters_tissuenames[1] %s", clusters_tissuenames[1]['tissuename'])
+
+
+
+    _log.debug("cohortdebuggg %s", cohort)
+    # change the statement to use  the ids of the cohorts
+    # Convert the list into a comma-separated string
+    sql_values = "(" + ", ".join(["'" + item + "'" for item in clusters_tissuenames[0]]) + ")"
+    sql_text = 'SELECT p.* FROM (SELECT * FROM tissue.tdp_tissue) p WHERE (p.tissuename IN {tissuenames})'.format(tissuenames=(sql_values)) # TODO: make this generic for other table, multiple attributes etc
+    # _log.debug("sql_text %s", sql_text)
+    cohort.statement = sql_text
+    # _log.debug("cohortdebuggg %s", cohort)
+
+    new_cohort = query.create_cohort_automatically_from_tissue_names(request.values, cohort,
                                                   error_msg)  # get filtered cohort from args and cohort
-    return query.add_cohort_to_db(new_cohort)  # save new cohort into DB
-    # return jsonify("not implemented yet")
+    _log.debug("new_cohort %s", new_cohort)
+    returnvalue = query.add_cohort_to_db(new_cohort)  # save new cohort into DB
+    _log.debug("returnvalue %s", returnvalue.data)
+
+    # hdbscan end
+    _log.debug("returnvalue %s", returnvalue.data)
+    return returnvalue
+
+
   except RuntimeError as error:
     abort(400, error)
 

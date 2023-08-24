@@ -11,7 +11,6 @@ import {
   INumRange,
 } from '../base/interfaces';
 import {
-  createAutomatically,
   getCohortData,
   getCohortDepletionScore,
   getCohortGeneScore,
@@ -93,7 +92,7 @@ export abstract class Attribute implements IAttribute {
     return getCohortSize({ cohortId: cohortDbId });
   }
 
-  abstract filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<ICohort>;
+  abstract filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string, autofilter?: boolean): Promise<ICohort>;
 
   abstract toJSON(): IAttributeJSON;
 }

@@ -652,8 +652,11 @@ class QueryElements:
         )
         return new_cohort
 
-    def create_cohort_automatically(self, args, cohort, error_msg):
+    def create_cohort_automatically_from_tissue_names(self, args, cohort, error_msg):
         name = args.get("name")
+
+        _log.debug("args: %s", args)
+        _log.debug("cohortdebug: %s", cohort)
 
         if name is None:
             raise RuntimeError(error_msg)
@@ -664,7 +667,7 @@ class QueryElements:
             raise RuntimeError(error_msg)
 
         sql_text = "SELECT p.* FROM ({entities}) p".format(entities=cohort.statement)
-        _log.debug("sql_text: %s", sql_text)
+        _log.debug("sql_text_create_cohort_automatically_from_tissue_names: %s", sql_text)
 
         new_cohort = Cohort(
             name=name,
