@@ -608,8 +608,8 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     <div>
       <!-- Nav tabs -->
       <ul class="nav nav-tabs nav-justified" role="tablist">
-        <li role="presentation" class="nav-item"><a class="nav-link active" href="#filter" aria-controls="filter" role="tab" data-bs-toggle="tab"><i class="fas fa-filter" aria-hidden="true"></i> Filter</a></li>
-        <li role="presentation" class="nav-item"><a class="nav-link" href="#split" aria-controls="split" role="tab" data-bs-toggle="tab"><i class="fas fa-share-alt" aria-hidden="true"></i> Split</a></li>
+        <li data-testid="nav_tab_filter" role="presentation" class="nav-item"><a class="nav-link active" href="#filter" aria-controls="filter" role="tab" data-bs-toggle="tab"><i class="fas fa-filter" aria-hidden="true"></i> Filter</a></li>
+        <li data-testid="nav_tab_split" role="presentation" class="nav-item"><a class="nav-link" href="#split" aria-controls="split" role="tab" data-bs-toggle="tab"><i class="fas fa-share-alt" aria-hidden="true"></i> Split</a></li>
       </ul>
       <!-- Tab panes -->
       <div class="tab-content">
@@ -644,7 +644,7 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       </div>
     </div>
     <div class="d-grid gap-2">
-      <button type="button" class="btn applyBtn btn-coral-prime" title="Apply to get a preview of the output cohorts.">Apply</button>
+      <button type="button" class="btn applyBtn btn-coral-prime" data-testid="apply_button" title="Apply to get a preview of the output cohorts.">Apply</button>
     </div>
     `,
     );
@@ -737,8 +737,8 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       `
       <p>Select bars with a mouse click. All bars are selected initially.</p>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5em;">
-        <button type="button" class="btn btn-coral-prime" title="Click to get a preview of the output cohorts."><i class="fas fa-filter" aria-hidden="true"></i> Filter</button>
-        <button type="button" class="btn btn-coral-prime" title="Click to get a preview of the output cohorts."><i class="fas fa-share-alt" aria-hidden="true"></i> Split</button>
+        <button type="button" class="btn btn-coral-prime" title="Click to get a preview of the output cohorts." data-testid="filter_button"><i class="fas fa-filter" aria-hidden="true"></i> Filter</button>
+        <button type="button" class="btn btn-coral-prime" title="Click to get a preview of the output cohorts." data-testid="split_button"><i class="fas fa-share-alt" aria-hidden="true"></i> Split</button>
       </div>
     `,
     );

@@ -246,7 +246,7 @@ class TaskviewOutput extends TaskviewTable {
     this.$floatingBtns.insertAdjacentHTML(
       `beforeend`,
       `
-      <button type="button" class="btn btn-coral-prime confirmBtn">
+      <button type="button" class="btn btn-coral-prime confirmBtn" data-testid="confirm_button">
         <i class="fas fa-check" aria-hidden="true"></i> Add to Cohort Graph
       </button>
     `,
