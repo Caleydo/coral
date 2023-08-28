@@ -9,6 +9,9 @@ from visyn_core.security import login_required
 from sklearn.metrics import silhouette_score
 
 
+# import pydevd_pycharm
+# pydevd_pycharm.settrace('localhost', port=5678, stdoutToServer=True, stderrToServer=True)
+
 
 DEBUG = False
 
@@ -1046,7 +1049,7 @@ def createAutomatically():
     _log.debug("tissues_attribute_df shape %s", tissues_attribute_df.shape)
 
     # hdbscan
-    clusterer = hdbscan.HDBSCAN(min_cluster_size=round(tissues_attribute_df.shape[0]/10), gen_min_span_tree=True) # one tenth of the number of tissues, to get a reasonable amount of clusters
+    clusterer = hdbscan.HDBSCAN(min_cluster_size=round(tissues_attribute_df.shape[0]/20), gen_min_span_tree=True) # one tenth of the number of tissues, to get a reasonable amount of clusters
     clusterer.fit(tissues_attribute_df)
     # get the labels of the clusters
     labels = clusterer.labels_
@@ -1066,9 +1069,10 @@ def createAutomatically():
     # loop over every cluster
     # get the distinct values of the cluster_label
     _log.debug("set(labels) %s", set(labels))
-    clusters_tissuenames = {}
-    for i in set(labels):
-      clusters_tissuenames[i] = (tissues_df[tissues_df['cluster_label'] == i]['tissuename'].tolist())
+
+    # clusters_tissuenames = {}
+    # for i in set(labels):
+    #   clusters_tissuenames[i] = (tissues_df[tissues_df['cluster_label'] == i]['tissuename'].tolist())
 
     # _log.debug("clusters_tissuenames %s", clusters_tissuenames)
     # _log.debug("clusters_tissuenames[-1] %s", clusters_tissuenames[-1])
@@ -1078,24 +1082,31 @@ def createAutomatically():
 
 
 
-    _log.debug("cohortdebuggg %s", cohort)
-    # change the statement to use  the ids of the cohorts
-    # Convert the list into a comma-separated string
-    sql_values = "(" + ", ".join(["'" + item + "'" for item in clusters_tissuenames[0]]) + ")"
-    sql_text = 'SELECT p.* FROM (SELECT * FROM tissue.tdp_tissue) p WHERE (p.tissuename IN {tissuenames})'.format(tissuenames=(sql_values)) # TODO: make this generic for other table, multiple attributes etc
-    # _log.debug("sql_text %s", sql_text)
-    cohort.statement = sql_text
-    # _log.debug("cohortdebuggg %s", cohort)
+    # create a cohort for each cluster
+    cohortids = []
+    for i in set(labels):
+      clusters_tissuenames = tissues_df[tissues_df['cluster_label'] == i]['tissuename'].tolist()
+      _log.debug("cohortdebuggg %s", cohort)
+      # change the statement to use  the ids of the cohorts
+      # Convert the list into a comma-separated string
+      sql_values = "(" + ", ".join(["'" + item + "'" for item in clusters_tissuenames]) + ")"
+      sql_text = 'SELECT p.* FROM (SELECT * FROM tissue.tdp_tissue) p WHERE (p.tissuename IN {tissuenames})'.format(tissuenames=(sql_values)) # TODO: make this generic for other table, multiple attributes etc
+      # _log.debug("sql_text %s", sql_text)
+      cohort.statement = sql_text
+      # _log.debug("cohortdebuggg %s", cohort)
 
-    new_cohort = query.create_cohort_automatically_from_tissue_names(request.values, cohort,
-                                                  error_msg)  # get filtered cohort from args and cohort
-    _log.debug("new_cohort %s", new_cohort)
-    returnvalue = query.add_cohort_to_db(new_cohort)  # save new cohort into DB
-    _log.debug("returnvalue %s", returnvalue.data)
+      new_cohort = query.create_cohort_automatically_from_tissue_names(request.values, cohort,
+                                                    error_msg)  # get filtered cohort from args and cohort
+      _log.debug("new_cohort %s", new_cohort)
+      returnvalue = query.add_cohort_to_db(new_cohort).data # save new cohort into DB
+      # Convert bytes to integers and remove brackets
+      returnvalue = int(returnvalue.decode("utf-8").strip('[]\n')) # this is a workaround to undo the jsonify that is done in add_cohort_to_db
+      cohortids.append(returnvalue)
+      _log.debug("cohortids now %s", cohortids)
 
-    # hdbscan end
-    _log.debug("returnvalue %s", returnvalue.data)
-    return returnvalue
+      # hdbscan end
+    _log.debug("cohortids %s", cohortids)
+    return jsonify(cohortids)
 
 
   except RuntimeError as error:

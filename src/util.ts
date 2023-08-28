@@ -115,6 +115,7 @@ export interface IFilterDesc {
 export interface IAttributeFilter {
   attr: IAttribute;
   range: INumRange[] | IEqualsList;
+  newCohortId?: number;
 }
 
 export function getAnimatedText(thingToLoad = '', large = true) {

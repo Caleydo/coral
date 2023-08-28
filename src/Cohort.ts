@@ -32,7 +32,7 @@ import {
   dataDBCohortWithEqualsFilter,
   dataDBCohortWithNumFilter,
   getCohortData,
-  getCohortSize, recommendSplit,
+  getCohortSize, getDBCohortData, recommendSplit,
   sizeDBCohortDepletionScoreFilter,
   sizeDBCohortGeneWithEqualsFilter,
   sizeDBCohortGeneWithNumFilter,
@@ -251,6 +251,7 @@ export async function createCohortAutoSplit(
   labelTwo: string,
   attribute: string,
   ranges: Array<INumRange>,
+  newCohortId: number,
 ): Promise<ICohort> {
   const params: ICohortDBWithNumFilterParams = {
     cohortId: parentCohort.dbId,
@@ -259,7 +260,10 @@ export async function createCohortAutoSplit(
     ranges,
   };
   log.debug('try new cohort num filter: ', params);
-  const dbId = await cohortCreationDBHandler(createDBCohortAutomatically, params);
+  // const dbId = await cohortCreationDBHandler(createDBCohortAutomatically, params); // TODO: NOT needed. The ids are already known.
+  const dbId = newCohortId;
+
+
 
   const newFilter = getLegacyRangeFilter(parentCohort.filters, attribute, ranges[0]);
 

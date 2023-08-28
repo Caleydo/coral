@@ -106,12 +106,12 @@ export class ServerColumnAttribute extends Attribute {
     this.categories = serverColumn.categories as string[];
   }
 
-  async filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string, autofilter?: boolean): Promise<ICohort> {
+  async filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string, autofilter?: boolean, newCohortId?: number): Promise<ICohort> {
 
     if (autofilter) {
       if (Array.isArray(filter)) {
         const label = rangeLabel || "label";
-        return createCohortAutoSplit(cht, niceName(this.id), "label", this.id, filter);
+        return createCohortAutoSplit(cht, niceName(this.id), "label", this.id, filter, newCohortId);
       }
     }
 
@@ -483,7 +483,7 @@ export async function multiAttributeFilter(baseCohort: ICohort, filters: IAttrib
   for (const attrFilter of filters) {
     // TODO: fix me
     // eslint-disable-next-line no-await-in-loop
-    newCohort = await attrFilter.attr.filter(newCohort, attrFilter.range, null, autofilter);
+    newCohort = await attrFilter.attr.filter(newCohort, attrFilter.range, null, autofilter, attrFilter.newCohortId);
     labelOne.push(newCohort.labelOne);
     labelTwo.push(newCohort.labelTwo);
     values.push(...newCohort.values);

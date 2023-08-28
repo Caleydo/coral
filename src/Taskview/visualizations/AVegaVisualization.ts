@@ -724,14 +724,15 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     //   console.log("recommendSplit", data);
 
     const bins = this.getSelectedData();
+    let newCohortIds = [];
     if (bins.length === 1) { // TODO: what about more than one?
       let cohort = bins[0].cohort;
       const params: ICohortDBDataParams = {
         cohortId: cohort.dbId,
         attribute: this.attribute.dataKey
       };
-      const data = await createAutomatically(params, false)
-      console.log("createAutomatically data", data);
+      newCohortIds = await createAutomatically(params, false)
+      console.log("createAutomatically data", newCohortIds);
     }
 
 
@@ -741,15 +742,19 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     let filters: IFilterDesc[];
     filters = [];
     for (const cohort of this.cohorts) {
-      filters.push({
-        filter: [
-          {
-            attr: this.attribute,
-            range: [this.getGeneralNumericalFilter(0 , 50 , NumRangeOperators.gte, NumRangeOperators.lte)], // todo: solve this in a smoother way. These are dummy values for now
-          },
-        ],
-        cohort,
-      });
+      // for every newCohort create a filter (for now... the filter is actually not needed, will be changed in the future)
+      for (const newCohort of newCohortIds){
+        filters.push({
+          filter: [
+            {
+              attr: this.attribute,
+              range: [this.getGeneralNumericalFilter(0 , 50 , NumRangeOperators.gte, NumRangeOperators.lte)], // todo: solve this in a smoother way. These are dummy values for now,
+              newCohortId: newCohort
+            },
+          ],
+          cohort,
+        });
+      }
     }
     this.container.dispatchEvent(new AutoSplitEvent(filters));
   }
