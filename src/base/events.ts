@@ -2,7 +2,7 @@ import type { ICohort, ITaskParams } from '../app/interfaces';
 import type { IAttribute } from '../data/IAttribute';
 import type { Task } from '../Tasks';
 import type { AColumn } from '../Taskview/columns/AColumn';
-import { IFilterDesc, SortType } from '../util';
+import {IFilterDesc, INewCohortDesc, SortType} from '../util';
 
 export const COHORT_REMOVE_EVENT_TYPE = 'cht:remove';
 export class CohortRemoveEvent extends CustomEvent<{ cohort: ICohort }> {
@@ -65,16 +65,16 @@ export class SplitEvent extends CustomEvent<{ desc: IFilterDesc[] }> {
 }
 
 export const AUTO_SPLIT_EVENT_TYPE = 'cht:autosplit';
-export class AutoSplitEvent extends CustomEvent<{ desc: IFilterDesc[] }> {
-  constructor(desc: IFilterDesc[]) {
+export class AutoSplitEvent extends CustomEvent<{ desc: INewCohortDesc[] }> {
+  constructor(desc: INewCohortDesc[]) {
     super(AUTO_SPLIT_EVENT_TYPE, { detail: { desc }, bubbles: true });
   }
 }
 
 export const CONFIRM_OUTPUT_EVENT_TYPE = 'cht:output:confirm';
-export class ConfirmOutputEvent extends CustomEvent<{ cohorts: ICohort[] }> {
-  constructor(cohorts: ICohort[]) {
-    super(CONFIRM_OUTPUT_EVENT_TYPE, { detail: { cohorts }, bubbles: true });
+export class ConfirmOutputEvent extends CustomEvent<{ desc: ICohort[] }> {
+  constructor(desc: ICohort[]) {
+    super(CONFIRM_OUTPUT_EVENT_TYPE, { detail: { desc }, bubbles: true });
   }
 }
 

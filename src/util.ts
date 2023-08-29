@@ -118,6 +118,14 @@ export interface IAttributeFilter {
   newCohortId?: number;
 }
 
+export interface INewCohortDesc {
+  cohort: ICohort;
+  newCohortId: number;
+  attr: IAttribute[];
+}
+
+
+
 export function getAnimatedText(thingToLoad = '', large = true) {
   const span = document.createElement('p');
   span.classList.add('loading');

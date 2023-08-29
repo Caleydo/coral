@@ -127,6 +127,13 @@ export class ServerColumnAttribute extends Attribute {
     return createCohortWithEqualsFilter(cht, niceName(this.id), label, this.id, this.type === 'number' ? 'true' : 'false', filter.values);
   }
 
+  async getAutoCohort(cht: ICohort, attribute: IAttribute, newCohortId: number): Promise<ICohort> {
+    // if (Array.isArray(attribute)) {
+      const label = "label";
+      return createCohortAutoSplit(cht, niceName(this.id), "label", this.id, newCohortId);
+    // }
+  }
+
   toJSON(): IAttributeJSON {
     const option = {
       optionId: this.id,
@@ -473,6 +480,33 @@ export class PanelScoreAttribute extends AScoreAttribute {
   }
 }
 
+
+export async function multiAttributeGetAutoCohort(baseCohort: ICohort, attr: IAttribute[], newCohortId: number): Promise<ICohort> {
+  let newCohort = baseCohort;
+
+  const labelOne = [];
+  const labelTwo = [];
+  const values = [];
+
+  for (const att of attr) {
+    // TODO: fix me
+    // eslint-disable-next-line no-await-in-loop
+    newCohort = await att.getAutoCohort(newCohort, att, newCohortId);
+    labelOne.push(newCohort.labelOne);
+    labelTwo.push(newCohort.labelTwo);
+    values.push(...newCohort.values);
+  }
+
+  // when only one filter is used the labels don't have to be set again
+  // minimizes the number of time a cohort in the DB has to be updated
+  // if (filters.length > 1) {
+  //   newCohort.setLabels(labelOne.join(', '), labelTwo.join(', '));
+  //   newCohort.values = values;
+  // }
+
+  return newCohort;
+}
+
 export async function multiAttributeFilter(baseCohort: ICohort, filters: IAttributeFilter[], autofilter?: boolean): Promise<ICohort> {
   let newCohort = baseCohort;
 
@@ -483,7 +517,7 @@ export async function multiAttributeFilter(baseCohort: ICohort, filters: IAttrib
   for (const attrFilter of filters) {
     // TODO: fix me
     // eslint-disable-next-line no-await-in-loop
-    newCohort = await attrFilter.attr.filter(newCohort, attrFilter.range, null, autofilter, attrFilter.newCohortId);
+    newCohort = await attrFilter.attr.filter(newCohort, attrFilter.range);
     labelOne.push(newCohort.labelOne);
     labelTwo.push(newCohort.labelTwo);
     values.push(...newCohort.values);

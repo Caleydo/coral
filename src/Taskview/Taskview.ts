@@ -26,7 +26,7 @@ import SearchColumn from './SearchColumn';
 import AddColumnColumn, { AColumn, ADataColumn, EmptyColumn } from './columns/AColumn';
 import { InputCohortColumn, OutputCohortColumn } from './columns/CohortColumn';
 import { EMPTY_COHORT_ID, getEmptyCohort, getLoaderCohort, LOADER_COHORT_ID } from '../Cohort';
-import { multiAttributeFilter } from '../data/Attribute';
+import {multiAttributeFilter, multiAttributeGetAutoCohort} from '../data/Attribute';
 import AttributeColumn from './columns/AttributeColumn';
 import { RectangleLayout } from '../Overview/OverviewLayout';
 import {CohortRoutes, ICohortDBDataParams} from "../base";
@@ -585,10 +585,10 @@ export default class Taskview {
     let outputCohorts: IOutputCohort[] = []; // Stores the output cohorts in correct order, will replace the array currently used
     const taskWithSelectedOutput: ITaskParams[] = [];
     this.taskParams = [];
-    this.taskAttributes = ev.detail.desc[0].filter.map((filter) => filter.attr);
+    this.taskAttributes = ev.detail.desc[0].attr;
 
     for (const inCht of this.input.cohorts) {
-      const chtBins = ev.detail.desc.filter((bin) => inCht.id === bin.cohort.id);
+      const chtBins = ev.detail.desc.filter((bin) => inCht.id === bin.cohort.id); // gets all new cohorts (aka bins) for the current input cohort
       const outChts: IOutputCohort[] = new Array(Math.max(chtBins.length, 1)).fill(null).map(() => getLoaderCohort(inCht) as unknown as IOutputCohort);
 
       outChts[outChts.length - 1].isLastOutputCohort = true;
@@ -614,7 +614,7 @@ export default class Taskview {
       if (chtBins.length > 0) {
         const chtPromises = [];
         for (const bin of chtBins) {
-          chtPromises.push(multiAttributeFilter(cht, bin.filter, true));
+          chtPromises.push(multiAttributeGetAutoCohort(cht, bin.attr, bin.newCohortId));
         }
         // TODO: fix me
         // eslint-disable-next-line no-await-in-loop
@@ -663,7 +663,7 @@ export default class Taskview {
           inputCohorts: [cht],
           outputCohorts: cht.outputCohorts,
           type: ev instanceof FilterEvent ? TaskType.Filter : TaskType.Split,
-          label: ev.detail.desc[0].filter.map((filter) => filter.attr.label).join(', '),
+          label: ev.detail.desc[0].attr.map((att) => att.label).join(', '),
         };
         // save all curertn possibel task params
         this.taskParams.push(currTaskParam);
@@ -681,7 +681,7 @@ export default class Taskview {
 
       // Add the new cohorts to the output side
       this.setOutputCohorts(outputCohorts);
-      ev.detail.desc[0].filter.forEach((filter) => this.addAttributeColumn(filter.attr));
+      ev.detail.desc[0].attr.forEach((att) => this.addAttributeColumn(att));
     }
   }
 

@@ -123,7 +123,9 @@ export interface IAttribute {
 
   getCount(cohortDbId: number, filters?: IAllFilters): Promise<number>;
 
-  filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string, autofilter?: boolean, newCohortId?: number): Promise<ICohort>;
+  filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<ICohort>;
+
+  getAutoCohort(cht: ICohort, attribute: IAttribute, newCohortId: number): Promise<ICohort>;
 
   toJSON();
 }

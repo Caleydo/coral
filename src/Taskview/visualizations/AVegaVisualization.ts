@@ -7,7 +7,7 @@ import vegaEmbed from 'vega-embed';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { getCohortLabel } from '../../Cohort';
 import { ICohort } from '../../app/interfaces';
-import { IFilterDesc, log} from '../../util';
+import {IFilterDesc, INewCohortDesc, log} from '../../util';
 import { FilterEvent, SplitEvent, AutoSplitEvent } from '../../base/events';
 import { Option, VisConfig } from './config/VisConfig';
 import { DATA_LABEL } from './constants';
@@ -736,27 +736,39 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     }
 
 
+    // let filters: IFilterDesc[];
+    // filters = [];
+    // for (const cohort of this.cohorts) {
+    //   // for every newCohort create a filter (for now... the filter is actually not needed, will be changed in the future)
+    //   for (const newCohort of newCohortIds){
+    //     filters.push({
+    //       filter: [
+    //         {
+    //           attr: this.attribute,
+    //           range: [this.getGeneralNumericalFilter(0 , 50 , NumRangeOperators.gte, NumRangeOperators.lte)], // todo: solve this in a smoother way. These are dummy values for now,
+    //           newCohortId: newCohort
+    //         },
+    //       ],
+    //       cohort,
+    //     });
+    //   }
+    // }
 
-    // TODO: loop over returned data
-
-    let filters: IFilterDesc[];
-    filters = [];
+    let cohortDescs: INewCohortDesc[];
+    cohortDescs = [];
     for (const cohort of this.cohorts) {
       // for every newCohort create a filter (for now... the filter is actually not needed, will be changed in the future)
       for (const newCohort of newCohortIds){
-        filters.push({
-          filter: [
-            {
-              attr: this.attribute,
-              range: [this.getGeneralNumericalFilter(0 , 50 , NumRangeOperators.gte, NumRangeOperators.lte)], // todo: solve this in a smoother way. These are dummy values for now,
-              newCohortId: newCohort
-            },
-          ],
-          cohort,
+        cohortDescs.push({
+          cohort: cohort,
+          newCohortId: newCohort,
+          attr:[this.attribute]
         });
       }
     }
-    this.container.dispatchEvent(new AutoSplitEvent(filters));
+
+
+    this.container.dispatchEvent(new AutoSplitEvent(cohortDescs));
   }
 
   protected splitValues: Array<{ x: number }> = [];

@@ -25,6 +25,11 @@ export interface ICohortNumFilterParams {
   ranges: Array<INumRange>;
 }
 
+export interface ICohortAutoSplitParams {
+  cohortId: number;
+  attribute: string;
+}
+
 export interface ICohortGeneNumFilterParams extends ICohortNumFilterParams {
   table: string;
   ensg: string;
@@ -36,6 +41,10 @@ export interface ICohortGeneEqualsFilterParams extends ICohortEqualsFilterParams
 }
 
 export interface ICohortDBWithNumFilterParams extends ICohortNumFilterParams {
+  name: string;
+}
+
+export interface ICohortDBWithAutoSplitParams extends ICohortAutoSplitParams {
   name: string;
 }
 

@@ -46,7 +46,7 @@ import { deepCopy, handleDataLoadError, handleDataSaveError, log, mergeTwoAllFil
 import {
   ICohortDBDataParams,
   ICohortDBParams,
-  ICohortDBSizeParams,
+  ICohortDBSizeParams, ICohortDBWithAutoSplitParams,
   ICohortDBWithDepletionScoreFilterParams,
   ICohortDBWithEqualsFilterParams,
   ICohortDBWithGeneEqualsFilterParams,
@@ -63,6 +63,7 @@ import {
   ICohortRow,
   IEqualsList,
   INumRange,
+  NumRangeOperators,
   valueListDelimiter,
 } from './base/interfaces';
 
@@ -129,6 +130,14 @@ function getLegacyRangeFilter(parentFilters: IAllFilters, attribute: string, ran
   if (range.operatorTwo) {
     thisFilter[range.operatorTwo][attribute] = range.valueTwo;
   }
+  return mergeTwoAllFilters(parentFilters, thisFilter); // merge the existing with the new filter
+}
+
+// TODO implement correctly, or remove if different solution is better
+function getAutoSplitFilter(parentFilters: IAllFilters, attribute: string) {
+  const thisFilter: IAllFilters = { normal: {}, lt: {}, lte: {}, gt: {}, gte: {} };
+  thisFilter['gte'][attribute] = "label1"; // TODO: remove, this is only for now for development of autosplit
+  thisFilter['lt'][attribute] = "label2";
   return mergeTwoAllFilters(parentFilters, thisFilter); // merge the existing with the new filter
 }
 
@@ -245,32 +254,31 @@ export async function createCohortWithNumFilter(
 }
 
 
+
 export async function createCohortAutoSplit(
   parentCohort: ICohort,
   labelOne: string,
   labelTwo: string,
   attribute: string,
-  ranges: Array<INumRange>,
   newCohortId: number,
 ): Promise<ICohort> {
-  const params: ICohortDBWithNumFilterParams = {
+  const params: ICohortDBWithAutoSplitParams = {
     cohortId: parentCohort.dbId,
     name: combineLabelsForDB(labelOne, labelTwo),
     attribute,
-    ranges,
   };
   log.debug('try new cohort num filter: ', params);
   // const dbId = await cohortCreationDBHandler(createDBCohortAutomatically, params); // TODO: NOT needed. The ids are already known.
   const dbId = newCohortId;
 
+  // let dummyrange = [this.getGeneralNumericalFilter(0 , 50 , NumRangeOperators.gte, NumRangeOperators.lte)]; // TODO: remove, just for development of autosplit
 
-
-  const newFilter = getLegacyRangeFilter(parentCohort.filters, attribute, ranges[0]);
+  const newFilter = getAutoSplitFilter(parentCohort.filters, attribute, null);
 
   // ATTENTION : database != databaseName
   const cht = new Cohort(
     { id: `${dbId}`, dbId, labelOne, labelTwo },
-    [ranges],
+    [null],
     {
       database: parentCohort.database,
       schema: parentCohort.schema,
