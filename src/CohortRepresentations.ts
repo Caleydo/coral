@@ -515,7 +515,7 @@ export class RectCohortRep implements IRectCohortRep {
           if (Array.isArray(val)) {
             labelpart = val.map((a) => labelFromFilter(a, label)).join(' / ');
           } else if (isNull(val)) {
-            labelpart = label;
+            labelpart = 'Mixed because of Autosplit';
           } else {
             labelpart = labelFromFilter(val, label);
           }

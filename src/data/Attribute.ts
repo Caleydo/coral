@@ -129,8 +129,8 @@ export class ServerColumnAttribute extends Attribute {
 
   async getAutoCohort(cht: ICohort, attribute: IAttribute, newCohortId: number): Promise<ICohort> {
     // if (Array.isArray(attribute)) {
-      const label = "label";
-      return createCohortAutoSplit(cht, niceName(this.id), "label", this.id, newCohortId);
+      const label = "Mixed - AutoSplit";
+      return createCohortAutoSplit(cht, niceName(this.id), label, this.id, newCohortId);
     // }
   }
 

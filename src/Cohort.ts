@@ -273,7 +273,9 @@ export async function createCohortAutoSplit(
 
   // let dummyrange = [this.getGeneralNumericalFilter(0 , 50 , NumRangeOperators.gte, NumRangeOperators.lte)]; // TODO: remove, just for development of autosplit
 
-  const newFilter = getAutoSplitFilter(parentCohort.filters, attribute, null);
+
+  // const newFilter = getAutoSplitFilter(parentCohort.filters, attribute);
+  const newFilter = null; // not needed
 
   // ATTENTION : database != databaseName
   const cht = new Cohort(
