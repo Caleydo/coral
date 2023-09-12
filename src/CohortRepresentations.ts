@@ -5,6 +5,7 @@ import { CohortContext } from './CohortContext';
 import { log } from './util';
 import { CohortRemoveEvent, CohortSelectionEvent } from './base/events';
 import { labelFromFilter } from './utils/labels';
+import {isNull} from "lodash";
 
 export class RectCohortRep implements IRectCohortRep {
   id: string;
@@ -513,6 +514,8 @@ export class RectCohortRep implements IRectCohortRep {
           let labelpart = '';
           if (Array.isArray(val)) {
             labelpart = val.map((a) => labelFromFilter(a, label)).join(' / ');
+          } else if (isNull(val)) {
+            labelpart = label;
           } else {
             labelpart = labelFromFilter(val, label);
           }
