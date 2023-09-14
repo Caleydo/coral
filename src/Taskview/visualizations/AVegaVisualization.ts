@@ -23,7 +23,7 @@ import {
 
 import {
   recommendSplit,
-  createAutomatically
+  createAutomatically, createDBCohortAutomatically
 } from './../../base/rest';
 
 export const MISSING_VALUES_LABEL = 'Missing Values';
@@ -256,6 +256,7 @@ export abstract class AVegaVisualization implements IVegaVisualization {
   abstract show(container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]);
   abstract filter(): void;
   abstract split(): void;
+  abstract createAutomatically(): void;
   abstract showImpl(chart: HTMLDivElement, data: Array<IdValuePair>); // probably the method impl from SingleAttributeVisualization can be moved here
 
   destroy() {
@@ -731,7 +732,7 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
         cohortId: cohort.dbId,
         attribute: this.attribute.dataKey
       };
-      newCohortIds = await createAutomatically(params, false)
+      newCohortIds = await createDBCohortAutomatically(params)
       console.log("createAutomatically data", newCohortIds);
     }
 
@@ -756,6 +757,7 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
 
     let cohortDescs: INewCohortDesc[];
     cohortDescs = [];
+    // for every selected cohort
     for (const cohort of this.cohorts) {
       // for every newCohort create a filter (for now... the filter is actually not needed, will be changed in the future)
       for (const newCohort of newCohortIds){

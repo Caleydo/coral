@@ -661,10 +661,14 @@ class QueryElements:
         if name is None:
             raise RuntimeError(error_msg)
 
-
         attribute = args.get("attribute")
         if attribute is None:
-            raise RuntimeError(error_msg)
+            attribute1 = args.get("attribute1")
+            attribute2 = args.get("attribute2")
+            if attribute1 is None or attribute2 is None:
+                raise RuntimeError(error_msg)
+            
+        
 
         sql_text = "SELECT p.* FROM ({entities}) p".format(entities=cohort.statement)
         _log.debug("sql_text_create_cohort_automatically_from_tissue_names: %s", sql_text)

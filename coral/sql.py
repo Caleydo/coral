@@ -1011,45 +1011,46 @@ def recommendSplit():
 
 @app.route("/createAutomatically", methods=["GET", "POST"])
 # TODO add login_required
-def createAutomatically():
+def create_automatically():
   # error msg is wrong, it is based on the cohortData route
-  # cohortData?cohortId=2&attribute=gender
+  # cohortData?cohortId=2&attribute=genderdata
   error_msg = """Paramerter missing or wrong!
   For the {route} query the following parameter is needed:
   - cohortId: id of the cohort
-  There is also one optional parameter:
+  There are also  optional parameters:
+  - attribute1: one column of the entity table, used when called for 2 attributes
+  - attribute2: one column of the entity table, used when called for 2 attributes
   - attribute: one column of the entity table""".format(
     route="cohortData"
   )
 
   _log.debug("request.values %s", request.values)
 
-  # TODO: base on createUseNumFilter and create cohorts based on hdbscan grouping
+  # based on createUseNumFilter and create cohorts with hdbscan clustering
   try:
-    ##########
-    # query = QueryElements()
-    # cohort = query.get_cohort_from_db(request.values, error_msg)  # get parent cohort
-    # new_cohort = query.create_cohort_automatically(request.values, cohort,
-    #                                               error_msg)  # get filtered cohort from args and cohort
-    # return query.add_cohort_to_db(new_cohort)  # save new cohort into DB
-    # return jsonify("not implemented yet")
-    ############
-
     query = QueryElements()
     cohort = query.get_cohort_from_db(request.values, error_msg)  # get parent cohort
     sql_text = query.get_cohort_data_sql(request.values, cohort)  # get sql statement to retrieve data
     query_results = query.execute_sql_query(sql_text, cohort.entity_database)
     # _log.debug("query_results %s ", query_results.get_json())
 
-    tissues = [item for item in query_results.get_json() if item[request.values['attribute']] is not None]
-    _log.debug("tissues[0] %s", tissues[0])
-    tissues_df = pd.DataFrame(tissues)
-    tissues_attribute_df = tissues_df.iloc[:, 0].values.reshape(-1, 1) # get only the first column of tissues_df (e.g. attribute age)
-    _log.debug("tissues_attribute_df[0] %s", tissues_attribute_df[0])
-    _log.debug("tissues_attribute_df shape %s", tissues_attribute_df.shape)
+    # if there are 2 attributes, use both, if there is just 1 attribute, use one
+    if 'attribute1' in request.values:
+        attribute1 = request.values['attribute1']
+        attribute2 = request.values['attribute2']
+        tissues = [item for item in query_results.get_json() if item[attribute1] is not None and item[attribute2] is not None]
+        tissues_df = pd.DataFrame(tissues)
+        # get only the values of the attributes
+        tissues_attribute_df = tissues_df[[attribute1, attribute2]].values
+    else:
+        attribute = request.values['attribute']
+        tissues = [item for item in query_results.get_json() if item[attribute] is not None]
+        tissues_df = pd.DataFrame(tissues)
+        tissues_attribute_df = tissues_df[attribute].values.reshape(-1, 1)
+
 
     # hdbscan
-    clusterer = hdbscan.HDBSCAN(min_cluster_size=round(tissues_attribute_df.shape[0]/20), gen_min_span_tree=True) # one tenth of the number of tissues, to get a reasonable amount of clusters
+    clusterer = hdbscan.HDBSCAN(min_cluster_size=round(tissues_attribute_df.shape[0]/50), gen_min_span_tree=True) # one tenth of the number of tissues, to get a reasonable amount of clusters
     clusterer.fit(tissues_attribute_df)
     # get the labels of the clusters
     labels = clusterer.labels_

@@ -499,15 +499,15 @@ export async function multiAttributeGetAutoCohort(baseCohort: ICohort, attr: IAt
 
   // when only one filter is used the labels don't have to be set again
   // minimizes the number of time a cohort in the DB has to be updated
-  // if (filters.length > 1) {
-  //   newCohort.setLabels(labelOne.join(', '), labelTwo.join(', '));
-  //   newCohort.values = values;
-  // }
+  if (attr.length > 1) {
+    newCohort.setLabels(labelOne.join(', '), labelTwo.join(', '));
+    newCohort.values = values;
+  }
 
   return newCohort;
 }
 
-export async function multiAttributeFilter(baseCohort: ICohort, filters: IAttributeFilter[], autofilter?: boolean): Promise<ICohort> {
+export async function multiAttributeFilter(baseCohort: ICohort, filters: IAttributeFilter[]): Promise<ICohort> {
   let newCohort = baseCohort;
 
   const labelOne = [];

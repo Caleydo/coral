@@ -8,11 +8,20 @@ import { TopLevel, LayerSpec } from 'vega-lite/build/src/spec';
 import { Field } from 'vega-lite/build/src/channeldef';
 import { ICohort } from '../../app/interfaces';
 import { AttributeType, IAttribute, IdValuePair, ServerColumnAttribute } from '../../data';
-import { NumRangeOperators } from '../../base';
-import { IFilterDesc, inRange } from '../../util';
-import { FilterEvent } from '../../base/events';
+import {
+  ICohortDBDataParams,
+  ICohortMultiAttrDBDataParams,
+  NumRangeOperators
+} from '../../base';
+import {IFilterDesc, INewCohortDesc, inRange} from '../../util';
+import {AutoSplitEvent, FilterEvent} from '../../base/events';
 import { DATA_LABEL } from './constants';
 import { AxisType, MultiAttributeVisualization } from './MultiAttributeVisualization';
+
+import {
+  createDBCohortAutomatically,
+  createAutomatically
+} from '../../base/rest';
 
 export class Scatterplot extends MultiAttributeVisualization {
   static readonly NAME: string = 'Scatterplot';
@@ -869,6 +878,37 @@ export class Scatterplot extends MultiAttributeVisualization {
     this.container.dispatchEvent(new FilterEvent(filterDescs));
   }
 
+  async createAutomatically() {
+    console.log("createAutomatically scatterplot");
+
+    let newCohortIds = [];
+    for (const cht of this.cohorts) {
+      const params: ICohortMultiAttrDBDataParams = {
+        cohortId: cht.dbId,
+        attribute1: "age",
+        attribute2: "bmi"
+      };
+      newCohortIds = await createDBCohortAutomatically(params)
+      console.log("createAutomatically scatterplot data", newCohortIds);
+    }
+
+    let cohortDescs: INewCohortDesc[];
+    cohortDescs = [];
+    // for every selected cohort
+    for (const cohort of this.cohorts) {
+      // for every newCohort create a filter (for now... the filter is actually not needed, will be changed in the future)
+      for (const newCohort of newCohortIds){
+        cohortDescs.push({
+          cohort: cohort,
+          newCohortId: newCohort,
+          attr:[this.attributes[0], this.attributes[1]]
+        });
+      }
+    }
+
+    this.container.dispatchEvent(new AutoSplitEvent(cohortDescs));
+  }
+
   split() {
     const filterDescs: IFilterDesc[] = [];
     for (const cht of this.cohorts) {
@@ -1259,3 +1299,5 @@ export class TsneScatterplot extends Scatterplot {
     this.container.dispatchEvent(new FilterEvent(filterDescs));
   }
 }
+
+

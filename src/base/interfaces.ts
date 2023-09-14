@@ -46,6 +46,7 @@ export interface ICohortDBWithNumFilterParams extends ICohortNumFilterParams {
 
 export interface ICohortDBWithAutoSplitParams extends ICohortAutoSplitParams {
   name: string;
+
 }
 
 export const valueListDelimiter = '&#x2e31;';
@@ -85,6 +86,12 @@ export function isNumRangeFilter(filter: INumRange | IEqualsList): filter is INu
 export interface ICohortDBDataParams extends IParams {
   cohortId: number;
   attribute?: string;
+}
+
+export interface ICohortMultiAttrDBDataParams extends IParams {
+  cohortId: number;
+  attribute1?: string;
+  attribute2?: string;
 }
 
 export interface ICohortDBSizeParams extends IParams {

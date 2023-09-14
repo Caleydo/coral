@@ -137,6 +137,7 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
     </div>
     <div class="d-grid gap-2">
       <button type="button" class="btn btn-coral-prime btn-block applyBtn">Apply</button>
+      <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
     </div>
     `,
     );
@@ -147,6 +148,15 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
         this.addIntervalControls(attr, axis);
       }
     }
+
+    select(this.controls)
+      .select('button.createAutomaticallyBtn')
+      .on('click', () => {
+        console.log("createAutomaticallyBtn clicked");
+        this.createAutomatically();
+      });
+
+
     select(this.controls)
       .select('button.applyBtn')
       .on('click', () => {

@@ -12,7 +12,7 @@ import {
   ICohortDBPanelAnnotationParams,
   ICohortDBParams,
   ICohortDBSizeParams,
-  ICohortDBUpdateName,
+  ICohortDBUpdateName, ICohortDBWithAutoSplitParams,
   ICohortDBWithDepletionScoreFilterParams,
   ICohortDBWithEqualsFilterParams,
   ICohortDBWithGeneEqualsFilterParams,
@@ -23,7 +23,7 @@ import {
   ICohortDepletionScoreFilterParams,
   ICohortEqualsFilterParams,
   ICohortGeneEqualsFilterParams,
-  ICohortGeneNumFilterParams,
+  ICohortGeneNumFilterParams, ICohortMultiAttrDBDataParams,
   ICohortNumFilterParams,
   ICohortPanelAnnotationFilterParams,
   ICohortRow,
@@ -149,15 +149,15 @@ export function createDBCohortWithNumFilter(params: ICohortDBWithNumFilterParams
   return getCohortDataImpl(CohortRoutes.createUseNumFilter, newParams, assignIds);
 }
 
-export function createDBCohortAutomatically(params: ICohortDBWithNumFilterParams, assignIds = false): Promise<IRow[]> {
-  const newParams: IParams = {
-    cohortId: params.cohortId,
-    name: params.name,
-    attribute: params.attribute,
-    ranges: convertNumRanges(params.ranges),
-  };
-  return getCohortDataImpl(CohortRoutes.createAutomatically, newParams, assignIds);
-}
+// export function createDBCohortAutomatically(params: ICohortDBWithNumFilterParams, assignIds = false): Promise<IRow[]> {
+//   const newParams: IParams = {
+//     cohortId: params.cohortId,
+//     name: params.name,
+//     attribute: params.attribute,
+//     ranges: convertNumRanges(params.ranges),
+//   };
+//   return getCohortDataImpl(CohortRoutes.createAutomatically, newParams, assignIds);
+// }
 
 export function recommendSplit(params: ICohortDBDataParams, assignIds = false): Promise<IRow[]> {
   const url = `/cohortdb/db/${'recommendSplit'}`;
@@ -169,13 +169,26 @@ export function recommendSplit(params: ICohortDBDataParams, assignIds = false): 
   return AppContext.getInstance().getAPIJSON(url, params);
 }
 
-export function createAutomatically(params: ICohortDBDataParams, assignIds = false): Promise<IRow[]> {
-  const newParams: IParams = {
-    cohortId: params.cohortId,
-    name: "TODO: create name",
-    attribute: params.attribute,
-    ranges: "TODO: remove ranges since they are not needed",
-  };
+// TODO: remove this? not used?
+export function createDBCohortAutomatically(params: ICohortDBDataParams | ICohortMultiAttrDBDataParams, assignIds = false): Promise<IRow[]> {
+  let newParams: IParams = {};
+  // check if params is ICohortDBDataParams
+  if ("attribute" in params) {
+    newParams = {
+      cohortId: params.cohortId,
+      name: "TODO: create name", // this will be used to create a name for the cohort in the database afaik TODO: check this and implement
+      attribute: params.attribute,
+    };
+  } else {
+    if ("attribute1" in params) {
+      newParams = {
+        cohortId: params.cohortId,
+        name: "TODO: create name",
+        attribute1: params.attribute1,
+        attribute2: params.attribute2,
+      };
+    }
+  }
   return getCohortDataImpl(CohortRoutes.createAutomatically, newParams, assignIds);
 }
 
