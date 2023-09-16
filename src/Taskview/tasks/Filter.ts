@@ -1,7 +1,7 @@
-import { Selection } from 'd3v7';
+import {select, Selection} from 'd3v7';
 import { ICohort } from '../../app/interfaces';
 import { IAttribute } from '../../data/IAttribute';
-import { getAnimatedLoadingText, log } from '../../util';
+import {getAnimatedLoadingText, INewCohortDesc, log} from '../../util';
 import { AreaChart } from '../visualizations/AreaChart';
 import { AVegaVisualization } from '../visualizations/AVegaVisualization';
 import { Option, OptionGroup, VisConfig } from '../visualizations/config/VisConfig';
@@ -11,6 +11,9 @@ import { VegaGroupedHistogram } from '../visualizations/GroupedHistogram';
 import { KaplanMeierPlot } from '../visualizations/KaplanMeierPlot';
 import { Scatterplot } from '../visualizations/Scatterplot';
 import { ATask } from './ATask';
+import tippy from "tippy.js";
+import {createDBCohortAutomatically, ICohortMultiAttrDBDataParams} from "../../base";
+import {AutoSplitEvent} from "../../base/events";
 
 export class Filter extends ATask {
   public label = `View, Filter & Split`;
@@ -23,7 +26,7 @@ export class Filter extends ATask {
 
   public $visContainer: HTMLDivElement;
 
-  controls: Selection<HTMLDivElement, any, null, undefined>;
+  controls: HTMLDivElement;
 
   private eventID = 0;
 
@@ -32,6 +35,8 @@ export class Filter extends ATask {
   attributes: IAttribute[];
 
   cohorts: ICohort[];
+
+  protected container: HTMLDivElement;
 
   supports(attributes: IAttribute[], cohorts: ICohort[]) {
     return cohorts.length > 0;
@@ -62,8 +67,23 @@ export class Filter extends ATask {
         break;
       default: // 3 or more
         this.showTsne(attributes, cohorts);
+        this.container = container;
+        this.container.insertAdjacentHTML(
+          `afterbegin`,
+          `
+          <div class="vega-container"></div>
+          <div class="controls">
+            <div class="sticky" style="position: sticky; top: 0;"></div>
+          </div>
+        `,
+        );
+        this.controls = this.container.querySelector('.controls .sticky');
+        console.log("this.controls filter", this.controls);
+        this.addControls();
         break;
     }
+
+
   }
 
   addVisSelector() {
@@ -129,11 +149,68 @@ export class Filter extends ATask {
 
   private async showTsne(attributes: IAttribute[], cohorts: ICohort[]) {
     this.$visContainer.innerHTML = 'Currently, we only support the visualization of up to two attributes.';
+    // this.addControls(); // TODO: why does it not add if I add here, only if I add it in show()?
+    // this.$visContainer.innerHTML += '<button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>';
     // TODO #647 fix tsne implementation
     // this.attributes = attributes;
     // this.cohorts = cohorts;
     // this.setVisualizations([TsneScatterplot]);
   }
+
+  addControls() {
+    this.controls.insertAdjacentHTML(
+      'afterbegin',
+      `
+    <div>
+      <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
+    </div>
+    `,
+    );
+
+    select(this.controls)
+      .select('button.createAutomaticallyBtn')
+      .on('click', () => {
+        console.log("createAutomaticallyBtn clicked");
+        this.createAutomatically();
+      });
+  }
+
+  async createAutomatically() {
+    console.log("createAutomatically 3 or more attributes");
+    // todo: implement
+    // const bins = this.getSelectedData();
+    // let newCohortIds = [];
+    // if (bins.length === 1) {
+    //   let cohort = bins[0].cohort;
+    //   const params: ICohortMultiAttrDBDataParams = {
+    //     cohortId: cohort.dbId,
+    //     attribute0: this.attribute.dataKey,
+    //     attribute0type: this.attribute.type
+    //   };
+    //   newCohortIds = await createDBCohortAutomatically(params)
+    //   console.log("createAutomatically data", newCohortIds);
+    // }
+    //
+    // let cohortDescs: INewCohortDesc[];
+    // cohortDescs = [];
+    // // for every selected cohort
+    // for (const cohort of this.cohorts) {
+    //   // for every newCohort create a filter (for now... the filter is actually not needed, will be changed in the future)
+    //   for (const newCohort of newCohortIds){
+    //     cohortDescs.push({
+    //       cohort: cohort,
+    //       newCohortId: newCohort,
+    //       attr:[this.attribute]
+    //     });
+    //   }
+    // }
+    // this.container.dispatchEvent(new AutoSplitEvent(cohortDescs));
+  }
+
+
+
+
+
 
   set title(title: string) {
     this.header.select('.vis-selector .vis-type .type').each(function () {

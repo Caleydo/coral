@@ -351,6 +351,7 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     );
     this.chart = this.container.getElementsByTagName('div')[0]; // first-child was not the right type of object and vega-embed failed
     this.controls = this.container.querySelector('.controls .sticky');
+    console.log('this.controls AVegaVis', this.controls);
 
     const notZeroCohorts = this.cohorts.filter((a) => {
       const currSize = a.getRetrievedSize();
@@ -692,37 +693,10 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
   /** Calls the createAutomatically webservice and creates cohorts  according to the returned results */
   async createAutomatically() {
     console.log("createAutomatically");
-    // TODO: remove filters, range etc, which is not needed
-
-
     // get the information on HOW MANY new cohorts to create here already
     // call the webservice that creates the cohorts, then I have the number of cohorts and can create the filters
     // then call the webservices again to get the data for the cohorts, just like for getting cohorts with filters
     // important difference: the filters are not needed any more, dummy filters will be used for easier implementation for now, later we can use e.g. the cohort id to get the correct data
-
-    // const bins = this.getSelectedData();
-    //
-    // let filterDesc: IFilterDesc[] = [];
-    // if (bins.length === 1) {
-    //   // 1 cohort, 1 category
-    //   let filter: INumRange[] | IEqualsList = [];
-    //
-    //   filterDesc.push({
-    //     cohort: bins[0].cohort,
-    //     filter: [
-    //       {
-    //         attr: this.attribute,
-    //         range: filter,
-    //       },
-    //     ],
-    //   });
-    //
-    //   const params: ICohortDBDataParams = {
-    //     cohortId: filterDesc[0].cohort.dbId,
-    //     attribute: this.attribute.dataKey
-    //   };
-    //   const data = await recommendSplit(params);
-    //   console.log("recommendSplit", data);
 
     const bins = this.getSelectedData();
     let newCohortIds = [];
@@ -737,25 +711,6 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       console.log("createAutomatically data", newCohortIds);
     }
 
-
-    // let filters: IFilterDesc[];
-    // filters = [];
-    // for (const cohort of this.cohorts) {
-    //   // for every newCohort create a filter (for now... the filter is actually not needed, will be changed in the future)
-    //   for (const newCohort of newCohortIds){
-    //     filters.push({
-    //       filter: [
-    //         {
-    //           attr: this.attribute,
-    //           range: [this.getGeneralNumericalFilter(0 , 50 , NumRangeOperators.gte, NumRangeOperators.lte)], // todo: solve this in a smoother way. These are dummy values for now,
-    //           newCohortId: newCohort
-    //         },
-    //       ],
-    //       cohort,
-    //     });
-    //   }
-    // }
-
     let cohortDescs: INewCohortDesc[];
     cohortDescs = [];
     // for every selected cohort
@@ -769,7 +724,6 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
         });
       }
     }
-
 
     this.container.dispatchEvent(new AutoSplitEvent(cohortDescs));
   }
@@ -934,6 +888,7 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5em;">
         <button type="button" class="btn btn-coral-prime" title="Click to get a preview of the output cohorts."><i class="fas fa-filter" aria-hidden="true"></i> Filter</button>
         <button type="button" class="btn btn-coral-prime" title="Click to get a preview of the output cohorts."><i class="fas fa-share-alt" aria-hidden="true"></i> Split</button>
+<!--        <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>-->
       </div>
     `,
     );
