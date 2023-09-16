@@ -1,6 +1,7 @@
 import logging
 
 import hdbscan
+from kmodes.kprototypes import KPrototypes
 import numpy as np
 import pandas as pd
 from flask import Flask, abort, jsonify, request
@@ -1037,10 +1038,12 @@ def create_automatically():
     HDBSCAN = "hdbscan"
     K_PROTOTYPES = "k-prototypes"
     cluster_method = None
-    
+
     query = QueryElements()
     cohort = query.get_cohort_from_db(request.values, error_msg)  # get parent cohort
-
+    tissues = None
+    tissues_df = None
+    tissues_attribute_df = None
     if "attribute0" in request.values and not "attribute1" in request.values:
         # one (numerical) attriubte
         cluster_method = HDBSCAN
@@ -1052,23 +1055,32 @@ def create_automatically():
         tissues_attribute_df = tissues_df[attribute0["dataKey"]].values.reshape(-1, 1)
     elif "attribute0" in request.values and "attribute1" in request.values:
         # two attributes
+        sql_text = query.get_cohort_data_multi_attr_sql(request.values, cohort)  # get sql statement to retrieve data
+        query_results = query.execute_sql_query(sql_text, cohort.entity_database)
+        attribute0 = {"dataKey": request.values["attribute0"], "type": request.values["attribute0type"]}
+        attribute1 = {"dataKey": request.values["attribute1"], "type": request.values["attribute1type"]}
+        tissues = [item for item in query_results.get_json() if item[attribute0["dataKey"]] is not None and item[attribute1["dataKey"]] is not None]
+        tissues_df = pd.DataFrame(tissues)
+        tissues_attribute_df = tissues_df[[attribute0["dataKey"], attribute1["dataKey"]]].values
         if request.values["attribute0type"] == "number" and request.values["attribute1type"] == "number":
             # two numerical attributes
             cluster_method = HDBSCAN
-            sql_text = query.get_cohort_data_multi_attr_sql(request.values, cohort)  # get sql statement to retrieve data
-            query_results = query.execute_sql_query(sql_text, cohort.entity_database)
-            attribute0 = {"dataKey": request.values["attribute0"], "type": request.values["attribute0type"]}
-            attribute1 = {"dataKey": request.values["attribute1"], "type": request.values["attribute1type"]}
-            tissues = [item for item in query_results.get_json() if item[attribute0["dataKey"]] is not None and item[attribute1["dataKey"]] is not None]
-            tissues_df = pd.DataFrame(tissues)
-            tissues_attribute_df = tissues_df[[attribute0["dataKey"], attribute1["dataKey"]]].values
         elif request.values["attribute0type"] == "categorical" and request.values["attribute1type"] == "number" or request.values["attribute0type"] == "number" and request.values["attribute1type"] == "categorical":
             cluster_method = K_PROTOTYPES
-     
+        # elif request.values["attribute0type"] == "categorical" and request.values["attribute1type"] == "number":
+        #     cluster_method = K_PROTOTYPES
+        #     numerical_attribute = attribute1
+        #     categorical_attribute = attribute0
+        # elif request.values["attribute0type"] == "number" and request.values["attribute1type"] == "categorical":
+        #     cluster_method = K_PROTOTYPES
+        #     numerical_attribute = attribute0
+        #     categorical_attribute = attribute1
 
+
+    if cluster_method is None or tissues_attribute_df is None:
+        raise RuntimeError(error_msg)
 
     # fit the clusterer based on the attribute values
-
     # 1 or 2 numerical attributes ==> hdbscan
     if cluster_method == HDBSCAN:
         clusterer = hdbscan.HDBSCAN(min_cluster_size=round(tissues_attribute_df.shape[0]/50), gen_min_span_tree=True) # one tenth of the number of tissues, to get a reasonable amount of clusters
@@ -1081,27 +1093,36 @@ def create_automatically():
         n_clusters_ = len(set(labels))
         _log.debug("n_clusters_ %s", n_clusters_)
 
-        # create a cohort for each cluster
+
+        # hdbscan end
+    elif cluster_method == K_PROTOTYPES:
+        # 1 categorical and 1 numerical attribute ==> k-prototypes
+        # get the numerical and the categorical attributes
+        # get the numerical attributes and categorical attributes from tissues_attriubte_df according to the attribute types
+        if attribute0["type"] == "number":
+            numerical_attributes = tissues_attribute_df[:, 0]
+            categorical_attributes = tissues_attribute_df[:, 1]
+        else:
+            numerical_attributes = tissues_attribute_df[:, 1]
+            categorical_attributes = tissues_attribute_df[:, 0]
+        num_clusters = 2
+        clusterer = KPrototypes(n_clusters=num_clusters, init='Cao', n_init=1, verbose=2)
+        # clusterer.fit([numerical_attributes, categorical_attributes], categorical=[1])
+        clusterer.fit(tissues_attribute_df, categorical=[0]) # TODO: the position of categorical is not always 0!!
+        # Get cluster labels
+        labels = clusterer.labels_
+
+    # create a cohort for each cluster
+    cohortids = []
+    for i in set(labels):
         # add the cluster labels to the tissues
         tissues_df["cluster_label"] = labels
-        _log.debug("tissues_df %s", tissues_df)
-
-        # get all the tissuenames for each cluster
-        _log.debug("tissues[0] with label %s", tissues[0])
-        _log.debug("tissues_df[tissues_df['cluster_label'] == 0] %s", tissues_df[tissues_df["cluster_label"] == 0])
-        # loop over every cluster
-        # get the distinct values of the cluster_label
-        _log.debug("set(labels) %s", set(labels))
-
-        # create a cohort for each cluster
-        cohortids = []
-        for i in set(labels):
         clusters_tissuenames = tissues_df[tissues_df["cluster_label"] == i]["tissuename"].tolist()
         _log.debug("cohortdebuggg %s", cohort)
         # change the statement to use  the ids of the cohorts
         # Convert the list into a comma-separated string
         sql_values = "(" + ", ".join(["'" + item + "'" for item in clusters_tissuenames]) + ")"
-        sql_text = "SELECT p.* FROM (SELECT * FROM tissue.tdp_tissue) p WHERE (p.tissuename IN {tissuenames})".format(tissuenames=(sql_values)) # TODO: make this generic for other table, multiple attributes etc
+        sql_text = "SELECT p.* FROM (SELECT * FROM tissue.tdp_tissue) p WHERE (p.tissuename IN {tissuenames})".format(tissuenames=sql_values) # TODO: make this generic for other table, multiple attributes etc
         # _log.debug("sql_text %s", sql_text)
         cohort.statement = sql_text
         # _log.debug("cohortdebuggg %s", cohort)
@@ -1109,17 +1130,11 @@ def create_automatically():
         new_cohort = query.create_cohort_automatically_from_tissue_names(request.values, cohort,
                                                         error_msg)  # get filtered cohort from args and cohort
         _log.debug("new_cohort %s", new_cohort)
-        returnvalue = query.add_cohort_to_db(new_cohort).data # save new cohort into DB
+        return_value = query.add_cohort_to_db(new_cohort).data # save new cohort into DB
         # Convert bytes to integers and remove brackets
-        returnvalue = int(returnvalue.decode("utf-8").strip("[]\n")) # this is a workaround to undo the jsonify that is done in add_cohort_to_db
-        cohortids.append(returnvalue)
+        return_value = int(return_value.decode("utf-8").strip("[]\n")) # this is a workaround to undo the jsonify that is done in add_cohort_to_db
+        cohortids.append(return_value)
         _log.debug("cohortids now %s", cohortids)
-
-        # hdbscan end
-    elif cluster_method == K_PROTOTYPES:
-        # todo: implement
-        # 1 categorical and 1 numerical attribute ==> k-prototypes
-        return "not implemented yet"
     _log.debug("cohortids %s", cohortids)
     return jsonify(cohortids)
   except RuntimeError as error:
