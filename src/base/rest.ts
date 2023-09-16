@@ -170,25 +170,19 @@ export function recommendSplit(params: ICohortDBDataParams, assignIds = false): 
 }
 
 // TODO: remove this? not used?
-export function createDBCohortAutomatically(params: ICohortDBDataParams | ICohortMultiAttrDBDataParams, assignIds = false): Promise<IRow[]> {
+export function createDBCohortAutomatically(params: ICohortMultiAttrDBDataParams, assignIds = false): Promise<IRow[]> {
   let newParams: IParams = {};
   // check if params is ICohortDBDataParams
-  if ("attribute" in params) {
-    newParams = {
-      cohortId: params.cohortId,
-      name: "TODO: create name", // this will be used to create a name for the cohort in the database afaik TODO: check this and implement
-      attribute: params.attribute,
-    };
-  } else {
-    if ("attribute1" in params) {
-      newParams = {
-        cohortId: params.cohortId,
-        name: "TODO: create name",
-        attribute1: params.attribute1,
-        attribute2: params.attribute2,
-      };
-    }
-  }
+  newParams = {
+    cohortId: params.cohortId,
+    name: "TODO: create name",
+    attribute0: params.attribute0,
+    attribute1: params.attribute1,
+    attribute0type: params.attribute0type,
+    attribute1type: params.attribute1type,
+  };
+
+
   return getCohortDataImpl(CohortRoutes.createAutomatically, newParams, assignIds);
 }
 

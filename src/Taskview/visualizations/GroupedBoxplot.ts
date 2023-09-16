@@ -4,13 +4,13 @@ import log from 'loglevel';
 import { Spec as VegaSpec } from 'vega';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
 import { ICohort } from '../../app/interfaces';
-import { IAttributeFilter, IFilterDesc } from '../../util';
-import { FilterEvent, SplitEvent } from '../../base/events';
+import {IAttributeFilter, IFilterDesc, INewCohortDesc} from '../../util';
+import {AutoSplitEvent, FilterEvent, SplitEvent} from '../../base/events';
 import { AVegaVisualization } from './AVegaVisualization';
 import { groupByConfig } from './config/GroupConfig';
 import { BRUSH_DATA_END, BRUSH_DATA_NAME, BRUSH_DATA_START, DATA_LABEL } from './constants';
 import { MultiAttributeVisualization } from './MultiAttributeVisualization';
-import { NumRangeOperators } from '../../base';
+import {createDBCohortAutomatically, ICohortMultiAttrDBDataParams, NumRangeOperators} from '../../base';
 import { IAttribute, IdValuePair } from '../../data';
 
 export class GroupedBoxplot extends MultiAttributeVisualization {
@@ -240,6 +240,39 @@ export class GroupedBoxplot extends MultiAttributeVisualization {
     }
 
     this.container.dispatchEvent(new SplitEvent(filterDescs));
+  }
+
+  async createAutomatically() {
+    console.log("createAutomatically GroupedBoxplot");
+
+    let newCohortIds = [];
+    for (const cht of this.cohorts) {
+      const params: ICohortMultiAttrDBDataParams = {
+        cohortId: cht.dbId,
+        attribute0: this.attributes[0].dataKey,
+        attribute0type: this.attributes[0].type,
+        attribute1: this.attributes[1].dataKey,
+        attribute1type: this.attributes[1].type
+      };
+      newCohortIds = await createDBCohortAutomatically(params)
+      console.log("createAutomatically scatterplot data", newCohortIds);
+    }
+
+    let cohortDescs: INewCohortDesc[];
+    cohortDescs = [];
+    // for every selected cohort
+    for (const cohort of this.cohorts) {
+      // for every newCohort create a filter (for now... the filter is actually not needed, will be changed in the future)
+      for (const newCohort of newCohortIds){
+        cohortDescs.push({
+          cohort: cohort,
+          newCohortId: newCohort,
+          attr:[this.attributes[0], this.attributes[1]]
+        });
+      }
+    }
+
+    this.container.dispatchEvent(new AutoSplitEvent(cohortDescs));
   }
 
   getSpec(data: IdValuePair[]): VegaLiteSpec {

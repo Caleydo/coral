@@ -661,15 +661,6 @@ class QueryElements:
         if name is None:
             raise RuntimeError(error_msg)
 
-        attribute = args.get("attribute")
-        if attribute is None:
-            attribute1 = args.get("attribute1")
-            attribute2 = args.get("attribute2")
-            if attribute1 is None or attribute2 is None:
-                raise RuntimeError(error_msg)
-            
-        
-
         sql_text = "SELECT p.* FROM ({entities}) p".format(entities=cohort.statement)
         _log.debug("sql_text_create_cohort_automatically_from_tissue_names: %s", sql_text)
 
@@ -833,6 +824,32 @@ class QueryElements:
             # only one attribute
             sql_text = "SELECT p.{entity_id_col}, p.{attribute} FROM ({entities}) p".format(
                 entity_id_col=entity_id_col, attribute=attribute, entities=cohort.statement
+            )
+
+        return sql_text
+    
+    def get_cohort_data_multi_attr_sql(self, args, cohort):
+        attribute0 = args.get("attribute0")
+        attribute1 = args.get("attribute1")
+
+        entity_id_col = ""
+        if cohort.entity_table == "tdp_tissue":
+            entity_id_col = "tissuename"
+        elif cohort.entity_table == "tdp_tissue_2":
+            entity_id_col = "tissuename"
+        elif cohort.entity_table == "tdp_cellline":
+            entity_id_col = "celllinename"
+        elif cohort.entity_table == "student_view_anonym":
+            entity_id_col = "id"
+        elif cohort.entity_table == "korea":
+            entity_id_col = "id"
+
+        # define statement
+        sql_text = cohort.statement  # all attributes
+        if attribute0 is not None and attribute1 is not None:
+            # only one attribute
+            sql_text = "SELECT p.{entity_id_col}, p.{attribute0}, p.{attribute1} FROM ({entities}) p".format(
+                entity_id_col=entity_id_col, attribute0=attribute0, attribute1=attribute1, entities=cohort.statement
             )
 
         return sql_text

@@ -881,12 +881,16 @@ export class Scatterplot extends MultiAttributeVisualization {
   async createAutomatically() {
     console.log("createAutomatically scatterplot");
 
+    // AttributeType = 'categorical' | 'number' | 'string'; TODO send it with the data
+
     let newCohortIds = [];
     for (const cht of this.cohorts) {
       const params: ICohortMultiAttrDBDataParams = {
         cohortId: cht.dbId,
-        attribute1: "age",
-        attribute2: "bmi"
+        attribute0: this.attributes[0].dataKey,
+        attribute0type: this.attributes[0].type,
+        attribute1: this.attributes[1].dataKey,
+        attribute1type: this.attributes[1].type,
       };
       newCohortIds = await createDBCohortAutomatically(params)
       console.log("createAutomatically scatterplot data", newCohortIds);

@@ -15,7 +15,7 @@ import { IVisualization } from './IVisualization';
 import { IAttribute, IdValuePair } from '../../data/IAttribute';
 import {
   ICohortDBDataParams,
-  ICohortDBWithNumFilterParams,
+  ICohortDBWithNumFilterParams, ICohortMultiAttrDBDataParams,
   IEqualsList,
   INumRange,
   NumRangeOperators
@@ -728,9 +728,10 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     let newCohortIds = [];
     if (bins.length === 1) { // TODO: what about more than one?
       let cohort = bins[0].cohort;
-      const params: ICohortDBDataParams = {
+      const params: ICohortMultiAttrDBDataParams = {
         cohortId: cohort.dbId,
-        attribute: this.attribute.dataKey
+        attribute0: this.attribute.dataKey,
+        attribute0type: this.attribute.type
       };
       newCohortIds = await createDBCohortAutomatically(params)
       console.log("createAutomatically data", newCohortIds);
@@ -806,7 +807,6 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
         <div role="tabpanel" class="tab-pane" id="split">
           <div class="flex-wrapper" data-attr="${this.attribute.dataKey}">
           <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits.">Recommend split</button>
-          <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
             <label>Split into</label>
             <input type="number" class="bins" step="any" min="1" max="99" value="2"/>
             <label >bins of</label>
@@ -824,6 +824,7 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     </div>
     <div class="d-grid gap-2">
       <button type="button" class="btn applyBtn btn-coral-prime" title="Apply to get a preview of the output cohorts.">Apply</button>
+      <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
     </div>
     `,
     );
