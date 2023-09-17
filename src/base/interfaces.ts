@@ -88,6 +88,22 @@ export interface ICohortDBDataParams extends IParams {
   attribute?: string;
 }
 
+export interface ICohortDBDataRecommendSplitParams extends IParams {
+  cohortId: number;
+  attribute0?: string;
+  binsCount0?: number;
+}
+
+export interface ICohortMultiAttrDBDataRecommendSplitParams extends IParams {
+  cohortId: number;
+  attribute0?: string;
+  attribute0type?: string;
+  attribute1?: string;
+  attribute1type?: string;
+  binsCount0?: number;
+  binsCount1?: number;
+}
+
 export interface ICohortMultiAttrDBDataParams extends IParams {
   cohortId: number;
   attribute0?: string;

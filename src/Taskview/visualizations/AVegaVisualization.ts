@@ -14,7 +14,7 @@ import { DATA_LABEL } from './constants';
 import { IVisualization } from './IVisualization';
 import { IAttribute, IdValuePair } from '../../data/IAttribute';
 import {
-  ICohortDBDataParams,
+  ICohortDBDataParams, ICohortDBDataRecommendSplitParams,
   ICohortDBWithNumFilterParams, ICohortMultiAttrDBDataParams,
   IEqualsList,
   INumRange,
@@ -257,6 +257,7 @@ export abstract class AVegaVisualization implements IVegaVisualization {
   abstract filter(): void;
   abstract split(): void;
   abstract createAutomatically?(): void;
+  abstract recommendSplit?(useBinCount: boolean = false): void;
   abstract showImpl(chart: HTMLDivElement, data: Array<IdValuePair>); // probably the method impl from SingleAttributeVisualization can be moved here
 
   destroy() {
@@ -460,19 +461,29 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
   }
 
 
-  /** Calls the recommendSplit webservice and sets the bins accoding to the returned results */
-  async recommendSplit() {
+  /** Calls the recommendSplit webservice and sets the bins according to the returned results */
+  async recommendSplit(useBinCount: boolean = false) {
     console.log("recommendSplit");
 
-    const bins = this.getSelectedData();
+    let binsCount = 0;
+    if (useBinCount) {
+      // select the bins field
+      binsCount = (this.controls.querySelector('#split input.bins') as HTMLInputElement).valueAsNumber;
+    }
+
+    let cohorts = this.cohorts;
 
     let filterDesc: IFilterDesc[] = [];
-    if (bins.length === 1) {
+    if (cohorts.length === 1) {
+      // it does not make sense to do a recommendSplit on multiple cohorts at once
+      // createAutomatically looks at the data of one cohort and creates new cohorts based on that
+      // recommendSplit recommends splits that are used for ALL cohorts, so it would not make sense to use it on multiple cohorts
+
       // 1 cohort, 1 category
       let filter: INumRange[] | IEqualsList = [];
 
       filterDesc.push({
-        cohort: bins[0].cohort,
+        cohort: cohorts[0],
         filter: [
           {
             attr: this.attribute,
@@ -481,9 +492,10 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
         ],
       });
 
-      const params: ICohortDBDataParams = {
+      const params: ICohortDBDataRecommendSplitParams = {
         cohortId: filterDesc[0].cohort.dbId,
-        attribute: this.attribute.dataKey
+        attribute0: this.attribute.dataKey,
+        binsCount0: binsCount,
       };
       const data = await recommendSplit(params);
       console.log("recommendSplit", data);
@@ -496,45 +508,6 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       }
       this.vegaView.data(AVegaVisualization.SPLITVALUE_DATA_STORE, cloneDeep(this.splitValues)); // set a defensive copy
     }
-
-
-    // this.vegaView.removeDataListener(AVegaVisualization.SPLITVALUE_DATA_STORE, this.vegaSplitListener); // remove listener temporarily
-    //
-    // const binCount = parseFloat(event.value);
-    // const splitValCount = binCount - 1;
-    // const [min, max] = this.vegaView.scale('x').domain();
-    // const extent = max - min;
-    // const binWidth = extent / binCount;
-    //
-    // const binType = this.controls.querySelector('#split select.binType') as HTMLSelectElement;
-    //
-    // if (binType.selectedIndex === 0) {
-    //   // equal width
-    //   this.splitValues = [];
-    //   for (let i = 1; i <= splitValCount; i++) {
-    //     const binBorder = min + binWidth * i;
-    //     this.splitValues.push({ x: binBorder });
-    //   }
-    // } else if (binType.selectedIndex === 1) {
-    //   // custom width
-    //   if (this.splitValues.length > splitValCount) {
-    //     this.splitValues = this.splitValues.sort((a, b) => a.x - b.x); // sort em
-    //     this.splitValues.length = splitValCount; // drop largest split values
-    //   } else {
-    //     while (this.splitValues.length < splitValCount) {
-    //       this.splitValues.push({ x: max }); // add maximum until there are enough rulers
-    //     }
-    //   }
-    // } else {
-    //   this.splitValues = new Array(5).fill({ x: 0 }).map((x) => ({ x }));
-    // }
-    //
-    // this.vegaView.data(AVegaVisualization.SPLITVALUE_DATA_STORE, cloneDeep(this.splitValues)); // set a defensive copy
-    // this.vegaView.runAsync().then(
-    //   (
-    //     vegaView, // defer adding signallistener until the new data is set internally
-    //   ) => vegaView.addDataListener(AVegaVisualization.SPLITVALUE_DATA_STORE, this.vegaSplitListener), // add listener again
-    // );
   }
 
 
@@ -728,9 +701,10 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
   addIntervalControls() {
     const [min, max] = this.vegaView.scale('x').domain();
 
-    this.controls.insertAdjacentHTML(
-      'afterbegin',
-      `
+    if(this.cohorts.length == 1){ // only show recommendButton when there is only one cohort
+      this.controls.insertAdjacentHTML(
+        'afterbegin',
+        `
     <div>
       <!-- Nav tabs -->
       <ul class="nav nav-tabs nav-justified" role="tablist">
@@ -755,7 +729,9 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
         </div>
         <div role="tabpanel" class="tab-pane" id="split">
           <div class="flex-wrapper" data-attr="${this.attribute.dataKey}">
-          <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits.">Recommend split</button>
+          <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits by choosing a useful bin number automatically.">Recommend split: Automatic bin number</button>
+          <button type="button" class="btn recommendSplitWithBinCountBtn btn-coral-prime" title="Calculate meaningful splits according to the number of bins selected.">Recommend split: Use selected bin count</button>
+          <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
             <label>Split into</label>
             <input type="number" class="bins" step="any" min="1" max="99" value="2"/>
             <label >bins of</label>
@@ -773,10 +749,61 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     </div>
     <div class="d-grid gap-2">
       <button type="button" class="btn applyBtn btn-coral-prime" title="Apply to get a preview of the output cohorts.">Apply</button>
-      <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
+
     </div>
     `,
-    );
+      );
+    } else {
+      this.controls.insertAdjacentHTML(
+        'afterbegin',
+        `
+    <div>
+      <!-- Nav tabs -->
+      <ul class="nav nav-tabs nav-justified" role="tablist">
+        <li role="presentation" class="nav-item"><a class="nav-link active" href="#filter" aria-controls="filter" role="tab" data-bs-toggle="tab"><i class="fas fa-filter" aria-hidden="true"></i> Filter</a></li>
+        <li role="presentation" class="nav-item"><a class="nav-link" href="#split" aria-controls="split" role="tab" data-bs-toggle="tab"><i class="fas fa-share-alt" aria-hidden="true"></i> Split</a></li>
+        <!-- <li role="presentation" class="nav-item"><a class="nav-link" href="#autosplit" aria-controls="autosplit" role="tab" data-bs-toggle="tab"><i class="fas fa-share-alt" aria-hidden="true"></i> Autosplit</a></li> -->
+      </ul>
+      <!-- Tab panes -->
+      <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="filter">
+        <p>Click and drag in the visualization or set the range below AVegaViz:</p>
+          <div class="flex-wrapper" data-attr="${this.attribute.dataKey}">
+            <label>Filter from</label>
+            <input type="number" class="interval minimum" step="any" min="${min}" max="${max}" data-axis="x"/>
+            <label>to</label>
+            <input type="number" class="interval maximum" step="any" min="${min}" max="${max}" data-axis="x"/>
+            <div class="null-value-container form-check">
+              <input type="checkbox" class="null-value-checkbox form-check-input" id="null_value_checkbox_1">
+              <label class="form-check-label" for="null_value_checkbox_1">Include <span class="hint">missing values</span></label>
+            </div>
+          </div>
+        </div>
+        <div role="tabpanel" class="tab-pane" id="split">
+          <div class="flex-wrapper" data-attr="${this.attribute.dataKey}">
+          <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
+            <label>Split into</label>
+            <input type="number" class="bins" step="any" min="1" max="99" value="2"/>
+            <label >bins of</label>
+            <select class="binType">
+              <option>equal width</option>
+              <option>custom width</option>
+            </select>
+            <div class="null-value-container form-check">
+              <input type="checkbox" class="null-value-checkbox form-check-input" id="null_value_checkbox_2">
+              <label class="form-check-label" for="null_value_checkbox_2">Add a <span class="hint">missing values</span> bin</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="d-grid gap-2">
+      <button type="button" class="btn applyBtn btn-coral-prime" title="Apply to get a preview of the output cohorts.">Apply</button>
+    </div>
+    `,
+      );
+    }
+
     let nullValueTooltip = ``;
     for (const [cht, nullValues] of this.nullValueMap.get(this.attribute.dataKey)) {
       nullValueTooltip += `<i class="fas fa-square" aria-hidden="true" style="color: ${cht.colorTaskView} "></i>&nbsp;${nullValues}<br>`;
@@ -804,7 +831,14 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       .select('button.recommendSplitBtn')
       .on('click', () => {
         console.log("recommendSplitBtn clicked");
-        this.recommendSplit();
+        this.recommendSplit(false);
+      });
+
+    select(this.controls)
+      .select('button.recommendSplitWithBinCountBtn')
+      .on('click', () => {
+        console.log("recommendSplitWithBinCountBtn clicked");
+        this.recommendSplit(true);
       });
 
     select(this.controls)

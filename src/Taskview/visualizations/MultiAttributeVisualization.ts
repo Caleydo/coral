@@ -115,9 +115,10 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
 
   // may be overwritten (e.g. for tsne plot where the attribtues are different)
   protected addControls() {
-    this.controls.insertAdjacentHTML(
-      'afterbegin',
-      `
+    if(this.cohorts.length == 1) { // only show recommendButton when there is only one cohort
+      this.controls.insertAdjacentHTML(
+        'afterbegin',
+        `
     <div>
       <!-- Nav tabs -->
       <ul class="nav nav-tabs nav-justified" role="tablist">
@@ -132,15 +133,46 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
         </div>
         <div role="tabpanel" class="tab-pane" id="split">
           <!-- INSERT SPLIT CONTROLS HERE -->
+          <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits by choosing a useful bin number automatically.">Recommend split: Automatic bin number</button>
+          <button type="button" class="btn recommendSplitWithBinCountBtn btn-coral-prime" title="Calculate meaningful splits according to the number of bins selected.">Recommend split: Use selected bin count</button>
+          <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
         </div>
       </div>
     </div>
     <div class="d-grid gap-2">
       <button type="button" class="btn btn-coral-prime btn-block applyBtn">Apply</button>
-      <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
     </div>
     `,
-    );
+      );
+    } else {
+      this.controls.insertAdjacentHTML(
+        'afterbegin',
+        `
+    <div>
+      <!-- Nav tabs -->
+      <ul class="nav nav-tabs nav-justified" role="tablist">
+        <li role="presentation" class="nav-item"><a class="nav-link active" href="#filter" aria-controls="filter" role="tab" data-bs-toggle="tab"><i class="fas fa-filter" aria-hidden="true"></i> Filter</a></li>
+        <li role="presentation" class="nav-item"><a class="nav-link" href="#split" aria-controls="split" role="tab" data-bs-toggle="tab"><i class="fas fa-share-alt" aria-hidden="true"></i> Split</a></li>
+      </ul>
+      <!-- Tab panes -->
+      <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="filter">
+        <p>Click and drag in the visualization or set the range below:</p>
+          <!-- INSERT FILTER CONTROLS HERE -->
+        </div>
+        <div role="tabpanel" class="tab-pane" id="split">
+          <!-- INSERT SPLIT CONTROLS HERE -->
+          <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
+        </div>
+      </div>
+    </div>
+    <div class="d-grid gap-2">
+      <button type="button" class="btn btn-coral-prime btn-block applyBtn">Apply</button>
+    </div>
+    `,
+      );
+    }
+
     // for each attribute type, add the respective controls:
     for (const [i, attr] of this.attributes.entries()) {
       if (attr.type === 'number') {
@@ -154,6 +186,20 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
       .on('click', () => {
         console.log("createAutomaticallyBtn clicked");
         this.createAutomatically();
+      });
+
+    select(this.controls)
+      .select('button.recommendSplitBtn')
+      .on('click', () => {
+        console.log("recommendSplitBtn clicked");
+        this.recommendSplit(false);
+      });
+
+    select(this.controls)
+      .select('button.recommendSplitWithBinCountBtn')
+      .on('click', () => {
+        console.log("recommendSplitWithBinCountBtn clicked");
+        this.recommendSplit(true);
       });
 
 

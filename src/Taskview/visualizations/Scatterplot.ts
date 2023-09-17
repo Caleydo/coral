@@ -9,8 +9,8 @@ import { Field } from 'vega-lite/build/src/channeldef';
 import { ICohort } from '../../app/interfaces';
 import { AttributeType, IAttribute, IdValuePair, ServerColumnAttribute } from '../../data';
 import {
-  ICohortDBDataParams,
-  ICohortMultiAttrDBDataParams,
+  ICohortDBDataParams, ICohortDBDataRecommendSplitParams,
+  ICohortMultiAttrDBDataParams, ICohortMultiAttrDBDataRecommendSplitParams, IEqualsList, INumRange,
   NumRangeOperators
 } from '../../base';
 import {IFilterDesc, INewCohortDesc, inRange} from '../../util';
@@ -875,6 +875,72 @@ export class Scatterplot extends MultiAttributeVisualization {
     }
 
     this.container.dispatchEvent(new FilterEvent(filterDescs));
+  }
+
+
+  /** Calls the recommendSplit webservice and sets the bins according to the returned results */
+  async recommendSplit(useBinCount: boolean = false) {
+    console.log("recommendSplit scatterplot");
+
+    let binsCount0 = 0;
+    let binsCount1 = 0;
+    if (useBinCount) {
+      // select the bins field
+      binsCount0 = (this.controls.querySelector(`#split input.bins[data-axis=x]`) as HTMLInputElement).valueAsNumber;
+      console.log("binsCountX", binsCount0);
+      binsCount1 = (this.controls.querySelector(`#split input.bins[data-axis=y]`) as HTMLInputElement).valueAsNumber;
+      console.log("binsCountY", binsCount1);
+    }
+
+    const cohorts = this.cohorts;
+
+    let filterDesc: IFilterDesc[] = [];
+    if (cohorts.length === 1) {
+      // it does not make sense to do a recommendSplit on multiple cohorts at once
+      // createAutomatically looks at the data of one cohort and creates new cohorts based on that
+      // recommendSplit recommends splits that are used for ALL cohorts, so it would not make sense to use it on multiple cohorts
+
+      // 1 cohort, 1 category
+      let filter: INumRange[] | IEqualsList = [];
+
+      filterDesc.push({
+        cohort: cohorts[0],
+        filter: [
+          {
+            attr: this.attributes[0],
+            range: filter,
+          },
+        ],
+      });
+
+      filterDesc.push({
+        cohort: cohorts[0],
+        filter: [
+          {
+            attr: this.attributes[1],
+            range: filter,
+          },
+        ],
+      });
+
+      const params: ICohortMultiAttrDBDataRecommendSplitParams = {
+        cohortId: filterDesc[0].cohort.dbId,
+        attribute0: this.attributes[0].dataKey,
+        attribute1: this.attributes[1].dataKey,
+        binsCount0: binsCount0,
+        binsCount1: binsCount1,
+      };
+    //   const data = await recommendSplit(params);
+    //   console.log("recommendSplit", data);
+    //
+    //   this.splitValues = [];
+    //   for (let i = 0; i < data.length; i++) {
+    //     // get the int val of the data[i]
+    //     const binBorder = Number(data[i]);
+    //     this.splitValues.push({x: binBorder});
+    //   }
+    //   this.vegaView.data(AVegaVisualization.SPLITVALUE_DATA_STORE, cloneDeep(this.splitValues)); // set a defensive copy
+    }
   }
 
   async createAutomatically() {
