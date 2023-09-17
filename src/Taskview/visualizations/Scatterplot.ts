@@ -20,7 +20,6 @@ import { AxisType, MultiAttributeVisualization } from './MultiAttributeVisualiza
 
 import {
   createDBCohortAutomatically,
-  createAutomatically
 } from '../../base/rest';
 
 export class Scatterplot extends MultiAttributeVisualization {

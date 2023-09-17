@@ -23,7 +23,7 @@ import {
 
 import {
   recommendSplit,
-  createAutomatically, createDBCohortAutomatically
+  createDBCohortAutomatically
 } from './../../base/rest';
 
 export const MISSING_VALUES_LABEL = 'Missing Values';
@@ -256,7 +256,7 @@ export abstract class AVegaVisualization implements IVegaVisualization {
   abstract show(container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]);
   abstract filter(): void;
   abstract split(): void;
-  abstract createAutomatically(): void;
+  abstract createAutomatically?(): void;
   abstract showImpl(chart: HTMLDivElement, data: Array<IdValuePair>); // probably the method impl from SingleAttributeVisualization can be moved here
 
   destroy() {
@@ -700,8 +700,9 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
 
     const bins = this.getSelectedData();
     let newCohortIds = [];
-    if (bins.length === 1) { // TODO: what about more than one?
-      let cohort = bins[0].cohort;
+    let cohortDescs: INewCohortDesc[];
+    cohortDescs = [];
+    for (const cohort of this.cohorts) {
       const params: ICohortMultiAttrDBDataParams = {
         cohortId: cohort.dbId,
         attribute0: this.attribute.dataKey,
@@ -709,12 +710,7 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       };
       newCohortIds = await createDBCohortAutomatically(params)
       console.log("createAutomatically data", newCohortIds);
-    }
 
-    let cohortDescs: INewCohortDesc[];
-    cohortDescs = [];
-    // for every selected cohort
-    for (const cohort of this.cohorts) {
       // for every newCohort create a filter (for now... the filter is actually not needed, will be changed in the future)
       for (const newCohort of newCohortIds){
         cohortDescs.push({
@@ -724,7 +720,6 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
         });
       }
     }
-
     this.container.dispatchEvent(new AutoSplitEvent(cohortDescs));
   }
 

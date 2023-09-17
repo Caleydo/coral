@@ -125,7 +125,7 @@ export interface IAttribute {
 
   filter(cht: ICohort, filter: INumRange[] | IEqualsList, rangeLabel?: string): Promise<ICohort>;
 
-  getAutoCohort(cht: ICohort, attribute: IAttribute, newCohortId: number): Promise<ICohort>;
+  getAutoCohort?(cht: ICohort, attribute: IAttribute, newCohortId: number): Promise<ICohort>;
 
   toJSON();
 }

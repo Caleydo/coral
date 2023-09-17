@@ -673,16 +673,17 @@ export default class Taskview {
           taskWithSelectedOutput.push(currTaskParam);
         }
       }
-      // Update the input cohorts
-      this.updateInput();
-
-      // show the preview for the current task
-      this.$node.dispatchEvent(new PreviewChangeEvent(taskWithSelectedOutput, this.taskAttributes));
-
-      // Add the new cohorts to the output side
-      this.setOutputCohorts(outputCohorts);
-      ev.detail.desc[0].attr.forEach((att) => this.addAttributeColumn(att));
     }
+
+    // Update the input cohorts
+    this.updateInput();
+
+    // show the preview for the current task
+    this.$node.dispatchEvent(new PreviewChangeEvent(taskWithSelectedOutput, this.taskAttributes));
+
+    // Add the new cohorts to the output side
+    this.setOutputCohorts(outputCohorts);
+    ev.detail.desc[0].attr.forEach((att) => this.addAttributeColumn(att));
   }
 
   async handleFilterEvent(ev: FilterEvent | SplitEvent) {

@@ -111,7 +111,7 @@ export class ServerColumnAttribute extends Attribute {
     if (autofilter) {
       if (Array.isArray(filter)) {
         const label = rangeLabel || "label";
-        return createCohortAutoSplit(cht, niceName(this.id), "label", this.id, filter, newCohortId);
+        return createCohortAutoSplit(cht, niceName(this.id), "label", this.id, newCohortId);
       }
     }
 

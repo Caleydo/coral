@@ -13,6 +13,10 @@ export class AreaChart extends MultiAttributeVisualization {
     super(vegaLiteOptions);
   }
 
+  async createAutomatically() {
+    log.info('no automatic creation for Area Chart yet');
+  }
+
   getSpec(data: IdValuePair[]): VegaLiteSpec {
     if (!(this.attributes.length === 2 && this.attributes.every((attr) => ['categorical', 'string'].includes(attr.type)))) {
       throw new Error(`Area chart requires attributes of type categorical`); // TODO generalize, could also be used for binned numerical
