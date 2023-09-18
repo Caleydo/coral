@@ -115,10 +115,10 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
 
   // may be overwritten (e.g. for tsne plot where the attribtues are different)
   protected addControls() {
-    if(this.cohorts.length == 1) { // only show recommendButton when there is only one cohort
-      this.controls.insertAdjacentHTML(
-        'afterbegin',
-        `
+
+    this.controls.insertAdjacentHTML(
+      'afterbegin',
+      `
     <div>
       <!-- Nav tabs -->
       <ul class="nav nav-tabs nav-justified" role="tablist">
@@ -133,45 +133,44 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
         </div>
         <div role="tabpanel" class="tab-pane" id="split">
           <!-- INSERT SPLIT CONTROLS HERE -->
-          <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits by choosing a useful bin number automatically.">Recommend split: Automatic bin number</button>
-          <button type="button" class="btn recommendSplitWithBinCountBtn btn-coral-prime" title="Calculate meaningful splits according to the number of bins selected.">Recommend split: Use selected bin count</button>
-          <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
+          <div id="recommendSplitControls">
+            <!-- INSERT autoSplitControls CONTROLS HERE -->
+          </div>
         </div>
       </div>
     </div>
     <div class="d-grid gap-2">
       <button type="button" class="btn btn-coral-prime btn-block applyBtn">Apply</button>
+      <div id="autoSplitControls">
+            <!-- INSERT autoSplitControls CONTROLS HERE -->
+            <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
+      </div>
     </div>
     `,
-      );
-    } else {
-      this.controls.insertAdjacentHTML(
-        'afterbegin',
+    );
+
+
+    if (this.cohorts.length == 1) { // only show recommendButton when there is only one cohort
+      this.controls.querySelector('#recommendSplitControls').insertAdjacentHTML(
+        `beforeend`,
         `
-    <div>
-      <!-- Nav tabs -->
-      <ul class="nav nav-tabs nav-justified" role="tablist">
-        <li role="presentation" class="nav-item"><a class="nav-link active" href="#filter" aria-controls="filter" role="tab" data-bs-toggle="tab"><i class="fas fa-filter" aria-hidden="true"></i> Filter</a></li>
-        <li role="presentation" class="nav-item"><a class="nav-link" href="#split" aria-controls="split" role="tab" data-bs-toggle="tab"><i class="fas fa-share-alt" aria-hidden="true"></i> Split</a></li>
-      </ul>
-      <!-- Tab panes -->
-      <div class="tab-content">
-        <div role="tabpanel" class="tab-pane active" id="filter">
-        <p>Click and drag in the visualization or set the range below:</p>
-          <!-- INSERT FILTER CONTROLS HERE -->
-        </div>
-        <div role="tabpanel" class="tab-pane" id="split">
-          <!-- INSERT SPLIT CONTROLS HERE -->
-          <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
-        </div>
-      </div>
-    </div>
-    <div class="d-grid gap-2">
-      <button type="button" class="btn btn-coral-prime btn-block applyBtn">Apply</button>
-    </div>
+    <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits by choosing a useful number of clusters automatically.">Recommend split: automatic</button>
+            <label>Number of Clusters</label>
+          <input type="number" class="clusters" step="any" min="1" max="99" value="2" />
+          <button type="button" class="btn recommendSplitWithBinCountBtn btn-coral-prime" title="Calculate meaningful splits according to the number of clusters selected.">Recommend split: selected number of clusters</button>
+
     `,
       );
+
+    //   this.controls.querySelector('#autoSplitControls').insertAdjacentHTML(
+    //     `beforeend`,
+    //     `
+    // <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits by choosing a useful number of clusters automatically.">Recommend split: automatic</button>
+    //        <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
+    // `,
+    //   );
     }
+
 
     // for each attribute type, add the respective controls:
     for (const [i, attr] of this.attributes.entries()) {

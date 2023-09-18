@@ -701,10 +701,9 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
   addIntervalControls() {
     const [min, max] = this.vegaView.scale('x').domain();
 
-    if(this.cohorts.length == 1){ // only show recommendButton when there is only one cohort
-      this.controls.insertAdjacentHTML(
-        'afterbegin',
-        `
+    this.controls.insertAdjacentHTML(
+      'afterbegin',
+      `
     <div>
       <!-- Nav tabs -->
       <ul class="nav nav-tabs nav-justified" role="tablist">
@@ -728,10 +727,10 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
           </div>
         </div>
         <div role="tabpanel" class="tab-pane" id="split">
+        <div id="recommendSplitControls">
+            <!-- INSERT autoSplitControls CONTROLS HERE -->
+          </div>
           <div class="flex-wrapper" data-attr="${this.attribute.dataKey}">
-          <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits by choosing a useful bin number automatically.">Recommend split: Automatic bin number</button>
-          <button type="button" class="btn recommendSplitWithBinCountBtn btn-coral-prime" title="Calculate meaningful splits according to the number of bins selected.">Recommend split: Use selected bin count</button>
-          <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
             <label>Split into</label>
             <input type="number" class="bins" step="any" min="1" max="99" value="2"/>
             <label >bins of</label>
@@ -749,59 +748,36 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     </div>
     <div class="d-grid gap-2">
       <button type="button" class="btn applyBtn btn-coral-prime" title="Apply to get a preview of the output cohorts.">Apply</button>
+      <div id="atoCreateControls">
+            <!-- INSERT autoSplitControls CONTROLS HERE -->
+            <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
+      </div>
+</div>
+    </div>
+    `,
+    );
 
-    </div>
-    `,
-      );
-    } else {
-      this.controls.insertAdjacentHTML(
-        'afterbegin',
+
+    if (this.cohorts.length == 1) { // only show recommendButton when there is only one cohort
+      this.controls.querySelector('#recommendSplitControls').insertAdjacentHTML(
+        `beforeend`,
         `
-    <div>
-      <!-- Nav tabs -->
-      <ul class="nav nav-tabs nav-justified" role="tablist">
-        <li role="presentation" class="nav-item"><a class="nav-link active" href="#filter" aria-controls="filter" role="tab" data-bs-toggle="tab"><i class="fas fa-filter" aria-hidden="true"></i> Filter</a></li>
-        <li role="presentation" class="nav-item"><a class="nav-link" href="#split" aria-controls="split" role="tab" data-bs-toggle="tab"><i class="fas fa-share-alt" aria-hidden="true"></i> Split</a></li>
-        <!-- <li role="presentation" class="nav-item"><a class="nav-link" href="#autosplit" aria-controls="autosplit" role="tab" data-bs-toggle="tab"><i class="fas fa-share-alt" aria-hidden="true"></i> Autosplit</a></li> -->
-      </ul>
-      <!-- Tab panes -->
-      <div class="tab-content">
-        <div role="tabpanel" class="tab-pane active" id="filter">
-        <p>Click and drag in the visualization or set the range below AVegaViz:</p>
-          <div class="flex-wrapper" data-attr="${this.attribute.dataKey}">
-            <label>Filter from</label>
-            <input type="number" class="interval minimum" step="any" min="${min}" max="${max}" data-axis="x"/>
-            <label>to</label>
-            <input type="number" class="interval maximum" step="any" min="${min}" max="${max}" data-axis="x"/>
-            <div class="null-value-container form-check">
-              <input type="checkbox" class="null-value-checkbox form-check-input" id="null_value_checkbox_1">
-              <label class="form-check-label" for="null_value_checkbox_1">Include <span class="hint">missing values</span></label>
-            </div>
-          </div>
-        </div>
-        <div role="tabpanel" class="tab-pane" id="split">
-          <div class="flex-wrapper" data-attr="${this.attribute.dataKey}">
-          <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
-            <label>Split into</label>
-            <input type="number" class="bins" step="any" min="1" max="99" value="2"/>
-            <label >bins of</label>
-            <select class="binType">
-              <option>equal width</option>
-              <option>custom width</option>
-            </select>
-            <div class="null-value-container form-check">
-              <input type="checkbox" class="null-value-checkbox form-check-input" id="null_value_checkbox_2">
-              <label class="form-check-label" for="null_value_checkbox_2">Add a <span class="hint">missing values</span> bin</label>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="d-grid gap-2">
-      <button type="button" class="btn applyBtn btn-coral-prime" title="Apply to get a preview of the output cohorts.">Apply</button>
-    </div>
+    <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits by choosing a useful number of clusters automatically.">Recommend split: automatic</button>
+            <label>Number of Clusters</label>
+          <input type="number" class="clusters" step="any" min="1" max="99" value="2" />
+          <button type="button" class="btn recommendSplitWithBinCountBtn btn-coral-prime" title="Calculate meaningful splits according to the number of clusters selected.">Recommend split: selected number of clusters</button>
+
     `,
       );
+
+
+    //   this.controls.querySelector('#autoSplitControls').insertAdjacentHTML(
+    //     `beforeend`,
+    //     `
+    // <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits by choosing a useful number of clusters automatically.">Recommend split: automatic</button>
+    //        <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
+    // `,
+    //   );
     }
 
     let nullValueTooltip = ``;
