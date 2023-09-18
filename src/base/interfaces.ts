@@ -110,6 +110,7 @@ export interface ICohortMultiAttrDBDataParams extends IParams {
   attribute1?: string;
   attribute1type?: string;
   numberOfClusters?: number;
+  attributes?: string; // JSON string
 }
 
 export interface ICohortDBSizeParams extends IParams {

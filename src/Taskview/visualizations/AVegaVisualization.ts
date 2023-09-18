@@ -255,7 +255,7 @@ export abstract class AVegaVisualization implements IVegaVisualization {
   abstract show(container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]);
   abstract filter(): void;
   abstract split(): void;
-  abstract createAutomatically?(): void;
+  abstract createAutomatically?(useNumberOfClusters: boolean = false): void;
   abstract recommendSplit?(useNumberOfClusters: boolean = false): void;
   abstract showImpl(chart: HTMLDivElement, data: Array<IdValuePair>); // probably the method impl from SingleAttributeVisualization can be moved here
 
@@ -684,11 +684,20 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     let newCohortIds = [];
     let cohortDescs: INewCohortDesc[];
     cohortDescs = [];
+    let attributesMapped = [{"dataKey": this.attribute.dataKey, "type": this.attribute.type}];
+    // convert the attributesParam to a JSON object
+    let attributesParam: string = JSON.stringify(attributesMapped);
     for (const cohort of this.cohorts) {
+      // const params: ICohortMultiAttrDBDataParams = {
+      //   cohortId: cohort.dbId,
+      //   attribute0: this.attribute.dataKey,
+      //   attribute0type: this.attribute.type,
+      //   numberOfClusters: numberOfClusters,
+      // };
+
       const params: ICohortMultiAttrDBDataParams = {
         cohortId: cohort.dbId,
-        attribute0: this.attribute.dataKey,
-        attribute0type: this.attribute.type,
+        attributes: attributesParam,
         numberOfClusters: numberOfClusters,
       };
       newCohortIds = await createDBCohortAutomatically(params)

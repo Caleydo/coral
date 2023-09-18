@@ -12,7 +12,7 @@ import { KaplanMeierPlot } from '../visualizations/KaplanMeierPlot';
 import { Scatterplot } from '../visualizations/Scatterplot';
 import { ATask } from './ATask';
 import tippy from "tippy.js";
-import {createDBCohortAutomatically, ICohortMultiAttrDBDataParams} from "../../base";
+import {createDBCohortAutomatically, ICohortMultiAttrDBDataParams, attributesJSON} from "../../base";
 import {AutoSplitEvent} from "../../base/events";
 
 export class Filter extends ATask {
@@ -150,6 +150,7 @@ export class Filter extends ATask {
   private async showTsne(attributes: IAttribute[], cohorts: ICohort[]) {
     this.$visContainer.innerHTML = 'Currently, we only support the visualization of up to two attributes.';
     // this.addControls(); // TODO: why does it not add if I add here, only if I add it in show()?
+    this.attributes = attributes;
     // this.$visContainer.innerHTML += '<button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>';
     // TODO #647 fix tsne implementation
     // this.attributes = attributes;
@@ -175,23 +176,35 @@ export class Filter extends ATask {
       });
   }
 
-  async createAutomatically() {
+  async createAutomatically(useNumberOfClusters: boolean = false) {
     console.log("createAutomatically 3 or more attributes");
     console.log("cohorts ", this.cohorts);
     console.log("attributes ", this.attributes);
     // todo: implement
-    // const bins = this.getSelectedData();
-    // let newCohortIds = [];
-    // if (bins.length === 1) {
-    //   let cohort = bins[0].cohort;
-    //   const params: ICohortMultiAttrDBDataParams = {
-    //     cohortId: cohort.dbId,
-    //     attribute0: this.attribute.dataKey,
-    //     attribute0type: this.attribute.type
-    //   };
-    //   newCohortIds = await createDBCohortAutomatically(params)
-    //   console.log("createAutomatically data", newCohortIds);
+
+    let numberOfClusters = 0;
+    // if (useNumberOfClusters) {
+    //   // select the bins field
+    //   // binsCount = (this.controls.querySelector('#split input.bins') as HTMLInputElement).valueAsNumber;
+    //   numberOfClusters = (this.controls.querySelector(`#split #recommendSplitControls input.clusters`) as HTMLInputElement).valueAsNumber;
+    //   console.log("numberOfClusters", numberOfClusters);
     // }
+
+    let newCohortIds = [];
+    let attributesMapped = this.attributes.map((attr) => {return {dataKey: attr.dataKey, type: attr.type}});
+    // convert the attributesParam to a JSON object
+    let attributesParam: string = JSON.stringify(attributesMapped);
+
+    for (const cht of this.cohorts) {
+      const params: ICohortMultiAttrDBDataParams = {
+        cohortId: cht.dbId,
+        attributes: attributesParam,
+        numberOfClusters: numberOfClusters,
+      };
+      newCohortIds = await createDBCohortAutomatically(params)
+      console.log("createAutomatically scatterplot data", newCohortIds);
+    }
+    // TODO: create the cohorts and show them
     //
     // let cohortDescs: INewCohortDesc[];
     // cohortDescs = [];
@@ -202,10 +215,11 @@ export class Filter extends ATask {
     //     cohortDescs.push({
     //       cohort: cohort,
     //       newCohortId: newCohort,
-    //       attr:[this.attribute]
+    //       attr:[this.attributes[0], this.attributes[1]]
     //     });
     //   }
     // }
+    //
     // this.container.dispatchEvent(new AutoSplitEvent(cohortDescs));
   }
 

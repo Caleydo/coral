@@ -173,16 +173,28 @@ export function recommendSplitDB(params: ICohortDBDataRecommendSplitParams, assi
 export function createDBCohortAutomatically(params: ICohortMultiAttrDBDataParams, assignIds = false): Promise<IRow[]> {
   let newParams: IParams = {};
   // check if params is ICohortDBDataParams
-  newParams = {
-    cohortId: params.cohortId,
-    name: "TODO: create name",
-    attribute0: params.attribute0,
-    attribute1: params.attribute1,
-    attribute0type: params.attribute0type,
-    attribute1type: params.attribute1type,
-    numberOfClusters: params.numberOfClusters,
-  };
-
+  if("attributes" in params){
+    newParams = {
+      cohortId: params.cohortId,
+      name: "TODO: create name",
+      attribute0: params.attribute0,
+      attribute1: params.attribute1,
+      attribute0type: params.attribute0type,
+      attribute1type: params.attribute1type,
+      numberOfClusters: params.numberOfClusters,
+      attributes: params.attributes
+    };
+  } else {
+    newParams = {
+      cohortId: params.cohortId,
+      name: "TODO: create name",
+      attribute0: params.attribute0,
+      attribute1: params.attribute1,
+      attribute0type: params.attribute0type,
+      attribute1type: params.attribute1type,
+      numberOfClusters: params.numberOfClusters,
+    };
+  }
 
   return getCohortDataImpl(CohortRoutes.createAutomatically, newParams, assignIds);
 }

@@ -990,15 +990,25 @@ export class Scatterplot extends MultiAttributeVisualization {
     }
 
     let newCohortIds = [];
+    let attributesMapped = this.attributes.map((attr) => {return {dataKey: attr.dataKey, type: attr.type}});
+    // convert the attributesParam to a JSON object
+    let attributesParam: string = JSON.stringify(attributesMapped);
     for (const cht of this.cohorts) {
+      // const params: ICohortMultiAttrDBDataParams = {
+      //   cohortId: cht.dbId,
+      //   attribute0: this.attributes[0].dataKey,
+      //   attribute0type: this.attributes[0].type,
+      //   attribute1: this.attributes[1].dataKey,
+      //   attribute1type: this.attributes[1].type,
+      //   numberOfClusters: numberOfClusters,
+      // };
+
       const params: ICohortMultiAttrDBDataParams = {
         cohortId: cht.dbId,
-        attribute0: this.attributes[0].dataKey,
-        attribute0type: this.attributes[0].type,
-        attribute1: this.attributes[1].dataKey,
-        attribute1type: this.attributes[1].type,
+        attributes: attributesParam,
         numberOfClusters: numberOfClusters,
       };
+
       newCohortIds = await createDBCohortAutomatically(params)
       console.log("createAutomatically scatterplot data", newCohortIds);
     }

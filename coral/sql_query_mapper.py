@@ -828,6 +828,35 @@ class QueryElements:
 
         return sql_text
     
+    def get_cohort_data_multi_attr_sql_generic(self, args, cohort):
+        entity_id_col = ""
+        if cohort.entity_table == "tdp_tissue":
+            entity_id_col = "tissuename"
+        elif cohort.entity_table == "tdp_tissue_2":
+            entity_id_col = "tissuename"
+        elif cohort.entity_table == "tdp_cellline":
+            entity_id_col = "celllinename"
+        elif cohort.entity_table == "student_view_anonym":
+            entity_id_col = "id"
+        elif cohort.entity_table == "korea":
+            entity_id_col = "id"
+
+
+        attributes = args.get("attributes")
+        attributes_keys = []
+        for attribute in attributes:
+            attributes_keys.append(attribute["dataKey"])
+        for attribute in attributes:
+            attributes_text = "p." + ", p.".join(attributes_keys)
+
+        # define statement
+        # sql_text = cohort.statement  # all attributes
+        sql_text = "SELECT p.{entity_id_col}, {attributes_text} FROM ({entities}) p".format(
+            entity_id_col=entity_id_col, attributes_text=attributes_text, entities=cohort.statement
+        )
+
+        return sql_text
+    
     def get_cohort_data_multi_attr_sql(self, args, cohort):
         attribute0 = args.get("attribute0")
         attribute1 = args.get("attribute1")
@@ -844,10 +873,13 @@ class QueryElements:
         elif cohort.entity_table == "korea":
             entity_id_col = "id"
 
+
+        
+
         # define statement
         sql_text = cohort.statement  # all attributes
         if attribute0 is not None and attribute1 is not None:
-            # only one attribute
+            # only two attributes
             sql_text = "SELECT p.{entity_id_col}, p.{attribute0}, p.{attribute1} FROM ({entities}) p".format(
                 entity_id_col=entity_id_col, attribute0=attribute0, attribute1=attribute1, entities=cohort.statement
             )
