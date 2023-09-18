@@ -22,8 +22,7 @@ import {
 } from '../../base/interfaces';
 
 import {
-  recommendSplit,
-  createDBCohortAutomatically
+  createDBCohortAutomatically, recommendSplitDB
 } from './../../base/rest';
 
 export const MISSING_VALUES_LABEL = 'Missing Values';
@@ -257,7 +256,7 @@ export abstract class AVegaVisualization implements IVegaVisualization {
   abstract filter(): void;
   abstract split(): void;
   abstract createAutomatically?(): void;
-  abstract recommendSplit?(useBinCount: boolean = false): void;
+  abstract recommendSplit?(useNumberOfClusters: boolean = false): void;
   abstract showImpl(chart: HTMLDivElement, data: Array<IdValuePair>); // probably the method impl from SingleAttributeVisualization can be moved here
 
   destroy() {
@@ -462,13 +461,15 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
 
 
   /** Calls the recommendSplit webservice and sets the bins according to the returned results */
-  async recommendSplit(useBinCount: boolean = false) {
+  async recommendSplit(useNumberOfClusters: boolean = false) {
     console.log("recommendSplit");
 
-    let binsCount = 0;
-    if (useBinCount) {
+    let numberOfClusters = 0;
+    if (useNumberOfClusters) {
       // select the bins field
-      binsCount = (this.controls.querySelector('#split input.bins') as HTMLInputElement).valueAsNumber;
+      // binsCount = (this.controls.querySelector('#split input.bins') as HTMLInputElement).valueAsNumber;
+      numberOfClusters = (this.controls.querySelector(`#split #recommendSplitControls input.clusters`) as HTMLInputElement).valueAsNumber;
+      console.log("useNumberOfClusters", useNumberOfClusters);
     }
 
     let cohorts = this.cohorts;
@@ -495,15 +496,15 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       const params: ICohortDBDataRecommendSplitParams = {
         cohortId: filterDesc[0].cohort.dbId,
         attribute0: this.attribute.dataKey,
-        binsCount0: binsCount,
+        numberOfClusters: numberOfClusters,
       };
-      const data = await recommendSplit(params);
+      const data = await recommendSplitDB(params);
       console.log("recommendSplit", data);
 
       this.splitValues = [];
-      for (let i = 0; i < data.length; i++) {
+      for (let i = 0; i < data[this.attribute.dataKey].length; i++) {
         // get the int val of the data[i]
-        const binBorder = Number(data[i]);
+        const binBorder = Number(data[this.attribute.dataKey][i]);
         this.splitValues.push({x: binBorder});
       }
       this.vegaView.data(AVegaVisualization.SPLITVALUE_DATA_STORE, cloneDeep(this.splitValues)); // set a defensive copy

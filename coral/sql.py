@@ -826,151 +826,170 @@ def hist():
 @app.route("/recommendSplit", methods=["GET", "POST"])
 # TODO add login_required
 def recommendSplit():
-  # error msg is wrong, it is based on the cohortData route
-  # createUseNumFilter?cohortId=1&name=TeSt&attribute=age&ranges=gt_2%lte_5;gte_10
-  error_msg = """Paramerter missing or wrong!
+    # error msg is wrong, it is based on the cohortData route
+    # createUseNumFilter?cohortId=1&name=TeSt&attribute=age&ranges=gt_2%lte_5;gte_10
+    error_msg = """Paramerter missing or wrong!
   For the {route} query the following parameter is needed:
   - cohortId: id of the cohort parent cohort
   - attribute0: column used to filter (x axis)
   - attribute1: column used to filter (y axis)
-  - binsCount: number of bins/clusters to create. If 0 then determine a useful number of clusters.""".format(
-    route="createWithNumFilter"
-  )
+  - numerOfClusters: number of clusters to create. If 0 then determine a useful number of clusters.""".format(
+        route="createWithNumFilter"
+    )
+    attribute_count = 1
 
-  # based on cohortData
-  try:
-    query = QueryElements()
-    cohort = query.get_cohort_from_db(request.values, error_msg)  # get parent cohort
-    tissues = None
-    tissues_df = None
-    tissues_attribute_df = None
-    if "attribute0" in request.values and not "attribute1" in request.values:
-        # one attriubte
-        sql_text = query.get_cohort_data_sql({"attribute": request.values["attribute0"]}, cohort)  # get sql statement to retrieve data
-        attribute0 = {"dataKey": request.values["attribute0"]}
-        query_results = query.execute_sql_query(sql_text, cohort.entity_database)
-        # so I have the tissuenames of that cohort (maybe change lager: there surely is a better way to get the tissuenames, without having to do this query, convert the response back to a dict etc etc)
-        # I also have the attribute that is used for the cohort (e.g. age), so I can get the values of that attribute for each tissue and then cluster them
-        # get the values of the attribute for each tissue
-        # get all the values of query_results.get_json() for the attribute
-        # remove all none values
-        tissues = [item for item in query_results.get_json() if item[attribute0["dataKey"]] is not None]
-        # fit the clusterer based on the attribute values
-        # convert the list tissues to a pandas dataframe
-        tissues_df = pd.DataFrame(tissues)
-        # this tissues_df consists of e.g. columns "age" and "tissuename", or "bmi" and "tissuename"
-        # get only the needed column
-        tissues_attribute_df = tissues_df[attribute0["dataKey"]].values.reshape(-1, 1)
-    elif "attribute0" in request.values and "attribute1" in request.values:
-        # two attributes
-        sql_text = query.get_cohort_data_multi_attr_sql(request.values, cohort)  # get sql statement to retrieve data
-        query_results = query.execute_sql_query(sql_text, cohort.entity_database)
-        attribute0 = {"dataKey": request.values["attribute0"]}
-        attribute1 = {"dataKey": request.values["attribute1"]}
-        tissues = [item for item in query_results.get_json() if item[attribute0["dataKey"]] is not None and item[attribute1["dataKey"]] is not None]
-        tissues_df = pd.DataFrame(tissues)
-        tissues_attribute_df = tissues_df[[attribute0["dataKey"], attribute1["dataKey"]]].values
+    # based on cohortData
+    try:
+        query = QueryElements()
+        cohort = query.get_cohort_from_db(request.values, error_msg)  # get parent cohort
+        tissues = None
+        tissues_df = None
+        tissues_attribute_df = None
+        attribute0 = None
+        attribute1 = None
+        if "attribute0" in request.values and not "attribute1" in request.values:
+            # one attriubte
+            sql_text = query.get_cohort_data_sql({"attribute": request.values["attribute0"]},
+                                                 cohort)  # get sql statement to retrieve data
+            attribute0 = {"dataKey": request.values["attribute0"]}
+            query_results = query.execute_sql_query(sql_text, cohort.entity_database)
+            # so I have the tissuenames of that cohort (maybe change lager: there surely is a better way to get the tissuenames, without having to do this query, convert the response back to a dict etc etc)
+            # I also have the attribute that is used for the cohort (e.g. age), so I can get the values of that attribute for each tissue and then cluster them
+            # get the values of the attribute for each tissue
+            # get all the values of query_results.get_json() for the attribute
+            # remove all none values
+            tissues = [item for item in query_results.get_json() if item[attribute0["dataKey"]] is not None]
+            # fit the clusterer based on the attribute values
+            # convert the list tissues to a pandas dataframe
+            tissues_df = pd.DataFrame(tissues)
+            # this tissues_df consists of e.g. columns "age" and "tissuename", or "bmi" and "tissuename"
+            # get only the needed column
+            tissues_attribute_df = tissues_df[attribute0["dataKey"]].values.reshape(-1, 1)
+        elif "attribute0" in request.values and "attribute1" in request.values:
+            # two attributes
+            attribute_count = 2
+            sql_text = query.get_cohort_data_multi_attr_sql(request.values,
+                                                            cohort)  # get sql statement to retrieve data
+            query_results = query.execute_sql_query(sql_text, cohort.entity_database)
+            attribute0 = {"dataKey": request.values["attribute0"]}
+            attribute1 = {"dataKey": request.values["attribute1"]}
+            tissues = [item for item in query_results.get_json() if
+                       item[attribute0["dataKey"]] is not None and item[attribute1["dataKey"]] is not None]
+            tissues_df = pd.DataFrame(tissues)
+            tissues_attribute_df = tissues_df[[attribute0["dataKey"], attribute1["dataKey"]]].values
 
-    # kmeans
-    # TODO: implement the version for 2 variables
-    if int(request.values["binsCount0"]) > 0 and "binsCount1" in request.values and int(request.values["binsCount1"]) > 0:
-      optimal_k0 = int(request.values["binsCount0"])
-      optimal_k1 = int(request.values["binsCount1"])
-    elif int(request.values["binsCount0"]) > 0:
-      optimal_k0 = int(request.values["binsCount0"])
-    else:
-      # determine useful number of clusters
-      # get the optimal number of clusters
-      n_clusters_range = range(2, 60) # arbitrarily chosen (talk to the user about this)
+        # kmeans
+        # TODO: implement the version for 2 variables
+        if int(request.values["numberOfClusters"]) > 0:
+            optimal_k = int(request.values["numberOfClusters"])
+        else:
+            # determine useful number of clusters
+            # get the optimal number of clusters
+            n_clusters_range = range(2, 60)  # arbitrarily chosen (talk to the user about this)
 
-      # Calculate within-cluster sum of squares (inertia) for different k values
-      inertia_values = []
-      for k in n_clusters_range:
-        kmeans = KMeans(n_clusters=k, n_init='auto')
-        kmeans.fit(tissues_attribute_df)
-        inertia_values.append(kmeans.inertia_)
+            # Calculate within-cluster sum of squares (inertia) for different k values
+            inertia_values = []
+            for k in n_clusters_range:
+                kmeans = KMeans(n_clusters=k, n_init='auto')
+                kmeans.fit(tissues_attribute_df)
+                inertia_values.append(kmeans.inertia_)
 
-      # Calculate the rate of change of inertia
-      # Inertia measures how well a dataset was clustered by K-Means. It is calculated by measuring the distance between each data point and its centroid, squaring this distance, and summing these squares across one cluster.
-      # https://www.codecademy.com/learn/machine-learning/modules/dspath-clustering/cheatsheet
-      rate_of_change = np.diff(inertia_values)  # rate of change from 1 to 2, 2 to 3, etc
+            # Calculate the rate of change of inertia
+            # Inertia measures how well a dataset was clustered by K-Means. It is calculated by measuring the distance between each data point and its centroid, squaring this distance, and summing these squares across one cluster.
+            # https://www.codecademy.com/learn/machine-learning/modules/dspath-clustering/cheatsheet
+            rate_of_change = np.diff(inertia_values)  # rate of change from 1 to 2, 2 to 3, etc
 
-      # Find the "elbow point" where the rate of change starts to slow down
-      # Calculate the "elbow point" where the rate of change slows down
-      # if no elbow_point is found, the last index of inertia_values is chosen
-      elbow_point = len(inertia_values) - 1
+            # Find the "elbow point" where the rate of change starts to slow down
+            # Calculate the "elbow point" where the rate of change slows down
+            # if no elbow_point is found, the last index of inertia_values is chosen
+            elbow_point = len(inertia_values) - 1
 
-      _log.debug("rate_of_change %s", rate_of_change)
-      _log.debug("inertia_values %s", inertia_values)
+            _log.debug("rate_of_change %s", rate_of_change)
+            _log.debug("inertia_values %s", inertia_values)
 
-      for i in range(len(rate_of_change) - 1):
-        diff1 = rate_of_change[i]
-        diff2 = rate_of_change[i + 1]
-        change_ratio = diff2 / diff1
-        _log.debug("change_ratio %s", change_ratio)
-        if change_ratio < 0.1:  # this is an "arbitrary" threshold. The smaller the threshold, the more clusters are chosen
-          elbow_point = i  # the rate_of_change show e.g. the change from 3 clusters to 4 cluster in index 2 of rate_of_change.
-          # so the elbow point is the index of the rate_of_change where the change from e.g. 3 to 4 is not big anymore: index 2. 3 clusters is a good amount of clusters.
-          break
+            for i in range(len(rate_of_change) - 1):
+                diff1 = rate_of_change[i]
+                diff2 = rate_of_change[i + 1]
+                change_ratio = diff2 / diff1
+                _log.debug("change_ratio %s", change_ratio)
+                if change_ratio < 0.1:  # this is an "arbitrary" threshold. The smaller the threshold, the more clusters are chosen
+                    elbow_point = i  # the rate_of_change show e.g. the change from 3 clusters to 4 cluster in index 2 of rate_of_change.
+                    # so the elbow point is the index of the rate_of_change where the change from e.g. 3 to 4 is not big anymore: index 2. 3 clusters is a good amount of clusters.
+                    break
 
-      optimal_k0 = n_clusters_range[elbow_point]  # e.g. at the elbow point: 2 the number of clusters is 3
+            optimal_k = n_clusters_range[elbow_point]  # e.g. at the elbow point: 2 the number of clusters is 3
 
-      # somehow, for this data, this approach does not work. The change_ratio does not start high and go down, but is e.g. 0.40, 0.49, 0.61, 0.63, 0.59, 0.79, 0.49, 1.37, etc
+            # somehow, for this data, this approach does not work. The change_ratio does not start high and go down, but is e.g. 0.40, 0.49, 0.61, 0.63, 0.59, 0.79, 0.49, 1.37, etc
 
-      _log.debug("Optimal number of clusters: %s", optimal_k0)
+            _log.debug("Optimal number of clusters: %s", optimal_k)
 
+        # do the clustering with the optimal or userdefined number of clusters
+        clusterer_attribute_kmeans = KMeans(n_clusters=optimal_k, n_init='auto')
+        clusterer_attribute_kmeans.fit(tissues_attribute_df)
 
-    # do the clustering with the optimal or userdefined number of clusters
-    clusterer_attribute_kmeans = KMeans(n_clusters=optimal_k0, n_init='auto')
-    clusterer_attribute_kmeans.fit(tissues_attribute_df)
+        # get the labels of the clusters
+        labels = clusterer_attribute_kmeans.labels_
+        _log.debug("labels %s", labels)
+        # get the number of clusters by getting the distinct values of labels
+        n_clusters_ = len(set(labels))
+        _log.debug("n_clusters_ %s", n_clusters_)
+        # kmeans end
+        _log.debug("tissues_attribute_df %s", tissues_attribute_df.shape)
+        _log.debug("tissues_attribute_df %s", clusterer_attribute_kmeans.labels_.shape)
 
-    # get the labels of the clusters
-    labels = clusterer_attribute_kmeans.labels_
-    _log.debug("labels %s", labels)
-    # get the number of clusters by getting the distinct values of labels
-    n_clusters_ = len(set(labels))
-    _log.debug("n_clusters_ %s", n_clusters_)
-    # kmeans end
-    _log.debug("tissues_attribute_df %s", tissues_attribute_df.shape)
-    _log.debug("tissues_attribute_df %s", clusterer_attribute_kmeans.labels_.shape)
+        # add the cluster labels to the tissues
+        _log.debug("tissues_df %s", tissues_df)
+        tissues_df['cluster_label'] = labels
+        _log.debug("tissues_df %s", tissues_df)
 
-    # add the cluster labels to the tissues
-    _log.debug("tissues_df %s", tissues_df)
-    tissues_df['cluster_label'] = labels
-    _log.debug("tissues_df %s", tissues_df)
+        # get the decision boundaries of the clusters
+        # TODO: do this for 2 attributes
+        boundaries = {}
+        min_cluster_list_attr0 = []
+        max_cluster_list_attr0 = []
+        for i in range(0, n_clusters_):
+            # it is a 1d array --> we can find the decision boundaries by looking at the maximum of the smaller cluster and the minimum of the larger cluster
+            min_cluster_list_attr0.append(min(tissues_df[tissues_df['cluster_label'] == i][attribute0["dataKey"]]))
+            max_cluster_list_attr0.append(max(tissues_df[tissues_df['cluster_label'] == i][attribute0["dataKey"]]))
+        min_cluster_list_attr0.sort()
+        max_cluster_list_attr0.sort()
+        # Calculate the boundaries
+        boundaries_attr0 = []
+        for i in range(0, n_clusters_-1):
+            boundaries_attr0.append((max_cluster_list_attr0[i] + min_cluster_list_attr0[i+1]) / 2)
+        # add boundaries_attr0 to boundaries
+        boundaries[attribute0["dataKey"]] = boundaries_attr0
 
-    # get the decision boundaries of the clusters
-    min_cluster_list = []
-    max_cluster_list = []
-    for i in range(0, n_clusters_):
-      # it is a 1d array --> we can find the decision boundaries by looking at the maximum of the smaller cluster and the minimum of the larger cluster
-      min_cluster_list.append(min(tissues_df[tissues_df['cluster_label'] == i][request.values['attribute0']]))
-      max_cluster_list.append(max(tissues_df[tissues_df['cluster_label'] == i][request.values['attribute0']]))
-    min_cluster_list.sort()
-    max_cluster_list.sort()
-    _log.debug("min_cluster_list %s", min_cluster_list)
-    _log.debug("max_cluster_list %s", max_cluster_list)
+        if attribute_count == 2:
+            # Get the decision boundaries of the clusters for attribute1
+            min_cluster_list_attr1 = []
+            max_cluster_list_attr1 = []
+            for i in range(0, n_clusters_):
+                min_cluster_list_attr1.append(min(tissues_df[tissues_df['cluster_label'] == i][attribute1["dataKey"]]))
+                max_cluster_list_attr1.append(max(tissues_df[tissues_df['cluster_label'] == i][attribute1["dataKey"]]))
+            min_cluster_list_attr1.sort()
+            max_cluster_list_attr1.sort()
+            # Calculate the boundaries
+            boundaries_attr1 = []
+            for i in range(0, n_clusters_-1):
+                boundaries_attr1.append((max_cluster_list_attr1[i] + min_cluster_list_attr1[i+1]) / 2)
+            # add boundaries_attr0 to boundaries
+            boundaries[attribute1["dataKey"]] = boundaries_attr1
 
-    # store the boundaries in a list
-    boundaries = []
-    # make this generic for any amount of clusters
-    for i in range(0, n_clusters_-1):
-      boundaries.append((max_cluster_list[i] + min_cluster_list[i+1]) / 2)
-    _log.debug("boundaries %s", boundaries)
-    # kmeans end
+        # TODO: this can't work like this... check what happens when there is only 2 clusters ==> split only ONE attribute even though 2 have been given
+        # kmeans end
 
-    return jsonify(boundaries)
-  except RuntimeError as error:
-    abort(400, error)
-
+        return jsonify(boundaries)
+    except RuntimeError as error:
+        abort(400, error)
 
 
 @app.route("/createAutomatically", methods=["GET", "POST"])
 # TODO add login_required
 def create_automatically():
-  # error msg is wrong, it is based on the cohortData route
-  # cohortData?cohortId=2&attribute=genderdata
-  error_msg = """Paramerter missing or wrong!
+    # error msg is wrong, it is based on the cohortData route
+    # cohortData?cohortId=2&attribute=genderdata
+    error_msg = """Paramerter missing or wrong!
   For the {route} query the following parameter is needed:
   - cohortId: id of the cohort
   There are also  optional parameters:
@@ -979,132 +998,137 @@ def create_automatically():
   - attribute1: one column of the entity table, used when called for 2 attributes (y axis)
   - attribute1type: type of the attribute1
   - attribute: one column of the entity table""".format(
-    route="cohortData"
-  )
+        route="cohortData"
+    )
 
-  _log.debug("request.values %s", request.values)
+    _log.debug("request.values %s", request.values)
 
-  # based on createUseNumFilter and create cohorts with hdbscan clustering
-  try:
-    # different implementations based on different parameters
-    # if there is just one (numerical) attribute, use hdbscan
-    # if there are two (numerical) attributes, use hdbscan
-    # if there is one categorical and one numerical attribute, use k-prototypes
-    HDBSCAN = "hdbscan"
-    K_PROTOTYPES = "k-prototypes"
-    K_MODES = "k-modes"
-    cluster_method = None
+    # based on createUseNumFilter and create cohorts with hdbscan clustering
+    try:
+        # different implementations based on different parameters
+        # if there is just one (numerical) attribute, use hdbscan
+        # if there are two (numerical) attributes, use hdbscan
+        # if there is one categorical and one numerical attribute, use k-prototypes
+        HDBSCAN = "hdbscan"
+        K_PROTOTYPES = "k-prototypes"
+        K_MODES = "k-modes"
+        cluster_method = None
 
-    query = QueryElements()
-    cohort = query.get_cohort_from_db(request.values, error_msg)  # get parent cohort
-    tissues = None
-    tissues_df = None
-    tissues_attribute_df = None
-    if "attribute0" in request.values and not "attribute1" in request.values:
-        # one attriubte
-        sql_text = query.get_cohort_data_sql({"attribute": request.values["attribute0"]}, cohort)  # get sql statement to retrieve data
-        attribute0 = {"dataKey": request.values["attribute0"], "type": request.values["attribute0type"]}
-        query_results = query.execute_sql_query(sql_text, cohort.entity_database)
-        tissues = [item for item in query_results.get_json() if item[attribute0["dataKey"]] is not None]
-        tissues_df = pd.DataFrame(tissues)
-        tissues_attribute_df = tissues_df[attribute0["dataKey"]].values.reshape(-1, 1)
-        if request.values["attribute0type"] == "number":
-            cluster_method = HDBSCAN
-        elif request.values["attribute0type"] == "categorical":
-            cluster_method = K_MODES
-    elif "attribute0" in request.values and "attribute1" in request.values:
-        # two attributes
-        sql_text = query.get_cohort_data_multi_attr_sql(request.values, cohort)  # get sql statement to retrieve data
-        query_results = query.execute_sql_query(sql_text, cohort.entity_database)
-        attribute0 = {"dataKey": request.values["attribute0"], "type": request.values["attribute0type"]}
-        attribute1 = {"dataKey": request.values["attribute1"], "type": request.values["attribute1type"]}
-        tissues = [item for item in query_results.get_json() if item[attribute0["dataKey"]] is not None and item[attribute1["dataKey"]] is not None]
-        tissues_df = pd.DataFrame(tissues)
-        tissues_attribute_df = tissues_df[[attribute0["dataKey"], attribute1["dataKey"]]].values
-        if request.values["attribute0type"] == "number" and request.values["attribute1type"] == "number":
-            # two numerical attributes
-            cluster_method = HDBSCAN
-        elif request.values["attribute0type"] == "categorical" and request.values["attribute1type"] == "number" or request.values["attribute0type"] == "number" and request.values["attribute1type"] == "categorical":
-            cluster_method = K_PROTOTYPES
-        else:
-            # two categorical attributes
-            cluster_method = K_MODES
+        query = QueryElements()
+        cohort = query.get_cohort_from_db(request.values, error_msg)  # get parent cohort
+        tissues = None
+        tissues_df = None
+        tissues_attribute_df = None
+        if "attribute0" in request.values and not "attribute1" in request.values:
+            # one attriubte
+            sql_text = query.get_cohort_data_sql({"attribute": request.values["attribute0"]},
+                                                 cohort)  # get sql statement to retrieve data
+            attribute0 = {"dataKey": request.values["attribute0"], "type": request.values["attribute0type"]}
+            query_results = query.execute_sql_query(sql_text, cohort.entity_database)
+            tissues = [item for item in query_results.get_json() if item[attribute0["dataKey"]] is not None]
+            tissues_df = pd.DataFrame(tissues)
+            tissues_attribute_df = tissues_df[attribute0["dataKey"]].values.reshape(-1, 1)
+            if request.values["attribute0type"] == "number":
+                cluster_method = HDBSCAN
+            elif request.values["attribute0type"] == "categorical":
+                cluster_method = K_MODES
+        elif "attribute0" in request.values and "attribute1" in request.values:
+            # two attributes
+            sql_text = query.get_cohort_data_multi_attr_sql(request.values,
+                                                            cohort)  # get sql statement to retrieve data
+            query_results = query.execute_sql_query(sql_text, cohort.entity_database)
+            attribute0 = {"dataKey": request.values["attribute0"], "type": request.values["attribute0type"]}
+            attribute1 = {"dataKey": request.values["attribute1"], "type": request.values["attribute1type"]}
+            tissues = [item for item in query_results.get_json() if
+                       item[attribute0["dataKey"]] is not None and item[attribute1["dataKey"]] is not None]
+            tissues_df = pd.DataFrame(tissues)
+            tissues_attribute_df = tissues_df[[attribute0["dataKey"], attribute1["dataKey"]]].values
+            if request.values["attribute0type"] == "number" and request.values["attribute1type"] == "number":
+                # two numerical attributes
+                cluster_method = HDBSCAN
+            elif request.values["attribute0type"] == "categorical" and request.values["attribute1type"] == "number" or \
+                    request.values["attribute0type"] == "number" and request.values["attribute1type"] == "categorical":
+                cluster_method = K_PROTOTYPES
+            else:
+                # two categorical attributes
+                cluster_method = K_MODES
 
+        if cluster_method is None or tissues_attribute_df is None:
+            raise RuntimeError(error_msg)
 
-    if cluster_method is None or tissues_attribute_df is None:
-        raise RuntimeError(error_msg)
+        # fit the clusterer based on the attribute values
+        # 1 or 2 numerical attributes ==> hdbscan
+        if cluster_method == HDBSCAN:
+            clusterer = hdbscan.HDBSCAN(min_cluster_size=round(tissues_attribute_df.shape[0] / 20),
+                                        gen_min_span_tree=True)  # one tenth of the number of tissues, to get a reasonable amount of clusters
+            # TODO: how to find a useful min_cluster_size? also: return useful error message if this gets too small somehow
+            clusterer.fit(tissues_attribute_df)
+            # get the labels of the clusters
+            labels = clusterer.labels_
+            _log.debug("labels %s", labels)
+            # get the number of clusters by getting the distinct values of labels
+            n_clusters_ = len(set(labels))
+            _log.debug("n_clusters_ %s", n_clusters_)
+            # hdbscan end
+        elif cluster_method == K_PROTOTYPES:
+            # 1 categorical and 1 numerical attribute ==> k-prototypes
+            # get the numerical and the categorical attributes
+            # get the numerical attributes and categorical attributes from tissues_attriubte_df according to the attribute types
+            position_of_cat_attr = 0
+            if attribute0["type"] == "number":
+                position_of_cat_attr = 1
+            num_clusters = 2
+            clusterer = KPrototypes(n_clusters=num_clusters, init='Cao', n_init=1, verbose=2)
+            clusterer.fit(tissues_attribute_df, categorical=[position_of_cat_attr])
+            # Get cluster labels
+            labels = clusterer.labels_
+        elif cluster_method == K_MODES:
+            # TODO: check if this even makes sense to do
+            # # Combine these two categorical attributes into a single array
+            # categorical_attributes = tissues_attribute_df[['attribute0', 'attribute1']].values
 
-    # fit the clusterer based on the attribute values
-    # 1 or 2 numerical attributes ==> hdbscan
-    if cluster_method == HDBSCAN:
-        clusterer = hdbscan.HDBSCAN(min_cluster_size=round(tissues_attribute_df.shape[0]/20), gen_min_span_tree=True) # one tenth of the number of tissues, to get a reasonable amount of clusters
-        # TODO: how to find a useful min_cluster_size? also: return useful error message if this gets too small somehow
-        clusterer.fit(tissues_attribute_df)
-        # get the labels of the clusters
-        labels = clusterer.labels_
-        _log.debug("labels %s", labels)
-        # get the number of clusters by getting the distinct values of labels
-        n_clusters_ = len(set(labels))
-        _log.debug("n_clusters_ %s", n_clusters_)
-        # hdbscan end
-    elif cluster_method == K_PROTOTYPES:
-        # 1 categorical and 1 numerical attribute ==> k-prototypes
-        # get the numerical and the categorical attributes
-        # get the numerical attributes and categorical attributes from tissues_attriubte_df according to the attribute types
-        position_of_cat_attr = 0
-        if attribute0["type"] == "number":
-            position_of_cat_attr = 1
-        num_clusters = 2
-        clusterer = KPrototypes(n_clusters=num_clusters, init='Cao', n_init=1, verbose=2)
-        clusterer.fit(tissues_attribute_df, categorical=[position_of_cat_attr])
-        # Get cluster labels
-        labels = clusterer.labels_
-    elif cluster_method == K_MODES:
-        # TODO: check if this even makes sense to do
-        # # Combine these two categorical attributes into a single array
-        # categorical_attributes = tissues_attribute_df[['attribute0', 'attribute1']].values
+            # # Number of clusters for K_MODES
+            # num_clusters = 2
 
-        # # Number of clusters for K_MODES
-        # num_clusters = 2
+            # # Create a KModes clusterer
+            # clusterer = KModes(n_clusters=num_clusters, init='Huang', verbose=2)
 
-        # # Create a KModes clusterer
-        # clusterer = KModes(n_clusters=num_clusters, init='Huang', verbose=2)
+            # # Fit the KModes model using categorical data
+            # labels = clusterer.fit_predict(categorical_attributes)
 
-        # # Fit the KModes model using categorical data
-        # labels = clusterer.fit_predict(categorical_attributes)
+            # # Get cluster labels
+            # cluster_labels = clusterer.labels_
+            return "not implemented yet"
 
-        # # Get cluster labels
-        # cluster_labels = clusterer.labels_
-        return "not implemented yet"
+        # create a cohort for each cluster
+        cohortids = []
+        for i in set(labels):
+            # add the cluster labels to the tissues
+            tissues_df["cluster_label"] = labels
+            clusters_tissuenames = tissues_df[tissues_df["cluster_label"] == i]["tissuename"].tolist()
+            _log.debug("cohortdebuggg %s", cohort)
+            # change the statement to use  the ids of the cohorts
+            # Convert the list into a comma-separated string
+            sql_values = "(" + ", ".join(["'" + item + "'" for item in clusters_tissuenames]) + ")"
+            sql_text = "SELECT p.* FROM (SELECT * FROM tissue.tdp_tissue) p WHERE (p.tissuename IN {tissuenames})".format(
+                tissuenames=sql_values)  # TODO: make this generic for other table, multiple attributes etc
+            # _log.debug("sql_text %s", sql_text)
+            cohort.statement = sql_text
+            # _log.debug("cohortdebuggg %s", cohort)
 
-
-    # create a cohort for each cluster
-    cohortids = []
-    for i in set(labels):
-        # add the cluster labels to the tissues
-        tissues_df["cluster_label"] = labels
-        clusters_tissuenames = tissues_df[tissues_df["cluster_label"] == i]["tissuename"].tolist()
-        _log.debug("cohortdebuggg %s", cohort)
-        # change the statement to use  the ids of the cohorts
-        # Convert the list into a comma-separated string
-        sql_values = "(" + ", ".join(["'" + item + "'" for item in clusters_tissuenames]) + ")"
-        sql_text = "SELECT p.* FROM (SELECT * FROM tissue.tdp_tissue) p WHERE (p.tissuename IN {tissuenames})".format(tissuenames=sql_values) # TODO: make this generic for other table, multiple attributes etc
-        # _log.debug("sql_text %s", sql_text)
-        cohort.statement = sql_text
-        # _log.debug("cohortdebuggg %s", cohort)
-
-        new_cohort = query.create_cohort_automatically_from_tissue_names(request.values, cohort,
-                                                        error_msg)  # get filtered cohort from args and cohort
-        _log.debug("new_cohort %s", new_cohort)
-        return_value = query.add_cohort_to_db(new_cohort).data # save new cohort into DB
-        # Convert bytes to integers and remove brackets
-        return_value = int(return_value.decode("utf-8").strip("[]\n")) # this is a workaround to undo the jsonify that is done in add_cohort_to_db
-        cohortids.append(return_value)
-        _log.debug("cohortids now %s", cohortids)
-    _log.debug("cohortids %s", cohortids)
-    return jsonify(cohortids)
-  except RuntimeError as error:
-    abort(400, error)
+            new_cohort = query.create_cohort_automatically_from_tissue_names(request.values, cohort,
+                                                                             error_msg)  # get filtered cohort from args and cohort
+            _log.debug("new_cohort %s", new_cohort)
+            return_value = query.add_cohort_to_db(new_cohort).data  # save new cohort into DB
+            # Convert bytes to integers and remove brackets
+            return_value = int(return_value.decode("utf-8").strip(
+                "[]\n"))  # this is a workaround to undo the jsonify that is done in add_cohort_to_db
+            cohortids.append(return_value)
+            _log.debug("cohortids now %s", cohortids)
+        _log.debug("cohortids %s", cohortids)
+        return jsonify(cohortids)
+    except RuntimeError as error:
+        abort(400, error)
 
 
 

@@ -11,7 +11,7 @@ import { AttributeType, IAttribute, IdValuePair, ServerColumnAttribute } from '.
 import {
   ICohortDBDataParams, ICohortDBDataRecommendSplitParams,
   ICohortMultiAttrDBDataParams, ICohortMultiAttrDBDataRecommendSplitParams, IEqualsList, INumRange,
-  NumRangeOperators
+  NumRangeOperators, recommendSplitDB
 } from '../../base';
 import {IFilterDesc, INewCohortDesc, inRange} from '../../util';
 import {AutoSplitEvent, FilterEvent} from '../../base/events';
@@ -21,6 +21,8 @@ import { AxisType, MultiAttributeVisualization } from './MultiAttributeVisualiza
 import {
   createDBCohortAutomatically,
 } from '../../base/rest';
+import {cloneDeep} from "lodash";
+import {AVegaVisualization} from "./AVegaVisualization";
 
 export class Scatterplot extends MultiAttributeVisualization {
   static readonly NAME: string = 'Scatterplot';
@@ -879,17 +881,18 @@ export class Scatterplot extends MultiAttributeVisualization {
 
 
   /** Calls the recommendSplit webservice and sets the bins according to the returned results */
-  async recommendSplit(useBinCount: boolean = false) {
+  async recommendSplit(useNumberOfClusters: boolean = false) {
     console.log("recommendSplit scatterplot");
 
-    let binsCount0 = 0;
-    let binsCount1 = 0;
-    if (useBinCount) {
+    let numberOfClusters = 0;
+    if (useNumberOfClusters) {
       // select the bins field
-      binsCount0 = (this.controls.querySelector(`#split input.bins[data-axis=x]`) as HTMLInputElement).valueAsNumber;
-      console.log("binsCountX", binsCount0);
-      binsCount1 = (this.controls.querySelector(`#split input.bins[data-axis=y]`) as HTMLInputElement).valueAsNumber;
-      console.log("binsCountY", binsCount1);
+      // binsCount0 = (this.controls.querySelector(`#split input.bins[data-axis=x]`) as HTMLInputElement).valueAsNumber;
+      // console.log("binsCountX", binsCount0);
+      // binsCount1 = (this.controls.querySelector(`#split input.bins[data-axis=y]`) as HTMLInputElement).valueAsNumber;
+      // console.log("binsCountY", binsCount1);
+      numberOfClusters = (this.controls.querySelector(`#split #recommendSplitControls input.clusters`) as HTMLInputElement).valueAsNumber;
+      console.log("useNumberOfClusters", useNumberOfClusters);
     }
 
     const cohorts = this.cohorts;
@@ -927,19 +930,49 @@ export class Scatterplot extends MultiAttributeVisualization {
         cohortId: filterDesc[0].cohort.dbId,
         attribute0: this.attributes[0].dataKey,
         attribute1: this.attributes[1].dataKey,
-        binsCount0: binsCount0,
-        binsCount1: binsCount1,
+        numberOfClusters: numberOfClusters,
       };
-    //   const data = await recommendSplit(params);
-    //   console.log("recommendSplit", data);
-    //
-    //   this.splitValues = [];
-    //   for (let i = 0; i < data.length; i++) {
-    //     // get the int val of the data[i]
-    //     const binBorder = Number(data[i]);
-    //     this.splitValues.push({x: binBorder});
-    //   }
-    //   this.vegaView.data(AVegaVisualization.SPLITVALUE_DATA_STORE, cloneDeep(this.splitValues)); // set a defensive copy
+
+      //TODO show results
+      const data = await recommendSplitDB(params);
+      console.log("recommendSplit", data);
+
+      // set the bins for x-axis
+      let splitValues = [];
+      for (let i = 0; i < data[this.attributes[0].dataKey].length; i++) {
+        // get the int val of the data[i]
+        const binBorder = Number(data[this.attributes[0].dataKey][i]);
+        splitValues.push(binBorder);
+      }
+      // this.vegaView.data(AVegaVisualization.SPLITVALUE_DATA_STORE, cloneDeep(this.splitValues)); // set a defensive copy
+      // TODO this is different for the scatterplot
+      this.vegaView.data(`splitvalues_x`, splitValues.slice()); // set a defensive copy
+      console.log("split values x", splitValues.slice());
+      // this.vegaView.runAsync(); // update the view
+      this.vegaView.runAsync().then(
+        (
+          vegaView, // defer adding signallistener until the new data is set internally
+        ) => vegaView.addDataListener(`splitvalues_x`, this.vegaSplitListener), // add listener again
+      );
+
+
+      // set the bins for y-axis
+      splitValues = [];
+      for (let i = 0; i < data[this.attributes[1].dataKey].length; i++) {
+        // get the int val of the data[i]
+        const binBorder = Number(data[this.attributes[1].dataKey][i]);
+        splitValues.push(binBorder);
+      }
+      // this.vegaView.data(AVegaVisualization.SPLITVALUE_DATA_STORE, cloneDeep(this.splitValues)); // set a defensive copy
+      // TODO this is different for the scatterplot
+      this.vegaView.data(`splitvalues_y`, splitValues.slice()); // set a defensive copy
+      console.log("split values y", splitValues.slice());
+      // this.vegaView.runAsync(); // update the view
+      this.vegaView.runAsync().then(
+        (
+          vegaView, // defer adding signallistener until the new data is set internally
+        ) => vegaView.addDataListener(`splitvalues_y`, this.vegaSplitListener), // add listener again
+      );
     }
   }
 

@@ -159,7 +159,7 @@ export function createDBCohortWithNumFilter(params: ICohortDBWithNumFilterParams
 //   return getCohortDataImpl(CohortRoutes.createAutomatically, newParams, assignIds);
 // }
 
-export function recommendSplit(params: ICohortDBDataRecommendSplitParams, assignIds = false): Promise<IRow[]> {
+export function recommendSplitDB(params: ICohortDBDataRecommendSplitParams, assignIds = false): Promise<IRow[]> {
   const url = `/cohortdb/db/${'recommendSplit'}`;
   const encoded = Ajax.encodeParams(params);
   if (encoded && url.length + encoded.length > Ajax.MAX_URL_LENGTH) {

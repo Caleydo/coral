@@ -158,7 +158,6 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
             <label>Number of Clusters</label>
           <input type="number" class="clusters" step="any" min="1" max="99" value="2" />
           <button type="button" class="btn recommendSplitWithBinCountBtn btn-coral-prime" title="Calculate meaningful splits according to the number of clusters selected.">Recommend split: selected number of clusters</button>
-
     `,
       );
 
@@ -372,6 +371,7 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
     }
 
     this.vegaView.data(`splitvalues_${event.dataset.axis}`, splitValues.slice()); // set a defensive copy
+    console.log(splitValues.slice());
     this.vegaView.runAsync().then(
       (
         vegaView, // defer adding signallistener until the new data is set internally
