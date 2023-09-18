@@ -177,6 +177,8 @@ export class Filter extends ATask {
 
   async createAutomatically() {
     console.log("createAutomatically 3 or more attributes");
+    console.log("cohorts ", this.cohorts);
+    console.log("attributes ", this.attributes);
     // todo: implement
     // const bins = this.getSelectedData();
     // let newCohortIds = [];

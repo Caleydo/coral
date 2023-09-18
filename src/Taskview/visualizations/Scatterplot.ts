@@ -976,10 +976,18 @@ export class Scatterplot extends MultiAttributeVisualization {
     }
   }
 
-  async createAutomatically() {
+  async createAutomatically(useNumberOfClusters: boolean = false) {
     console.log("createAutomatically scatterplot");
 
     // AttributeType = 'categorical' | 'number' | 'string'; TODO send it with the data
+
+    let numberOfClusters = 0;
+    if (useNumberOfClusters) {
+      // select the bins field
+      // binsCount = (this.controls.querySelector('#split input.bins') as HTMLInputElement).valueAsNumber;
+      numberOfClusters = (this.controls.querySelector(`#split #recommendSplitControls input.clusters`) as HTMLInputElement).valueAsNumber;
+      console.log("numberOfClusters", numberOfClusters);
+    }
 
     let newCohortIds = [];
     for (const cht of this.cohorts) {
@@ -989,6 +997,7 @@ export class Scatterplot extends MultiAttributeVisualization {
         attribute0type: this.attributes[0].type,
         attribute1: this.attributes[1].dataKey,
         attribute1type: this.attributes[1].type,
+        numberOfClusters: numberOfClusters,
       };
       newCohortIds = await createDBCohortAutomatically(params)
       console.log("createAutomatically scatterplot data", newCohortIds);

@@ -143,7 +143,7 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
       <button type="button" class="btn btn-coral-prime btn-block applyBtn">Apply</button>
       <div id="autoSplitControls">
             <!-- INSERT autoSplitControls CONTROLS HERE -->
-            <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
+            
       </div>
     </div>
     `,
@@ -154,17 +154,21 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
       this.controls.querySelector('#recommendSplitControls').insertAdjacentHTML(
         `beforeend`,
         `
-    <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits by choosing a useful number of clusters automatically.">Recommend split: automatic</button>
-            <label>Number of Clusters</label>
-          <input type="number" class="clusters" step="any" min="1" max="99" value="2" />
-          <button type="button" class="btn recommendSplitWithBinCountBtn btn-coral-prime" title="Calculate meaningful splits according to the number of clusters selected.">Recommend split: selected number of clusters</button>
+    <div class="d-grid gap-2">
+      <button type="button" class="btn recommendSplitBtn btn-coral-prime btn-block" title="Calculate meaningful splits by choosing a useful number of clusters automatically.">Recommend split</button>
+      <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
+      <label>Number of Clusters</label>
+      <input type="number" class="clusters" step="any" min="1" max="99" value="2" />
+      <button type="button" class="btn recommendSplitWithNumberOfClustersBtn btn-coral-prime" title="Calculate meaningful splits according to the number of clusters selected.">Recommend split for number of clusters</button>
+      <button type="button" class="btn createAutomaticallyWithNumberOfClustersBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts for number of clusters</button>
+    </div>
     `,
       );
 
     //   this.controls.querySelector('#autoSplitControls').insertAdjacentHTML(
     //     `beforeend`,
     //     `
-    // <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits by choosing a useful number of clusters automatically.">Recommend split: automatic</button>
+    // <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits by choosing a useful number of clusters automatically.">Recommend split</button>
     //        <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
     // `,
     //   );
@@ -183,7 +187,14 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
       .select('button.createAutomaticallyBtn')
       .on('click', () => {
         console.log("createAutomaticallyBtn clicked");
-        this.createAutomatically();
+        this.createAutomatically(false);
+      });
+
+    select(this.controls)
+      .select('button.createAutomaticallyWithNumberOfClustersBtn')
+      .on('click', () => {
+        console.log("createAutomaticallyWithNumberOfClustersBtn clicked");
+        this.createAutomatically(true);
       });
 
     select(this.controls)
@@ -194,9 +205,9 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
       });
 
     select(this.controls)
-      .select('button.recommendSplitWithBinCountBtn')
+      .select('button.recommendSplitWithNumberOfClustersBtn')
       .on('click', () => {
-        console.log("recommendSplitWithBinCountBtn clicked");
+        console.log("recommendSplitWithNumberOfClustersBtn clicked");
         this.recommendSplit(true);
       });
 

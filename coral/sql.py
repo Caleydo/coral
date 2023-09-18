@@ -833,7 +833,7 @@ def recommendSplit():
   - cohortId: id of the cohort parent cohort
   - attribute0: column used to filter (x axis)
   - attribute1: column used to filter (y axis)
-  - numerOfClusters: number of clusters to create. If 0 then determine a useful number of clusters.""".format(
+  - numberOfClusters: number of clusters to create. If 0 then determine a useful number of clusters.""".format(
         route="createWithNumFilter"
     )
     attribute_count = 1
@@ -879,7 +879,6 @@ def recommendSplit():
             tissues_attribute_df = tissues_df[[attribute0["dataKey"], attribute1["dataKey"]]].values
 
         # kmeans
-        # TODO: implement the version for 2 variables
         if int(request.values["numberOfClusters"]) > 0:
             optimal_k = int(request.values["numberOfClusters"])
         else:
@@ -929,22 +928,28 @@ def recommendSplit():
 
         # get the labels of the clusters
         labels = clusterer_attribute_kmeans.labels_
-        _log.debug("labels %s", labels)
         # get the number of clusters by getting the distinct values of labels
         n_clusters_ = len(set(labels))
-        _log.debug("n_clusters_ %s", n_clusters_)
-        # kmeans end
-        _log.debug("tissues_attribute_df %s", tissues_attribute_df.shape)
-        _log.debug("tissues_attribute_df %s", clusterer_attribute_kmeans.labels_.shape)
 
+        # kmeans end
         # add the cluster labels to the tissues
-        _log.debug("tissues_df %s", tissues_df)
         tissues_df['cluster_label'] = labels
-        _log.debug("tissues_df %s", tissues_df)
 
         # get the decision boundaries of the clusters
         # TODO: do this for 2 attributes
         boundaries = {}
+
+        # _log.debug("min of cluster 0 attribute 0 %s", min(tissues_df[tissues_df['cluster_label'] == 0][attribute0["dataKey"]]))
+        # _log.debug("max of cluster 0 attribute 0 %s", max(tissues_df[tissues_df['cluster_label'] == 0][attribute0["dataKey"]]))
+        # _log.debug("min of cluster 0 attribute 1 %s", min(tissues_df[tissues_df['cluster_label'] == 0][attribute1["dataKey"]]))
+        # _log.debug("max of cluster 0 attribute 1 %s", max(tissues_df[tissues_df['cluster_label'] == 0][attribute1["dataKey"]]))
+
+        # _log.debug("min of cluster 1 attribute 0 %s", min(tissues_df[tissues_df['cluster_label'] == 1][attribute0["dataKey"]]))
+        # _log.debug("max of cluster 1 attribute 0 %s", max(tissues_df[tissues_df['cluster_label'] == 1][attribute0["dataKey"]]))
+        # _log.debug("min of cluster 1 attribute 1 %s", min(tissues_df[tissues_df['cluster_label'] == 1][attribute1["dataKey"]]))
+        # _log.debug("max of cluster 1 attribute 1 %s", max(tissues_df[tissues_df['cluster_label'] == 1][attribute1["dataKey"]]))
+        
+
         min_cluster_list_attr0 = []
         max_cluster_list_attr0 = []
         for i in range(0, n_clusters_):
@@ -961,6 +966,7 @@ def recommendSplit():
         boundaries[attribute0["dataKey"]] = boundaries_attr0
 
         if attribute_count == 2:
+            # for 2 attriubtes does not make sense this way!
             # Get the decision boundaries of the clusters for attribute1
             min_cluster_list_attr1 = []
             max_cluster_list_attr1 = []
@@ -997,7 +1003,8 @@ def create_automatically():
   - attribute0type: type of the attribute0
   - attribute1: one column of the entity table, used when called for 2 attributes (y axis)
   - attribute1type: type of the attribute1
-  - attribute: one column of the entity table""".format(
+  - attribute: one column of the entity table
+  - numberOfClusters: number of clusters to create. If 0 then determine a useful number of clusters.""".format(
         route="cohortData"
     )
 
@@ -1012,6 +1019,7 @@ def create_automatically():
         HDBSCAN = "hdbscan"
         K_PROTOTYPES = "k-prototypes"
         K_MODES = "k-modes"
+        K_MEANS = "k-means"
         cluster_method = None
 
         query = QueryElements()
@@ -1029,7 +1037,10 @@ def create_automatically():
             tissues_df = pd.DataFrame(tissues)
             tissues_attribute_df = tissues_df[attribute0["dataKey"]].values.reshape(-1, 1)
             if request.values["attribute0type"] == "number":
-                cluster_method = HDBSCAN
+                if int(request.values["numberOfClusters"]) > 0:
+                    cluster_method = K_MEANS
+                else:
+                    cluster_method = HDBSCAN
             elif request.values["attribute0type"] == "categorical":
                 cluster_method = K_MODES
         elif "attribute0" in request.values and "attribute1" in request.values:
@@ -1045,7 +1056,10 @@ def create_automatically():
             tissues_attribute_df = tissues_df[[attribute0["dataKey"], attribute1["dataKey"]]].values
             if request.values["attribute0type"] == "number" and request.values["attribute1type"] == "number":
                 # two numerical attributes
-                cluster_method = HDBSCAN
+                if int(request.values["numberOfClusters"]) > 0:
+                    cluster_method = K_MEANS
+                else:
+                    cluster_method = HDBSCAN
             elif request.values["attribute0type"] == "categorical" and request.values["attribute1type"] == "number" or \
                     request.values["attribute0type"] == "number" and request.values["attribute1type"] == "categorical":
                 cluster_method = K_PROTOTYPES
@@ -1057,19 +1071,27 @@ def create_automatically():
             raise RuntimeError(error_msg)
 
         # fit the clusterer based on the attribute values
-        # 1 or 2 numerical attributes ==> hdbscan
+        # 1 or 2 numerical attributes ==> hdbscan or kmeans, if numberOfClusters is given
         if cluster_method == HDBSCAN:
-            clusterer = hdbscan.HDBSCAN(min_cluster_size=round(tissues_attribute_df.shape[0] / 20),
+            clusterer = hdbscan.HDBSCAN(min_cluster_size=round(tissues_attribute_df.shape[0] / 10),
                                         gen_min_span_tree=True)  # one tenth of the number of tissues, to get a reasonable amount of clusters
             # TODO: how to find a useful min_cluster_size? also: return useful error message if this gets too small somehow
             clusterer.fit(tissues_attribute_df)
             # get the labels of the clusters
             labels = clusterer.labels_
-            _log.debug("labels %s", labels)
             # get the number of clusters by getting the distinct values of labels
             n_clusters_ = len(set(labels))
-            _log.debug("n_clusters_ %s", n_clusters_)
             # hdbscan end
+        elif cluster_method == K_MEANS:
+            n_clusters_ = int(request.values["numberOfClusters"])
+            clusterer = KMeans(n_clusters=n_clusters_, n_init='auto')
+            clusterer.fit(tissues_attribute_df)
+            # get the labels of the clusters
+            labels = clusterer.labels_
+            # get the number of clusters by getting the distinct values of labels
+            n_clusters_ = len(set(labels))
+            # kmeans end
+            # add the cluster labels to the tissues
         elif cluster_method == K_PROTOTYPES:
             # 1 categorical and 1 numerical attribute ==> k-prototypes
             # get the numerical and the categorical attributes

@@ -469,7 +469,7 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       // select the bins field
       // binsCount = (this.controls.querySelector('#split input.bins') as HTMLInputElement).valueAsNumber;
       numberOfClusters = (this.controls.querySelector(`#split #recommendSplitControls input.clusters`) as HTMLInputElement).valueAsNumber;
-      console.log("useNumberOfClusters", useNumberOfClusters);
+      console.log("numberOfClusters", numberOfClusters);
     }
 
     let cohorts = this.cohorts;
@@ -665,12 +665,20 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
   }
 
   /** Calls the createAutomatically webservice and creates cohorts  according to the returned results */
-  async createAutomatically() {
+  async createAutomatically(useNumberOfClusters: boolean = false) {
     console.log("createAutomatically");
     // get the information on HOW MANY new cohorts to create here already
     // call the webservice that creates the cohorts, then I have the number of cohorts and can create the filters
     // then call the webservices again to get the data for the cohorts, just like for getting cohorts with filters
     // important difference: the filters are not needed any more, dummy filters will be used for easier implementation for now, later we can use e.g. the cohort id to get the correct data
+
+    let numberOfClusters = 0;
+    if (useNumberOfClusters) {
+      // select the bins field
+      // binsCount = (this.controls.querySelector('#split input.bins') as HTMLInputElement).valueAsNumber;
+      numberOfClusters = (this.controls.querySelector(`#split #recommendSplitControls input.clusters`) as HTMLInputElement).valueAsNumber;
+      console.log("numberOfClusters", numberOfClusters);
+    }
 
     const bins = this.getSelectedData();
     let newCohortIds = [];
@@ -680,7 +688,8 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       const params: ICohortMultiAttrDBDataParams = {
         cohortId: cohort.dbId,
         attribute0: this.attribute.dataKey,
-        attribute0type: this.attribute.type
+        attribute0type: this.attribute.type,
+        numberOfClusters: numberOfClusters,
       };
       newCohortIds = await createDBCohortAutomatically(params)
       console.log("createAutomatically data", newCohortIds);
@@ -749,9 +758,8 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     </div>
     <div class="d-grid gap-2">
       <button type="button" class="btn applyBtn btn-coral-prime" title="Apply to get a preview of the output cohorts.">Apply</button>
-      <div id="atoCreateControls">
+      <div id="autoCreateControls">
             <!-- INSERT autoSplitControls CONTROLS HERE -->
-            <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
       </div>
 </div>
     </div>
@@ -763,11 +771,14 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       this.controls.querySelector('#recommendSplitControls').insertAdjacentHTML(
         `beforeend`,
         `
-    <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits by choosing a useful number of clusters automatically.">Recommend split: automatic</button>
-            <label>Number of Clusters</label>
-          <input type="number" class="clusters" step="any" min="1" max="99" value="2" />
-          <button type="button" class="btn recommendSplitWithBinCountBtn btn-coral-prime" title="Calculate meaningful splits according to the number of clusters selected.">Recommend split: selected number of clusters</button>
-
+    <div class="d-grid gap-2">
+      <button type="button" class="btn recommendSplitBtn btn-coral-prime btn-block" title="Calculate meaningful splits by choosing a useful number of clusters automatically.">Recommend split</button>
+      <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
+      <label>Number of Clusters</label>
+      <input type="number" class="clusters" step="any" min="1" max="99" value="2" />
+      <button type="button" class="btn recommendSplitWithNumberOfClustersBtn btn-coral-prime" title="Calculate meaningful splits according to the number of clusters selected.">Recommend split for number of clusters</button>
+      <button type="button" class="btn createAutomaticallyWithNumberOfClustersBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts for number of clusters</button>
+    </div>
     `,
       );
 
@@ -775,7 +786,7 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
     //   this.controls.querySelector('#autoSplitControls').insertAdjacentHTML(
     //     `beforeend`,
     //     `
-    // <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits by choosing a useful number of clusters automatically.">Recommend split: automatic</button>
+    // <button type="button" class="btn recommendSplitBtn btn-coral-prime" title="Calculate meaningful splits by choosing a useful number of clusters automatically.">Recommend split</button>
     //        <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
     // `,
     //   );
@@ -812,9 +823,9 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       });
 
     select(this.controls)
-      .select('button.recommendSplitWithBinCountBtn')
+      .select('button.recommendSplitWithNumberOfClustersBtn')
       .on('click', () => {
-        console.log("recommendSplitWithBinCountBtn clicked");
+        console.log("recommendSplitWithNumberOfClustersBtn clicked");
         this.recommendSplit(true);
       });
 
@@ -822,7 +833,14 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       .select('button.createAutomaticallyBtn')
       .on('click', () => {
         console.log("createAutomaticallyBtn clicked");
-        this.createAutomatically();
+        this.createAutomatically(false);
+      });
+
+    select(this.controls)
+      .select('button.createAutomaticallyWithNumberOfClustersBtn')
+      .on('click', () => {
+        console.log("createAutomaticallyWithNumberOfClustersBtn clicked");
+        this.createAutomatically(true);
       });
 
 

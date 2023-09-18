@@ -180,6 +180,7 @@ export function createDBCohortAutomatically(params: ICohortMultiAttrDBDataParams
     attribute1: params.attribute1,
     attribute0type: params.attribute0type,
     attribute1type: params.attribute1type,
+    numberOfClusters: params.numberOfClusters,
   };
 
 
