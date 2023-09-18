@@ -17,6 +17,10 @@ import json
 
 
 DEBUG = False
+HDBSCAN = "hdbscan"
+K_PROTOTYPES = "k-prototypes"
+K_MODES = "k-modes"
+K_MEANS = "k-means"
 
 if DEBUG:
 # for debugging. Shut down api-1-container
@@ -883,46 +887,7 @@ def recommendSplit():
         if int(request.values["numberOfClusters"]) > 0:
             optimal_k = int(request.values["numberOfClusters"])
         else:
-            # determine useful number of clusters
-            # get the optimal number of clusters
-            n_clusters_range = range(2, 60)  # arbitrarily chosen (talk to the user about this)
-
-            # Calculate within-cluster sum of squares (inertia) for different k values
-            inertia_values = []
-            for k in n_clusters_range:
-                kmeans = KMeans(n_clusters=k, n_init='auto')
-                kmeans.fit(tissues_attribute_df)
-                inertia_values.append(kmeans.inertia_)
-
-            # Calculate the rate of change of inertia
-            # Inertia measures how well a dataset was clustered by K-Means. It is calculated by measuring the distance between each data point and its centroid, squaring this distance, and summing these squares across one cluster.
-            # https://www.codecademy.com/learn/machine-learning/modules/dspath-clustering/cheatsheet
-            rate_of_change = np.diff(inertia_values)  # rate of change from 1 to 2, 2 to 3, etc
-
-            # Find the "elbow point" where the rate of change starts to slow down
-            # Calculate the "elbow point" where the rate of change slows down
-            # if no elbow_point is found, the last index of inertia_values is chosen
-            elbow_point = len(inertia_values) - 1
-
-            _log.debug("rate_of_change %s", rate_of_change)
-            _log.debug("inertia_values %s", inertia_values)
-
-            for i in range(len(rate_of_change) - 1):
-                diff1 = rate_of_change[i]
-                diff2 = rate_of_change[i + 1]
-                change_ratio = diff2 / diff1
-                _log.debug("change_ratio %s", change_ratio)
-                if change_ratio < 0.1:  # this is an "arbitrary" threshold. The smaller the threshold, the more clusters are chosen
-                    elbow_point = i  # the rate_of_change show e.g. the change from 3 clusters to 4 cluster in index 2 of rate_of_change.
-                    # so the elbow point is the index of the rate_of_change where the change from e.g. 3 to 4 is not big anymore: index 2. 3 clusters is a good amount of clusters.
-                    break
-
-            optimal_k = n_clusters_range[elbow_point]  # e.g. at the elbow point: 2 the number of clusters is 3
-
-            # somehow, for this data, this approach does not work. The change_ratio does not start high and go down, but is e.g. 0.40, 0.49, 0.61, 0.63, 0.59, 0.79, 0.49, 1.37, etc
-
-            _log.debug("Optimal number of clusters: %s", optimal_k)
-
+            optimal_k = k_ellbow(tissues_attribute_df, range(2, 10), K_MEANS)
         # do the clustering with the optimal or userdefined number of clusters
         clusterer_attribute_kmeans = KMeans(n_clusters=optimal_k, n_init='auto')
         clusterer_attribute_kmeans.fit(tissues_attribute_df)
@@ -991,6 +956,58 @@ def recommendSplit():
         abort(400, error)
 
 
+# Helper function to determine a useful number of clusters
+def k_ellbow(tissues_attribute_df, n_clusters_range=range(2, 60), cluster_method=K_MEANS, position_of_cat_attr=None):
+
+    # Calculate within-cluster sum of squares (inertia) for different k values
+    inertia_values = []
+    for k in n_clusters_range:
+        if cluster_method == K_MEANS:
+            kmeans = KMeans(n_clusters=k, n_init='auto')
+            kmeans.fit(tissues_attribute_df)
+            inertia_values.append(kmeans.inertia_)
+            # Inertia measures how well a dataset was clustered by K-Means. 
+            # It is calculated by measuring the distance between each data point and its centroid, squaring this distance, and summing these squares across one cluster.
+        elif cluster_method == K_PROTOTYPES:
+            clusterer = KPrototypes(n_clusters=k, init='Cao', n_init=1, verbose=2)
+            clusterer.fit(tissues_attribute_df, categorical=position_of_cat_attr)
+            inertia_values.append(clusterer.cost_) 
+            # is cost_ the right value to use here?
+            # For the K-prototypes function, cost is defined as the sum distance of all points to their respective cluster centroids.
+            # ==> same as inertia
+
+    # Calculate the rate of change of inertia
+    # Inertia measures how well a dataset was clustered by K-Means. It is calculated by measuring the distance between each data point and its centroid, squaring this distance, and summing these squares across one cluster.
+    # https://www.codecademy.com/learn/machine-learning/modules/dspath-clustering/cheatsheet
+    rate_of_change = np.diff(inertia_values)  # rate of change from 1 to 2, 2 to 3, etc
+
+    # Find the "elbow point" where the rate of change starts to slow down
+    # Calculate the "elbow point" where the rate of change slows down
+    # if no elbow_point is found, the last index of inertia_values is chosen
+    elbow_point = len(inertia_values) - 1
+
+    _log.debug("rate_of_change %s", rate_of_change)
+    _log.debug("inertia_values %s", inertia_values)
+
+    for i in range(len(rate_of_change) - 1):
+        diff1 = rate_of_change[i]
+        diff2 = rate_of_change[i + 1]
+        change_ratio = diff2 / diff1
+        _log.debug("change_ratio %s", change_ratio)
+        if change_ratio < 0.1:  # this is an "arbitrary" threshold. The smaller the threshold, the more clusters are chosen
+            elbow_point = i  # the rate_of_change show e.g. the change from 3 clusters to 4 cluster in index 2 of rate_of_change.
+            # so the elbow point is the index of the rate_of_change where the change from e.g. 3 to 4 is not big anymore: index 2. 3 clusters is a good amount of clusters.
+            break
+
+    optimal_k = n_clusters_range[elbow_point]  # e.g. at the elbow point: 2 the number of clusters is 3
+
+    # somehow, for this data, this approach does not work. The change_ratio does not start high and go down, but is e.g. 0.40, 0.49, 0.61, 0.63, 0.59, 0.79, 0.49, 1.37, etc
+
+    _log.debug("Optimal number of clusters: %s", optimal_k)
+    return optimal_k
+
+
+
 @app.route("/createAutomatically", methods=["GET", "POST"])
 @login_required
 def create_automatically():
@@ -1013,10 +1030,6 @@ def create_automatically():
         # if there is just one (numerical) attribute, use hdbscan
         # if there are two (numerical) attributes, use hdbscan
         # if there is one categorical and one numerical attribute, use k-prototypes
-        HDBSCAN = "hdbscan"
-        K_PROTOTYPES = "k-prototypes"
-        K_MODES = "k-modes"
-        K_MEANS = "k-means"
         cluster_method = None
 
         query = QueryElements()
@@ -1076,15 +1089,16 @@ def create_automatically():
             # kmeans end
             # add the cluster labels to the tissues
         elif cluster_method == K_PROTOTYPES:
-            # 1 categorical and 1 numerical attribute ==> k-prototypes
-            # get the numerical and the categorical attributes
-            # get the numerical attributes and categorical attributes from tissues_attriubte_df according to the attribute types
-            position_of_cat_attr = 0
-            if attribute0["type"] == "number":
-                position_of_cat_attr = 1
-            num_clusters = 2
-            clusterer = KPrototypes(n_clusters=num_clusters, init='Cao', n_init=1, verbose=2)
-            clusterer.fit(tissues_attribute_df, categorical=[position_of_cat_attr])
+            # find the positions of the categorical attributes
+            position_of_cat_attr = []
+            for i in range(len(attributes)):
+                if attributes[i]["type"] == "categorical":
+                    position_of_cat_attr.append(i)
+            if number_of_clusters == 0:
+                # determine optimal number of clusters with ellbow method:
+                number_of_clusters = k_ellbow(tissues_attribute_df, range(2, 20), K_PROTOTYPES, position_of_cat_attr)
+            clusterer = KPrototypes(n_clusters=number_of_clusters, init='Cao', n_init=1, verbose=2)
+            clusterer.fit(tissues_attribute_df, categorical=position_of_cat_attr)
             # Get cluster labels
             labels = clusterer.labels_
         elif cluster_method == K_MODES:
@@ -1134,6 +1148,7 @@ def create_automatically():
         return jsonify(cohortids)
     except RuntimeError as error:
         abort(400, error)
+
 
 
 # saved this just before for experimenting with attributes array

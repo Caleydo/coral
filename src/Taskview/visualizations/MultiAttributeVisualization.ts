@@ -155,11 +155,11 @@ export abstract class MultiAttributeVisualization extends AVegaVisualization {
         `beforeend`,
         `
     <div class="d-grid gap-2">
-      <button type="button" class="btn recommendSplitBtn btn-coral-prime btn-block" title="Calculate meaningful splits by choosing a useful number of clusters automatically.">Recommend split</button>
+<!--      <button type="button" class="btn recommendSplitBtn btn-coral-prime btn-block" title="Calculate meaningful splits by choosing a useful number of clusters automatically.">Recommend split</button>-->
       <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
       <label>Number of Clusters</label>
       <input type="number" class="clusters" step="any" min="1" max="99" value="2" />
-      <button type="button" class="btn recommendSplitWithNumberOfClustersBtn btn-coral-prime" title="Calculate meaningful splits according to the number of clusters selected.">Recommend split for number of clusters</button>
+<!--      <button type="button" class="btn recommendSplitWithNumberOfClustersBtn btn-coral-prime" title="Calculate meaningful splits according to the number of clusters selected.">Recommend split for number of clusters</button>-->
       <button type="button" class="btn createAutomaticallyWithNumberOfClustersBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts for number of clusters</button>
     </div>
     `,

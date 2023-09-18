@@ -162,9 +162,12 @@ export class Filter extends ATask {
     this.controls.insertAdjacentHTML(
       'afterbegin',
       `
-    <div>
-      <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
-    </div>
+      <div class="d-grid gap-2">
+        <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
+        <label>Number of Clusters</label>
+        <input type="number" class="clusters" step="any" min="1" max="99" value="2" />
+        <button type="button" class="btn createAutomaticallyWithNumberOfClustersBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts for number of clusters</button>
+      </div>
     `,
     );
 
@@ -172,7 +175,14 @@ export class Filter extends ATask {
       .select('button.createAutomaticallyBtn')
       .on('click', () => {
         console.log("createAutomaticallyBtn clicked");
-        this.createAutomatically();
+        this.createAutomatically(false);
+      });
+
+    select(this.controls)
+      .select('button.createAutomaticallyWithNumberOfClustersBtn')
+      .on('click', () => {
+        console.log("createAutomaticallyWithNumberOfClustersBtn clicked");
+        this.createAutomatically(true);
       });
   }
 
@@ -183,12 +193,12 @@ export class Filter extends ATask {
     // todo: implement
 
     let numberOfClusters = 0;
-    // if (useNumberOfClusters) {
-    //   // select the bins field
-    //   // binsCount = (this.controls.querySelector('#split input.bins') as HTMLInputElement).valueAsNumber;
-    //   numberOfClusters = (this.controls.querySelector(`#split #recommendSplitControls input.clusters`) as HTMLInputElement).valueAsNumber;
-    //   console.log("numberOfClusters", numberOfClusters);
-    // }
+    if (useNumberOfClusters) {
+      // select the bins field
+      // let controls = this.controls;
+      numberOfClusters = (this.controls.querySelector(`.controls input.clusters`) as HTMLInputElement).valueAsNumber;
+      console.log("numberOfClusters", numberOfClusters);
+    }
 
     let newCohortIds = [];
     let attributesMapped = this.attributes.map((attr) => {return {dataKey: attr.dataKey, type: attr.type}});
@@ -205,22 +215,22 @@ export class Filter extends ATask {
       console.log("createAutomatically scatterplot data", newCohortIds);
     }
     // TODO: create the cohorts and show them
-    //
-    // let cohortDescs: INewCohortDesc[];
-    // cohortDescs = [];
-    // // for every selected cohort
-    // for (const cohort of this.cohorts) {
-    //   // for every newCohort create a filter (for now... the filter is actually not needed, will be changed in the future)
-    //   for (const newCohort of newCohortIds){
-    //     cohortDescs.push({
-    //       cohort: cohort,
-    //       newCohortId: newCohort,
-    //       attr:[this.attributes[0], this.attributes[1]]
-    //     });
-    //   }
-    // }
-    //
-    // this.container.dispatchEvent(new AutoSplitEvent(cohortDescs));
+
+    let cohortDescs: INewCohortDesc[];
+    cohortDescs = [];
+    // for every selected cohort
+    for (const cohort of this.cohorts) {
+      // for every newCohort create a filter (for now... the filter is actually not needed, will be changed in the future)
+      for (const newCohort of newCohortIds){
+        cohortDescs.push({
+          cohort: cohort,
+          newCohortId: newCohort,
+          attr:[this.attributes[0], this.attributes[1]]
+        });
+      }
+    }
+
+    this.container.dispatchEvent(new AutoSplitEvent(cohortDescs));
   }
 
 

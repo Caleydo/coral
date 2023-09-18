@@ -242,18 +242,37 @@ export class GroupedBoxplot extends MultiAttributeVisualization {
     this.container.dispatchEvent(new SplitEvent(filterDescs));
   }
 
-  async createAutomatically() {
+  async createAutomatically(useNumberOfClusters: boolean = false) {
     console.log("createAutomatically GroupedBoxplot");
 
+    let numberOfClusters = 0;
+    if (useNumberOfClusters) {
+      // select the bins field
+      // binsCount = (this.controls.querySelector('#split input.bins') as HTMLInputElement).valueAsNumber;
+      numberOfClusters = (this.controls.querySelector(`#split #recommendSplitControls input.clusters`) as HTMLInputElement).valueAsNumber;
+      console.log("numberOfClusters", numberOfClusters);
+    }
+
     let newCohortIds = [];
+    let attributesMapped = this.attributes.map((attr) => {return {dataKey: attr.dataKey, type: attr.type}});
+    // convert the attributesParam to a JSON object
+    let attributesParam: string = JSON.stringify(attributesMapped);
     for (const cht of this.cohorts) {
+      // const params: ICohortMultiAttrDBDataParams = {
+      //   cohortId: cht.dbId,
+      //   attribute0: this.attributes[0].dataKey,
+      //   attribute0type: this.attributes[0].type,
+      //   attribute1: this.attributes[1].dataKey,
+      //   attribute1type: this.attributes[1].type,
+      //   numberOfClusters: numberOfClusters,
+      // };
+
       const params: ICohortMultiAttrDBDataParams = {
         cohortId: cht.dbId,
-        attribute0: this.attributes[0].dataKey,
-        attribute0type: this.attributes[0].type,
-        attribute1: this.attributes[1].dataKey,
-        attribute1type: this.attributes[1].type
+        attributes: attributesParam,
+        numberOfClusters: numberOfClusters,
       };
+
       newCohortIds = await createDBCohortAutomatically(params)
       console.log("createAutomatically scatterplot data", newCohortIds);
     }
