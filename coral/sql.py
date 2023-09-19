@@ -2,7 +2,7 @@ import logging
 
 import hdbscan
 from kmodes.kprototypes import KPrototypes
-from kmodes import kmodes
+from kmodes.kmodes import KModes
 import numpy as np
 import pandas as pd
 from flask import Flask, abort, jsonify, request
@@ -969,12 +969,18 @@ def k_ellbow(tissues_attribute_df, n_clusters_range=range(2, 60), cluster_method
             # Inertia measures how well a dataset was clustered by K-Means. 
             # It is calculated by measuring the distance between each data point and its centroid, squaring this distance, and summing these squares across one cluster.
         elif cluster_method == K_PROTOTYPES:
-            clusterer = KPrototypes(n_clusters=k, init='Cao', n_init=1, verbose=2)
-            clusterer.fit(tissues_attribute_df, categorical=position_of_cat_attr)
+            clusterer = KPrototypes(n_clusters=k, init='Cao', n_init=5, verbose=0)
+            clusterer.fit(tissues_attribute_df, categorical=position_of_cat_attr, n_init=5, verbose=0)
             inertia_values.append(clusterer.cost_) 
             # is cost_ the right value to use here?
             # For the K-prototypes function, cost is defined as the sum distance of all points to their respective cluster centroids.
             # ==> same as inertia
+        elif cluster_method == K_MODES:
+            clusterer = KModes(n_clusters=k, init='Huang', n_init=5, verbose=0)
+            clusterer.fit_predict(tissues_attribute_df)
+            inertia_values.append(clusterer.cost_)
+
+
 
     # Calculate the rate of change of inertia
     # Inertia measures how well a dataset was clustered by K-Means. It is calculated by measuring the distance between each data point and its centroid, squaring this distance, and summing these squares across one cluster.
@@ -1000,9 +1006,6 @@ def k_ellbow(tissues_attribute_df, n_clusters_range=range(2, 60), cluster_method
             break
 
     optimal_k = n_clusters_range[elbow_point]  # e.g. at the elbow point: 2 the number of clusters is 3
-
-    # somehow, for this data, this approach does not work. The change_ratio does not start high and go down, but is e.g. 0.40, 0.49, 0.61, 0.63, 0.59, 0.79, 0.49, 1.37, etc
-
     _log.debug("Optimal number of clusters: %s", optimal_k)
     return optimal_k
 
@@ -1096,28 +1099,25 @@ def create_automatically():
                     position_of_cat_attr.append(i)
             if number_of_clusters == 0:
                 # determine optimal number of clusters with ellbow method:
-                number_of_clusters = k_ellbow(tissues_attribute_df, range(2, 20), K_PROTOTYPES, position_of_cat_attr)
-            clusterer = KPrototypes(n_clusters=number_of_clusters, init='Cao', n_init=1, verbose=2)
+                number_of_clusters = k_ellbow(tissues_attribute_df, range(2, 10), K_PROTOTYPES, position_of_cat_attr)
+            clusterer = KPrototypes(n_clusters=number_of_clusters, init='Cao', n_init=5, verbose=0)
             clusterer.fit(tissues_attribute_df, categorical=position_of_cat_attr)
             # Get cluster labels
             labels = clusterer.labels_
         elif cluster_method == K_MODES:
-            # TODO: check if this even makes sense to do
-            # # Combine these two categorical attributes into a single array
-            # categorical_attributes = tissues_attribute_df[['attribute0', 'attribute1']].values
+            # Number of clusters for K_MODES
+            if number_of_clusters == 0:
+                # determine optimal number of clusters with ellbow method:
+                number_of_clusters = k_ellbow(tissues_attribute_df, range(2, 10), K_MODES)
 
-            # # Number of clusters for K_MODES
-            # num_clusters = 2
+            # Create a KModes clusterer
+            clusterer = KModes(n_clusters=number_of_clusters, init='Huang', n_init=5, verbose=0)
 
-            # # Create a KModes clusterer
-            # clusterer = KModes(n_clusters=num_clusters, init='Huang', verbose=2)
+            # Fit the KModes model using categorical data
+            labels = clusterer.fit_predict(tissues_attribute_df)
 
-            # # Fit the KModes model using categorical data
-            # labels = clusterer.fit_predict(categorical_attributes)
-
-            # # Get cluster labels
-            # cluster_labels = clusterer.labels_
-            return "not implemented yet"
+            # Get cluster labels
+            labels = clusterer.labels_
 
         # create a cohort for each cluster
         cohortids = []

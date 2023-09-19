@@ -225,7 +225,7 @@ export class Filter extends ATask {
         cohortDescs.push({
           cohort: cohort,
           newCohortId: newCohort,
-          attr:[this.attributes[0], this.attributes[1]]
+          attr:this.attributes
         });
       }
     }
