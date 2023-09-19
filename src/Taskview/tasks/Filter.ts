@@ -12,7 +12,7 @@ import { KaplanMeierPlot } from '../visualizations/KaplanMeierPlot';
 import { Scatterplot } from '../visualizations/Scatterplot';
 import { ATask } from './ATask';
 import tippy from "tippy.js";
-import {createDBCohortAutomatically, ICohortMultiAttrDBDataParams, attributesJSON} from "../../base";
+import {createDBCohortAutomatically, ICohortMultiAttrDBDataParams} from "../../base";
 import {AutoSplitEvent} from "../../base/events";
 
 export class Filter extends ATask {
@@ -149,7 +149,7 @@ export class Filter extends ATask {
 
   private async showTsne(attributes: IAttribute[], cohorts: ICohort[]) {
     this.$visContainer.innerHTML = 'Currently, we only support the visualization of up to two attributes.';
-    // this.addControls(); // TODO: why does it not add if I add here, only if I add it in show()?
+    // this.addControls(); // why does it not add if I add here, only if I add it in show()?
     this.attributes = attributes;
     // this.$visContainer.innerHTML += '<button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>';
     // TODO #647 fix tsne implementation
@@ -186,7 +186,7 @@ export class Filter extends ATask {
       });
   }
 
-  async createAutomatically(useNumberOfClusters: boolean = false) {
+  async createAutomatically(useNumberOfClusters = false) {
     console.log("createAutomatically 3 or more attributes");
     console.log("cohorts ", this.cohorts);
     console.log("attributes ", this.attributes);

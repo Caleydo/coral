@@ -33,6 +33,8 @@ import {
   mapMutationCat,
   valueListDelimiter,
 } from './interfaces';
+import {niceName} from "../utils/labels";
+import {combineLabelsForDB} from "../Cohort";
 
 // maps the database value to a display name
 function mapDataBaseValueToDisplayName(
@@ -149,16 +151,6 @@ export function createDBCohortWithNumFilter(params: ICohortDBWithNumFilterParams
   return getCohortDataImpl(CohortRoutes.createUseNumFilter, newParams, assignIds);
 }
 
-// export function createDBCohortAutomatically(params: ICohortDBWithNumFilterParams, assignIds = false): Promise<IRow[]> {
-//   const newParams: IParams = {
-//     cohortId: params.cohortId,
-//     name: params.name,
-//     attribute: params.attribute,
-//     ranges: convertNumRanges(params.ranges),
-//   };
-//   return getCohortDataImpl(CohortRoutes.createAutomatically, newParams, assignIds);
-// }
-
 export function recommendSplitDB(params: ICohortDBDataRecommendSplitParams, assignIds = false): Promise<IRow[]> {
   const url = `/cohortdb/db/${'recommendSplit'}`;
   const encoded = Ajax.encodeParams(params);
@@ -169,36 +161,26 @@ export function recommendSplitDB(params: ICohortDBDataRecommendSplitParams, assi
   return AppContext.getInstance().getAPIJSON(url, params);
 }
 
-// TODO: remove this? not used?
 export function createDBCohortAutomatically(params: ICohortMultiAttrDBDataParams, assignIds = false): Promise<IRow[]> {
   let newParams: IParams = {};
   // check if params is ICohortDBDataParams
-  if("attributes" in params){
-    newParams = {
-      cohortId: params.cohortId,
-      name: "TODO: create name",
-      attribute0: params.attribute0,
-      attribute1: params.attribute1,
-      attribute0type: params.attribute0type,
-      attribute1type: params.attribute1type,
-      numberOfClusters: params.numberOfClusters,
-      attributes: params.attributes
-    };
-  } else {
-    newParams = {
-      cohortId: params.cohortId,
-      name: "TODO: create name",
-      attribute0: params.attribute0,
-      attribute1: params.attribute1,
-      attribute0type: params.attribute0type,
-      attribute1type: params.attribute1type,
-      numberOfClusters: params.numberOfClusters,
-    };
-  }
 
+  let labelOne = [];
+  let attributes = JSON.parse(params.attributes);
+  for (const att of attributes) {
+    labelOne.push(niceName(att["dataKey"]));
+  }
+  let label = labelOne.join(', ');
+  let name = combineLabelsForDB(label, "Mixed - Autosplit");
+
+  newParams = {
+    cohortId: params.cohortId,
+    name: name,
+    numberOfClusters: params.numberOfClusters,
+    attributes: params.attributes
+  };
   return getCohortDataImpl(CohortRoutes.createAutomatically, newParams, assignIds);
 }
-
 
 
 export function createDBCohortWithGeneNumFilter(params: ICohortDBWithGeneNumFilterParams, assignIds = false): Promise<IRow[]> {

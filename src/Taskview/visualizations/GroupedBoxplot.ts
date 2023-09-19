@@ -186,6 +186,10 @@ export class GroupedBoxplot extends MultiAttributeVisualization {
     this.container.dispatchEvent(new FilterEvent(filterDescs));
   }
 
+  async recommendSplit(useNumberOfClusters = false) {
+    log.error('recommendSplit is not implemented');
+  }
+
   split() {
     const categories = this.vegaView.data('row_domain').map((row) => row[this.catAttribute.dataKey]);
     const [minX, maxX] = this.vegaView.scale('x').domain();
@@ -242,7 +246,7 @@ export class GroupedBoxplot extends MultiAttributeVisualization {
     this.container.dispatchEvent(new SplitEvent(filterDescs));
   }
 
-  async createAutomatically(useNumberOfClusters: boolean = false) {
+  async createAutomatically(useNumberOfClusters = false) {
     console.log("createAutomatically GroupedBoxplot");
 
     let numberOfClusters = 0;

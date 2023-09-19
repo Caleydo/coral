@@ -17,10 +17,8 @@ export class AreaChart extends MultiAttributeVisualization {
     super(vegaLiteOptions);
   }
 
-  async createAutomatically(useNumberOfClusters: boolean = false) {
+  async createAutomatically(useNumberOfClusters = false) {
     console.log("createAutomatically scatterplot");
-
-    // AttributeType = 'categorical' | 'number' | 'string'; TODO send it with the data
 
     let numberOfClusters = 0;
     if (useNumberOfClusters) {
@@ -143,6 +141,10 @@ export class AreaChart extends MultiAttributeVisualization {
 
   split() {
     log.error('split is not implemented');
+  }
+
+  async recommendSplit(useNumberOfClusters = false) {
+    log.error('recommendSplit is not implemented');
   }
 
   addControls() {

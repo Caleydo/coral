@@ -32,7 +32,7 @@ import {
   dataDBCohortWithEqualsFilter,
   dataDBCohortWithNumFilter,
   getCohortData,
-  getCohortSize, getDBCohortData, recommendSplit,
+  getCohortSize,
   sizeDBCohortDepletionScoreFilter,
   sizeDBCohortGeneWithEqualsFilter,
   sizeDBCohortGeneWithNumFilter,
@@ -130,14 +130,6 @@ function getLegacyRangeFilter(parentFilters: IAllFilters, attribute: string, ran
   if (range.operatorTwo) {
     thisFilter[range.operatorTwo][attribute] = range.valueTwo;
   }
-  return mergeTwoAllFilters(parentFilters, thisFilter); // merge the existing with the new filter
-}
-
-// TODO implement correctly, or remove if different solution is better
-function getAutoSplitFilter(parentFilters: IAllFilters, attribute: string) {
-  const thisFilter: IAllFilters = { normal: {}, lt: {}, lte: {}, gt: {}, gte: {} };
-  thisFilter['gte'][attribute] = "label1"; // TODO: remove, this is only for now for development of autosplit
-  thisFilter['lt'][attribute] = "label2";
   return mergeTwoAllFilters(parentFilters, thisFilter); // merge the existing with the new filter
 }
 
@@ -268,14 +260,8 @@ export async function createCohortAutoSplit(
     attribute,
   };
   log.debug('try new cohort num filter: ', params);
-  // const dbId = await cohortCreationDBHandler(createDBCohortAutomatically, params); // TODO: NOT needed. The ids are already known.
+
   const dbId = newCohortId;
-
-  // let dummyrange = [this.getGeneralNumericalFilter(0 , 50 , NumRangeOperators.gte, NumRangeOperators.lte)]; // TODO: remove, just for development of autosplit
-
-
-  // const newFilter = getAutoSplitFilter(parentCohort.filters, attribute);
-  const newFilter = null; // not needed
 
   // ATTENTION : database != databaseName
   const cht = new Cohort(
@@ -289,9 +275,7 @@ export async function createCohortAutoSplit(
       idType: parentCohort.idType,
       idColumn: parentCohort.idColumn,
     },
-    newFilter,
   );
-  log.debug('new cohort with num filter: ', cht);
   return cht;
 }
 
@@ -485,7 +469,7 @@ async function cohortCreationDBHandler<T>(
   return dbId;
 }
 
-function combineLabelsForDB(labelOne: string, labelTwo: string): string {
+export function combineLabelsForDB(labelOne: string, labelTwo: string): string {
   return `${labelOne}${valueListDelimiter}${labelTwo}`;
 }
 

@@ -14,8 +14,8 @@ import { DATA_LABEL } from './constants';
 import { IVisualization } from './IVisualization';
 import { IAttribute, IdValuePair } from '../../data/IAttribute';
 import {
-  ICohortDBDataParams, ICohortDBDataRecommendSplitParams,
-  ICohortDBWithNumFilterParams, ICohortMultiAttrDBDataParams,
+  ICohortDBDataRecommendSplitParams,
+  ICohortMultiAttrDBDataParams,
   IEqualsList,
   INumRange,
   NumRangeOperators
@@ -255,8 +255,8 @@ export abstract class AVegaVisualization implements IVegaVisualization {
   abstract show(container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]);
   abstract filter(): void;
   abstract split(): void;
-  abstract createAutomatically?(useNumberOfClusters: boolean = false): void;
-  abstract recommendSplit?(useNumberOfClusters: boolean = false): void;
+  abstract createAutomatically?(useNumberOfClusters: boolean): void;
+  abstract recommendSplit?(useNumberOfClusters: boolean): void;
   abstract showImpl(chart: HTMLDivElement, data: Array<IdValuePair>); // probably the method impl from SingleAttributeVisualization can be moved here
 
   destroy() {
@@ -461,7 +461,7 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
 
 
   /** Calls the recommendSplit webservice and sets the bins according to the returned results */
-  async recommendSplit(useNumberOfClusters: boolean = false) {
+  async recommendSplit(useNumberOfClusters = false) {
     console.log("recommendSplit");
 
     let numberOfClusters = 0;
@@ -481,7 +481,7 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
       // recommendSplit recommends splits that are used for ALL cohorts, so it would not make sense to use it on multiple cohorts
 
       // 1 cohort, 1 category
-      let filter: INumRange[] | IEqualsList = [];
+      let filter: INumRange[] = [];
 
       filterDesc.push({
         cohort: cohorts[0],
@@ -665,7 +665,7 @@ export abstract class SingleAttributeVisualization extends AVegaVisualization {
   }
 
   /** Calls the createAutomatically webservice and creates cohorts  according to the returned results */
-  async createAutomatically(useNumberOfClusters: boolean = false) {
+  async createAutomatically(useNumberOfClusters = false) {
     console.log("createAutomatically");
     // get the information on HOW MANY new cohorts to create here already
     // call the webservice that creates the cohorts, then I have the number of cohorts and can create the filters

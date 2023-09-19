@@ -880,106 +880,103 @@ export class Scatterplot extends MultiAttributeVisualization {
   }
 
 
+  // unused, because it does not make sense for more than 1 attribute
   /** Calls the recommendSplit webservice and sets the bins according to the returned results */
-  async recommendSplit(useNumberOfClusters: boolean = false) {
-    console.log("recommendSplit scatterplot");
-
-    let numberOfClusters = 0;
-    if (useNumberOfClusters) {
-      // select the bins field
-      // binsCount0 = (this.controls.querySelector(`#split input.bins[data-axis=x]`) as HTMLInputElement).valueAsNumber;
-      // console.log("binsCountX", binsCount0);
-      // binsCount1 = (this.controls.querySelector(`#split input.bins[data-axis=y]`) as HTMLInputElement).valueAsNumber;
-      // console.log("binsCountY", binsCount1);
-      numberOfClusters = (this.controls.querySelector(`#split #recommendSplitControls input.clusters`) as HTMLInputElement).valueAsNumber;
-      console.log("useNumberOfClusters", useNumberOfClusters);
-    }
-
-    const cohorts = this.cohorts;
-
-    let filterDesc: IFilterDesc[] = [];
-    if (cohorts.length === 1) {
-      // it does not make sense to do a recommendSplit on multiple cohorts at once
-      // createAutomatically looks at the data of one cohort and creates new cohorts based on that
-      // recommendSplit recommends splits that are used for ALL cohorts, so it would not make sense to use it on multiple cohorts
-
-      // 1 cohort, 1 category
-      let filter: INumRange[] | IEqualsList = [];
-
-      filterDesc.push({
-        cohort: cohorts[0],
-        filter: [
-          {
-            attr: this.attributes[0],
-            range: filter,
-          },
-        ],
-      });
-
-      filterDesc.push({
-        cohort: cohorts[0],
-        filter: [
-          {
-            attr: this.attributes[1],
-            range: filter,
-          },
-        ],
-      });
-
-      const params: ICohortMultiAttrDBDataRecommendSplitParams = {
-        cohortId: filterDesc[0].cohort.dbId,
-        attribute0: this.attributes[0].dataKey,
-        attribute1: this.attributes[1].dataKey,
-        numberOfClusters: numberOfClusters,
-      };
-
-      //TODO show results
-      const data = await recommendSplitDB(params);
-      console.log("recommendSplit", data);
-
-      // set the bins for x-axis
-      let splitValues = [];
-      for (let i = 0; i < data[this.attributes[0].dataKey].length; i++) {
-        // get the int val of the data[i]
-        const binBorder = Number(data[this.attributes[0].dataKey][i]);
-        splitValues.push(binBorder);
-      }
-      // this.vegaView.data(AVegaVisualization.SPLITVALUE_DATA_STORE, cloneDeep(this.splitValues)); // set a defensive copy
-      // TODO this is different for the scatterplot
-      this.vegaView.data(`splitvalues_x`, splitValues.slice()); // set a defensive copy
-      console.log("split values x", splitValues.slice());
-      // this.vegaView.runAsync(); // update the view
-      this.vegaView.runAsync().then(
-        (
-          vegaView, // defer adding signallistener until the new data is set internally
-        ) => vegaView.addDataListener(`splitvalues_x`, this.vegaSplitListener), // add listener again
-      );
-
-
-      // set the bins for y-axis
-      splitValues = [];
-      for (let i = 0; i < data[this.attributes[1].dataKey].length; i++) {
-        // get the int val of the data[i]
-        const binBorder = Number(data[this.attributes[1].dataKey][i]);
-        splitValues.push(binBorder);
-      }
-      // this.vegaView.data(AVegaVisualization.SPLITVALUE_DATA_STORE, cloneDeep(this.splitValues)); // set a defensive copy
-      // TODO this is different for the scatterplot
-      this.vegaView.data(`splitvalues_y`, splitValues.slice()); // set a defensive copy
-      console.log("split values y", splitValues.slice());
-      // this.vegaView.runAsync(); // update the view
-      this.vegaView.runAsync().then(
-        (
-          vegaView, // defer adding signallistener until the new data is set internally
-        ) => vegaView.addDataListener(`splitvalues_y`, this.vegaSplitListener), // add listener again
-      );
-    }
+  async recommendSplit(useNumberOfClusters = false) {
+    console.log("does not make sense for more than 1 attribute");
+  //   console.log("recommendSplit scatterplot");
+  //
+  //   let numberOfClusters = 0;
+  //   if (useNumberOfClusters) {
+  //     // select the bins field
+  //     // binsCount0 = (this.controls.querySelector(`#split input.bins[data-axis=x]`) as HTMLInputElement).valueAsNumber;
+  //     // console.log("binsCountX", binsCount0);
+  //     // binsCount1 = (this.controls.querySelector(`#split input.bins[data-axis=y]`) as HTMLInputElement).valueAsNumber;
+  //     // console.log("binsCountY", binsCount1);
+  //     numberOfClusters = (this.controls.querySelector(`#split #recommendSplitControls input.clusters`) as HTMLInputElement).valueAsNumber;
+  //     console.log("useNumberOfClusters", useNumberOfClusters);
+  //   }
+  //
+  //   const cohorts = this.cohorts;
+  //
+  //   let filterDesc: IFilterDesc[] = [];
+  //   if (cohorts.length === 1) {
+  //     // it does not make sense to do a recommendSplit on multiple cohorts at once
+  //     // createAutomatically looks at the data of one cohort and creates new cohorts based on that
+  //     // recommendSplit recommends splits that are used for ALL cohorts, so it would not make sense to use it on multiple cohorts
+  //
+  //     // 1 cohort, 1 category
+  //     let filter: INumRange[] | IEqualsList = [];
+  //
+  //     filterDesc.push({
+  //       cohort: cohorts[0],
+  //       filter: [
+  //         {
+  //           attr: this.attributes[0],
+  //           range: filter,
+  //         },
+  //       ],
+  //     });
+  //
+  //     filterDesc.push({
+  //       cohort: cohorts[0],
+  //       filter: [
+  //         {
+  //           attr: this.attributes[1],
+  //           range: filter,
+  //         },
+  //       ],
+  //     });
+  //
+  //     const params: ICohortMultiAttrDBDataRecommendSplitParams = {
+  //       cohortId: filterDesc[0].cohort.dbId,
+  //       attribute0: this.attributes[0].dataKey,
+  //       attribute1: this.attributes[1].dataKey,
+  //       numberOfClusters: numberOfClusters,
+  //     };
+  //
+  //     const data = await recommendSplitDB(params);
+  //     console.log("recommendSplit", data);
+  //
+  //     // set the bins for x-axis
+  //     let splitValues = [];
+  //     for (let i = 0; i < data[this.attributes[0].dataKey].length; i++) {
+  //       // get the int val of the data[i]
+  //       const binBorder = Number(data[this.attributes[0].dataKey][i]);
+  //       splitValues.push(binBorder);
+  //     }
+  //
+  //     this.vegaView.data(`splitvalues_x`, splitValues.slice()); // set a defensive copy
+  //     console.log("split values x", splitValues.slice());
+  //     // this.vegaView.runAsync(); // update the view
+  //     this.vegaView.runAsync().then(
+  //       (
+  //         vegaView, // defer adding signallistener until the new data is set internally
+  //       ) => vegaView.addDataListener(`splitvalues_x`, this.vegaSplitListener), // add listener again
+  //     );
+  //
+  //
+  //     // set the bins for y-axis
+  //     splitValues = [];
+  //     for (let i = 0; i < data[this.attributes[1].dataKey].length; i++) {
+  //       // get the int val of the data[i]
+  //       const binBorder = Number(data[this.attributes[1].dataKey][i]);
+  //       splitValues.push(binBorder);
+  //     }
+  //
+  //     this.vegaView.data(`splitvalues_y`, splitValues.slice()); // set a defensive copy
+  //     console.log("split values y", splitValues.slice());
+  //     // this.vegaView.runAsync(); // update the view
+  //     this.vegaView.runAsync().then(
+  //       (
+  //         vegaView, // defer adding signallistener until the new data is set internally
+  //       ) => vegaView.addDataListener(`splitvalues_y`, this.vegaSplitListener), // add listener again
+  //     );
+  //   }
   }
 
-  async createAutomatically(useNumberOfClusters: boolean = false) {
+  async createAutomatically(useNumberOfClusters = false) {
     console.log("createAutomatically scatterplot");
-
-    // AttributeType = 'categorical' | 'number' | 'string'; TODO send it with the data
 
     let numberOfClusters = 0;
     if (useNumberOfClusters) {
@@ -1377,6 +1374,10 @@ export class TsneScatterplot extends Scatterplot {
       });
     }
     this.container.dispatchEvent(new FilterEvent(filterDescs));
+  }
+
+  async recommendSplit(useNumberOfClusters = false) {
+    console.log("does not make sense for more than 1 attribute");
   }
 
   split() {
