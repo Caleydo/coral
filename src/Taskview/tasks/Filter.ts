@@ -9,7 +9,7 @@ import { DensityPlot } from '../visualizations/DensityPlot';
 import { GroupedBoxplot } from '../visualizations/GroupedBoxplot';
 import { VegaGroupedHistogram } from '../visualizations/GroupedHistogram';
 import { KaplanMeierPlot } from '../visualizations/KaplanMeierPlot';
-import { Scatterplot } from '../visualizations/Scatterplot';
+import { Scatterplot, TsneScatterplot } from '../visualizations/Scatterplot';
 import { ATask } from './ATask';
 import tippy from "tippy.js";
 import {createDBCohortAutomatically, ICohortMultiAttrDBDataParams} from "../../base";
@@ -82,8 +82,6 @@ export class Filter extends ATask {
         this.addControls();
         break;
     }
-
-
   }
 
   addVisSelector() {
@@ -148,6 +146,12 @@ export class Filter extends ATask {
   }
 
   private async showTsne(attributes: IAttribute[], cohorts: ICohort[]) {
+    // compiarion_2023
+    this.attributes = attributes;
+    this.cohorts = cohorts;
+    this.setVisualizations([TsneScatterplot]);
+
+    // cohort_creation_experiments
     this.$visContainer.innerHTML = 'Currently, we only support the visualization of up to two attributes.';
     // this.addControls(); // why does it not add if I add here, only if I add it in show()?
     this.attributes = attributes;

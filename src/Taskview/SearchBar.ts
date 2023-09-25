@@ -1,7 +1,7 @@
 import { select } from 'd3v7';
 import { IServerColumn } from 'visyn_core/base';
 import { IdTextPair, RestBaseUtils } from 'tdp_core';
-import { dataTypes, depletion, IDataSubtypeConfig, IDataTypeConfig } from 'tdp_publicdb';
+import { dataTypes, depletion, IDataSubtypeConfig, IDataTypeConfig, mutation } from 'tdp_publicdb';
 import { colors } from '../config/colors';
 import { deepCopy, getAnimatedLoadingText, log } from '../util';
 import { niceName } from '../utils/labels';
@@ -297,17 +297,19 @@ export class SearchBar {
         }
       })
       .on('mouseover', (event, d) => {
+        // store in separate variable to keep the reference around for the mouseOverHandlers
+        const hoveredElement = event.currentTarget as HTMLElement;
         if (d.optionType === 'gene') {
           // set global optionId
           this._geneHoverOptionId = d.optionId;
           setTimeout(() => {
             // update detail after timeout time global and current optionId is equal
             if (d.optionId === this._geneHoverOptionId) {
-              this._mouseOverHandler(d, event.currentTarget);
+              this._mouseOverHandler(d, hoveredElement);
             }
           }, 200);
         } else {
-          this._mouseOverHandler(d, event.currentTarget);
+          this._mouseOverHandler(d, hoveredElement);
         }
       })
       .on('mouseout', (event, d) => {
@@ -934,7 +936,7 @@ export class SearchBar {
           .html((v: IDataSubtypeConfig) => v.name)
           .on('click', (event, v: IDataSubtypeConfig) => {
             // merge subtype with the with d as the d.name is only available in the d variable
-            const dataSubType = { ...d, v };
+            const dataSubType = { ...d, ...v };
             const badgeName = this._composeGeneDataTypeName(data.optionText, dataSubType.name);
             const badgeData = deepCopy(data);
             badgeData.optionData = { subType: dataSubType, type: (dataSubType as any).dataTypeId };
