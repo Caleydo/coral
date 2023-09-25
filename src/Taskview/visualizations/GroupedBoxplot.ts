@@ -278,7 +278,7 @@ export class GroupedBoxplot extends MultiAttributeVisualization {
       };
 
       newCohortIds = await createDBCohortAutomatically(params)
-      console.log("createAutomatically scatterplot data", newCohortIds);
+      console.log("createAutomatically groupedBoxplot data", newCohortIds);
     }
 
     let cohortDescs: INewCohortDesc[];

@@ -1,4 +1,4 @@
-import {select, Selection} from 'd3v7';
+import {select} from 'd3v7';
 import { ICohort } from '../../app/interfaces';
 import { IAttribute } from '../../data/IAttribute';
 import {getAnimatedLoadingText, INewCohortDesc, log} from '../../util';
@@ -11,7 +11,6 @@ import { VegaGroupedHistogram } from '../visualizations/GroupedHistogram';
 import { KaplanMeierPlot } from '../visualizations/KaplanMeierPlot';
 import { Scatterplot, TsneScatterplot } from '../visualizations/Scatterplot';
 import { ATask } from './ATask';
-import tippy from "tippy.js";
 import {createDBCohortAutomatically, ICohortMultiAttrDBDataParams} from "../../base";
 import {AutoSplitEvent} from "../../base/events";
 
@@ -67,19 +66,19 @@ export class Filter extends ATask {
         break;
       default: // 3 or more
         this.showTsne(attributes, cohorts);
-        this.container = container;
-        this.container.insertAdjacentHTML(
-          `afterbegin`,
-          `
-          <div class="vega-container"></div>
-          <div class="controls">
-            <div class="sticky" style="position: sticky; top: 0;"></div>
-          </div>
-        `,
-        );
-        this.controls = this.container.querySelector('.controls .sticky');
-        console.log("this.controls filter", this.controls);
-        this.addControls();
+        // this.container = container;
+        // this.container.insertAdjacentHTML(
+        //   `afterbegin`,
+        //   `
+        //   <div class="vega-container"></div>
+        //   <div class="controls">
+        //     <div class="sticky" style="position: sticky; top: 0;"></div>
+        //   </div>
+        // `,
+        // );
+        // this.controls = this.container.querySelector('.controls .sticky');
+        // console.log("this.controls filter", this.controls);
+        // this.addControls();
         break;
     }
   }
@@ -151,91 +150,90 @@ export class Filter extends ATask {
     this.cohorts = cohorts;
     this.setVisualizations([TsneScatterplot]);
 
-    // cohort_creation_experiments
-    this.$visContainer.innerHTML = 'Currently, we only support the visualization of up to two attributes.';
-    // this.addControls(); // why does it not add if I add here, only if I add it in show()?
-    this.attributes = attributes;
-    // this.$visContainer.innerHTML += '<button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>';
-    // TODO #647 fix tsne implementation
+    // // cohort_creation_experiments
+    // this.$visContainer.innerHTML = 'Currently, we only support the visualization of up to two attributes.';
+    // // this.addControls(); // why does it not add if I add here, only if I add it in show()?
     // this.attributes = attributes;
-    // this.cohorts = cohorts;
-    // this.setVisualizations([TsneScatterplot]);
+    // // this.$visContainer.innerHTML += '<button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>';
+    // // TODO #647 fix tsne implementation
+    // // this.attributes = attributes;
+    // // this.cohorts = cohorts;
+    // // this.setVisualizations([TsneScatterplot]);
   }
 
-  addControls() {
-    this.controls.insertAdjacentHTML(
-      'afterbegin',
-      `
-      <div class="d-grid gap-2">
-        <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
-        <label>Number of Clusters</label>
-        <input type="number" class="clusters" step="any" min="1" max="99" value="2" />
-        <button type="button" class="btn createAutomaticallyWithNumberOfClustersBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts for number of clusters</button>
-      </div>
-    `,
-    );
+  // addControls() {
+  //   this.controls.insertAdjacentHTML(
+  //     'afterbegin',
+  //     `
+  //     <div class="d-grid gap-2">
+  //       <button type="button" class="btn createAutomaticallyBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts automatically</button>
+  //       <label>Number of Clusters</label>
+  //       <input type="number" class="clusters" step="any" min="1" max="99" value="2" />
+  //       <button type="button" class="btn createAutomaticallyWithNumberOfClustersBtn btn-coral-prime" title="Calculate meaningful splits.">Create cohorts for number of clusters</button>
+  //     </div>
+  //   `,
+  //   );
+  //
+  //   select(this.controls)
+  //     .select('button.createAutomaticallyBtn')
+  //     .on('click', () => {
+  //       console.log("createAutomaticallyBtn clicked");
+  //       this.createAutomatically(false);
+  //     });
+  //
+  //   select(this.controls)
+  //     .select('button.createAutomaticallyWithNumberOfClustersBtn')
+  //     .on('click', () => {
+  //       console.log("createAutomaticallyWithNumberOfClustersBtn clicked");
+  //       this.createAutomatically(true);
+  //     });
+  // }
 
-    select(this.controls)
-      .select('button.createAutomaticallyBtn')
-      .on('click', () => {
-        console.log("createAutomaticallyBtn clicked");
-        this.createAutomatically(false);
-      });
-
-    select(this.controls)
-      .select('button.createAutomaticallyWithNumberOfClustersBtn')
-      .on('click', () => {
-        console.log("createAutomaticallyWithNumberOfClustersBtn clicked");
-        this.createAutomatically(true);
-      });
-  }
-
-  async createAutomatically(useNumberOfClusters = false) {
-    console.log("createAutomatically 3 or more attributes");
-    console.log("cohorts ", this.cohorts);
-    console.log("attributes ", this.attributes);
-    // todo: implement
-
-    let numberOfClusters = 0;
-    if (useNumberOfClusters) {
-      // select the bins field
-      // let controls = this.controls;
-      numberOfClusters = (this.controls.querySelector(`.controls input.clusters`) as HTMLInputElement).valueAsNumber;
-      console.log("numberOfClusters", numberOfClusters);
-    }
-
-    let newCohortIds = [];
-    let attributesMapped = this.attributes.map((attr) => {return {dataKey: attr.dataKey, type: attr.type}});
-    // convert the attributesParam to a JSON object
-    let attributesParam: string = JSON.stringify(attributesMapped);
-
-    for (const cht of this.cohorts) {
-      const params: ICohortMultiAttrDBDataParams = {
-        cohortId: cht.dbId,
-        attributes: attributesParam,
-        numberOfClusters: numberOfClusters,
-      };
-      newCohortIds = await createDBCohortAutomatically(params)
-      console.log("createAutomatically scatterplot data", newCohortIds);
-    }
-    // TODO: create the cohorts and show them
-
-    let cohortDescs: INewCohortDesc[];
-    cohortDescs = [];
-    // for every selected cohort
-    for (const cohort of this.cohorts) {
-      // for every newCohort create a filter (for now... the filter is actually not needed, will be changed in the future)
-      for (const newCohort of newCohortIds){
-        cohortDescs.push({
-          cohort: cohort,
-          newCohortId: newCohort,
-          attr:this.attributes
-        });
-      }
-    }
-
-    this.container.dispatchEvent(new AutoSplitEvent(cohortDescs));
-  }
+  // async createAutomatically(useNumberOfClusters = false) {
+  //   console.log("createAutomatically 3 or more attributes");
+  //   console.log("cohorts ", this.cohorts);
+  //   console.log("attributes ", this.attributes);
+  //
+  //   let numberOfClusters = 0;
+  //   if (useNumberOfClusters) {
+  //     // select the bins field
+  //     // let controls = this.controls;
+  //     numberOfClusters = (this.controls.querySelector(`.controls input.clusters`) as HTMLInputElement).valueAsNumber;
+  //     console.log("numberOfClusters", numberOfClusters);
+  //   }
+  //
+  //   let newCohortIds = [];
+  //   let attributesMapped = this.attributes.map((attr) => {return {dataKey: attr.dataKey, type: attr.type}});
+  //   // convert the attributesParam to a JSON object
+  //   let attributesParam: string = JSON.stringify(attributesMapped);
+  //
+  //   for (const cht of this.cohorts) {
+  //     const params: ICohortMultiAttrDBDataParams = {
+  //       cohortId: cht.dbId,
+  //       attributes: attributesParam,
+  //       numberOfClusters: numberOfClusters,
+  //     };
+  //     newCohortIds = await createDBCohortAutomatically(params)
+  //     console.log("createAutomatically scatterplot data", newCohortIds);
+  //   }
+  //   // TODO: create the cohorts and show them
+  //
+  //   let cohortDescs: INewCohortDesc[];
+  //   cohortDescs = [];
+  //   // for every selected cohort
+  //   for (const cohort of this.cohorts) {
+  //     // for every newCohort create a filter (for now... the filter is actually not needed, will be changed in the future)
+  //     for (const newCohort of newCohortIds){
+  //       cohortDescs.push({
+  //         cohort: cohort,
+  //         newCohortId: newCohort,
+  //         attr:this.attributes
+  //       });
+  //     }
+  //   }
+  //
+  //   this.container.dispatchEvent(new AutoSplitEvent(cohortDescs));
+  // }
 
 
 
