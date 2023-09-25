@@ -9,7 +9,7 @@ import { DensityPlot } from '../visualizations/DensityPlot';
 import { GroupedBoxplot } from '../visualizations/GroupedBoxplot';
 import { VegaGroupedHistogram } from '../visualizations/GroupedHistogram';
 import { KaplanMeierPlot } from '../visualizations/KaplanMeierPlot';
-import { Scatterplot } from '../visualizations/Scatterplot';
+import { Scatterplot, TsneScatterplot } from '../visualizations/Scatterplot';
 import { ATask } from './ATask';
 
 export class Filter extends ATask {
@@ -128,11 +128,9 @@ export class Filter extends ATask {
   }
 
   private async showTsne(attributes: IAttribute[], cohorts: ICohort[]) {
-    this.$visContainer.innerHTML = 'Currently, we only support the visualization of up to two attributes.';
-    // TODO #647 fix tsne implementation
-    // this.attributes = attributes;
-    // this.cohorts = cohorts;
-    // this.setVisualizations([TsneScatterplot]);
+    this.attributes = attributes;
+    this.cohorts = cohorts;
+    this.setVisualizations([TsneScatterplot]);
   }
 
   set title(title: string) {
