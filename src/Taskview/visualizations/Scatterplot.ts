@@ -18,6 +18,8 @@ export class Scatterplot extends MultiAttributeVisualization {
 
   protected checkAttributeType = false;
 
+  protected originalAttributes: IAttribute[];
+
   constructor(vegaLiteOptions: object = {}) {
     super(vegaLiteOptions);
   }
