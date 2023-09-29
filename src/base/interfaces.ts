@@ -105,10 +105,6 @@ export interface ICohortMultiAttrDBDataRecommendSplitParams extends IParams {
 
 export interface ICohortMultiAttrDBDataParams extends IParams {
   cohortId: number;
-  attribute0?: string;
-  attribute0type?: string;
-  attribute1?: string;
-  attribute1type?: string;
   numberOfClusters?: number;
   attributes?: string; // JSON string
 }
