@@ -300,10 +300,11 @@ export class SearchBar {
         if (d.optionType === 'gene') {
           // set global optionId
           this._geneHoverOptionId = d.optionId;
+          const currentTarget = event.currentTarget as HTMLElement; // store current target as it becomes null by the time the timeout is executed
           setTimeout(() => {
             // update detail after timeout time global and current optionId is equal
             if (d.optionId === this._geneHoverOptionId) {
-              this._mouseOverHandler(d, event.currentTarget);
+              this._mouseOverHandler(d, currentTarget);
             }
           }, 200);
         } else {
