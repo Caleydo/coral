@@ -1,5 +1,6 @@
 import vegaEmbed from 'vega-embed';
 import { TopLevelSpec as VegaLiteSpec } from 'vega-lite';
+import { View as VegaView } from 'vega';
 import { colors } from '../../config/colors';
 import { IAttribute } from '../../data';
 import { INumRange, IEqualsList, NumRangeOperators } from '../../base';
@@ -14,7 +15,7 @@ export class Histogram {
 
   readonly $hist: HTMLDivElement;
 
-  vegaView: any;
+  vegaView: VegaView;
 
   public showReference = true;
 
@@ -34,6 +35,11 @@ export class Histogram {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
     setTimeout(() => that.updateNode.bind(that)(), 0); // run async
+  }
+
+  public async remove() {
+    this.vegaView?.finalize();
+    this.$node.remove();
   }
 
   public async updateNode() {

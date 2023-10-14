@@ -55,6 +55,9 @@ export default class SearchColumn {
   public clear() {
     select(this.$searchColumn).select('.task.selected').classed('selected', false); // deselect all others
     this.searchBar.removeAllSelectedOptions();
+
+    // tellt tasks that the attributes changed/were cleared
+    this.updateTasks();
   }
 
   private getSelectedAttributes(): IAttribute[] {
