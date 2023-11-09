@@ -9,7 +9,41 @@
     "url": "https://jku-vds-lab.at/"
   },
   "license": "SEE LICENSE FILE",
-  "main": "dist/index.js",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": [
+        "./dist/index.d.ts",
+        "./src/index.ts"
+      ],
+      "import": [
+        "./dist/index.js",
+        "./src/index.ts"
+      ],
+      "default": [
+        "./dist/index.js",
+        "./src/index.ts"
+      ]
+    },
+    "./phovea_registry": [
+      "./dist/phovea_registry.js",
+      "./src/phovea_registry.ts"
+    ],
+    "./dist/phovea_registry": [
+      "./dist/phovea_registry.js",
+      "./src/phovea_registry.ts"
+    ],
+    "./src/scss/*": [
+      "./dist/scss/*",
+      "./src/scss/*"
+    ],
+    "./dist/scss/*": [
+      "./dist/scss/*",
+      "./src/scss/*"
+    ],
+    "./package.json": "./package.json"
+  },
   "bugs": {
     "url": "https://github.com/Caleydo/coral/issues"
   },
@@ -33,7 +67,6 @@
     "docs": "visyn_scripts docs",
     "lint:fix": "visyn_scripts lint --fix",
     "lint": "visyn_scripts lint",
-    "prepack": "yarn run build",
     "start": "visyn_scripts start --env workspace_mode=single",
     "storybook:build": "NODE_OPTIONS=--max_old_space_size=4096 build-storybook",
     "storybook": "NODE_OPTIONS=--max_old_space_size=4096 start-storybook -p 6006",
@@ -72,16 +105,16 @@
     "react-dom": "^16.13.0",
     "react-router-dom": "^5.2.0",
     "split-grid": "^1.0.9",
-    "tdp_core": "git+ssh://git@github.com/datavisyn/tdp_core#develop",
-    "tdp_publicdb": "git+ssh://git@github.com/caleydo/tdp_publicdb#develop",
+    "tdp_core": "git+ssh://git@github.com/datavisyn/tdp_core#no_dist",
+    "tdp_publicdb": "git+ssh://git@github.com/caleydo/tdp_publicdb#no_dist",
     "tippy.js": "^6.2.6",
-    "tourdino": "git+ssh://git@github.com/caleydo/tourdino#develop",
+    "tourdino": "git+ssh://git@github.com/caleydo/tourdino#no_dist",
     "vega": "~5.20.0",
     "vega-embed": "6.19.1",
     "vega-functions": "5.12.0",
     "vega-lite": "5.1.1",
     "vega-parser": "6.1.3",
-    "visyn_scripts": "git+ssh://git@github.com/datavisyn/visyn_scripts.git#develop"
+    "visyn_scripts": "git+ssh://git@github.com/datavisyn/visyn_scripts.git#no_dist"
   },
   "devDependencies": {
     "@types/d3-selection": "^3.0.2",
