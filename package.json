@@ -9,7 +9,49 @@
     "url": "https://jku-vds-lab.at/"
   },
   "license": "SEE LICENSE FILE",
-  "main": "dist/index.js",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": [
+        "./dist/index.d.ts",
+        "./src/index.ts"
+      ],
+      "import": [
+        "./dist/index.js",
+        "./src/index.ts"
+      ],
+      "default": [
+        "./dist/index.js",
+        "./src/index.ts"
+      ]
+    },
+    "./phovea_registry": [
+      "./dist/phovea_registry.js",
+      "./src/phovea_registry.ts"
+    ],
+    "./dist/phovea_registry": [
+      "./dist/phovea_registry.js",
+      "./src/phovea_registry.ts"
+    ],
+    "./src/assets/*": [
+      "./dist/assets/*",
+      "./src/assets/*"
+    ],
+    "./dist/assets/*": [
+      "./dist/assets/*",
+      "./src/assets/*"
+    ],
+    "./src/scss/*": [
+      "./dist/scss/*",
+      "./src/scss/*"
+    ],
+    "./dist/scss/*": [
+      "./dist/scss/*",
+      "./src/scss/*"
+    ],
+    "./package.json": "./package.json"
+  },
   "bugs": {
     "url": "https://github.com/Caleydo/coral/issues"
   },
@@ -33,7 +75,6 @@
     "docs": "visyn_scripts docs",
     "lint:fix": "visyn_scripts lint --fix",
     "lint": "visyn_scripts lint",
-    "prepack": "yarn run build",
     "start": "visyn_scripts start --env workspace_mode=single",
     "storybook:build": "NODE_OPTIONS=--max_old_space_size=4096 build-storybook",
     "storybook": "NODE_OPTIONS=--max_old_space_size=4096 start-storybook -p 6006",
