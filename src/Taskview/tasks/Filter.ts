@@ -43,10 +43,12 @@ export class Filter extends ATask {
 
   async show(columnHeader: HTMLDivElement, container: HTMLDivElement, attributes: IAttribute[], cohorts: ICohort[]) {
     super.show(columnHeader, container, attributes, cohorts);
-
     if (attributes.length > 0) {
       this.addVisSelector();
     }
+
+    // remove old vis (if any) as it will be replaced
+    this.vis?.destroy();
 
     this.$visContainer = this.body.append('div').classed('vis-container', true).node();
     // TODO #427 check number of attributes and theid types to define the visualizations
@@ -173,10 +175,7 @@ export class Filter extends ATask {
   async showWithVis(vis: AVegaVisualization) {
     const eventId = ++this.eventID; // get new eventID, we will compare it with the field again to see if it is still up to date
 
-    // remove old vis
-    if (this.vis) {
-      this.vis.destroy();
-    }
+    this.vis?.destroy();
     this.$visContainer.innerHTML = '';
 
     // show loading

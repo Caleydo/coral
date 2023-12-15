@@ -6,7 +6,7 @@ import type { IAttribute } from '../../data/IAttribute';
 import { Histogram } from './Histogram';
 
 export default class AttributeColumn extends ADataColumn {
-  private hists: WeakMap<ICohort, Histogram> = new WeakMap();
+  private hists: Map<ICohort, Histogram> = new Map();
 
   private showOutputChtHistRef = false;
 
@@ -153,5 +153,10 @@ export default class AttributeColumn extends ADataColumn {
     const hist = new Histogram(this.attribute, cht, this.showOutputChtHistRef, index, this.color);
     this.hists.set(cht, hist);
     cell.appendChild(hist.getNode());
+  }
+
+  public close(): void {
+    this.hists.forEach((hist) => hist.remove());
+    super.close();
   }
 }
