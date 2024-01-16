@@ -1,6 +1,9 @@
 {
   "extends": "visyn_scripts/config/tsconfig.eslint.template.json",
   "include": [
+    "cypress.config.ts",
+    "cypress/**/*.ts",
+    "cypress/**/*.tsx",
     "src/**/*.ts",
     "src/**/*.tsx",
     "tsd.d.ts",
