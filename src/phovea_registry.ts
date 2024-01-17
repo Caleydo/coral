@@ -11,8 +11,8 @@ import reg from './phovea';
  * build a registry by registering all phovea modules
  */
 // other modules
-import 'visyn_core/phovea_registry';
-import 'tdp_core/dist/phovea_registry';
+import 'tdp_publicdb/phovea_registry';
+import 'tourdino/phovea_registry';
 
 // self
 PluginRegistry.getInstance().register('coral', reg);

@@ -1,2 +1,1 @@
-tdp_publicdb@git+https://github.com/Caleydo/tdp_publicdb.git@develop#egg=tdp_publicdb
-tdp_core@git+https://github.com/datavisyn/tdp_core.git@develop#egg=tdp_core
+tdp_publicdb@git+https://github.com/Caleydo/tdp_publicdb.git@v14.0.1#egg=tdp_publicdb
