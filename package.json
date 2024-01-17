@@ -113,16 +113,15 @@
     "react-dom": "^16.13.0",
     "react-router-dom": "^5.2.0",
     "split-grid": "^1.0.9",
-    "tdp_core": "git+ssh://git@github.com/datavisyn/tdp_core#develop",
-    "tdp_publicdb": "git+ssh://git@github.com/caleydo/tdp_publicdb#develop",
+    "tdp_publicdb": "git+ssh://git@github.com:Caleydo/tdp_publicdb#semver:^14.0.1",
     "tippy.js": "^6.2.6",
-    "tourdino": "git+ssh://git@github.com/caleydo/tourdino#develop",
+    "tourdino": "git+ssh://git@github.com/caleydo/tourdino#semver:^8.0.0",
     "vega": "~5.20.0",
     "vega-embed": "6.19.1",
     "vega-functions": "5.12.0",
     "vega-lite": "5.1.1",
     "vega-parser": "6.1.3",
-    "visyn_scripts": "git+ssh://git@github.com/datavisyn/visyn_scripts.git#develop"
+    "visyn_scripts": "^4.1.0"
   },
   "devDependencies": {
     "@types/d3-selection": "^3.0.2",
